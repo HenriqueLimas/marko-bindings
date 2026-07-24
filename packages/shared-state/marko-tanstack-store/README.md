@@ -142,18 +142,28 @@ Use `<use-selector>` for readonly and computed atoms.
 <use-selector/selected=(state) => state.someValue store=store/>
 ```
 
-| Input   | Type                           | Description                                     |
-| ------- | ------------------------------ | ----------------------------------------------- |
-| `value` | `(state: TState) => TSelected` | Default input containing the selector function. |
-| `store` | `Readable<TState>`             | TanStack store or atom to observe.              |
+| Input     | Type                                                | Description                                          |
+| --------- | --------------------------------------------------- | ---------------------------------------------------- |
+| `value`   | `(state: TState) => TSelected`                      | Default input containing the selector function.      |
+| `store`   | `Readable<TState>`                                  | TanStack store or atom to observe.                   |
+| `compare` | `(previous: TSelected, next: TSelected) => boolean` | Optional equality function; defaults to `Object.is`. |
 
 Returns `TSelected` as a reactive, read-only tag variable. The tag:
 
 1. selects the initial value from `store.get()`;
 2. subscribes after mounting;
 3. reselects whenever the store emits;
-4. moves the subscription when `store` or the selector changes; and
-5. unsubscribes when the tag leaves the document.
+4. publishes only when `compare(previous, next)` returns `false`;
+5. moves the subscription when `store`, the selector, or comparison changes; and
+6. unsubscribes when the tag leaves the document.
+
+Use the re-exported `shallow` comparator for object or array selections:
+
+```marko
+import { shallow } from "marko-tanstack-store";
+
+<use-selector/user=(state) => state.user store=store compare=shallow/>
+```
 
 ### JavaScript exports
 

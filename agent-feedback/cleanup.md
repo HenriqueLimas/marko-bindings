@@ -2,11 +2,11 @@
 
 Duplication, inconsistencies, refactoring opportunities, and follow-up features. Format and rules: [README.md](README.md).
 
-## marko-tanstack-store: Add custom comparison to reactive selection tags
+## marko-tanstack-store: Forward custom comparison through use-atom
 
-`packages/shared-state/marko-tanstack-store/src/tags/use-selector.marko:1` | 2026-07-23 | impact:med | effort:low
+`packages/shared-state/marko-tanstack-store/src/tags/use-atom.marko:1` | 2026-07-23 | impact:low | effort:low
 
-TanStack's Svelte and React adapters accept a `compare` function for selectors, while `<use-selector>` and `<use-atom>` currently rely on Marko's default identity checks. Add an optional `compare` input to `<use-selector>` and forward it from `<use-atom>`. Keep the last selected value inside the subscription closure so comparison does not make the Marko script react to its own output, and test with the re-exported `shallow` comparator.
+`<use-selector>` supports a `compare` function, matching TanStack's Svelte and React adapters, but writable `<use-atom>` does not expose it yet. Add an optional comparison input to `<use-atom>` and forward it to the composed `<use-selector>`. Verify that comparison can suppress a published atom value without breaking assignment through Marko's `valueChange` binding.
 
 ## marko-tanstack-store: Allow use-selector to default to identity selection
 

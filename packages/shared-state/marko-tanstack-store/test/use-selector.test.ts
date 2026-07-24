@@ -27,6 +27,22 @@ describe("use-selector tag", () => {
     await waitFor(() => expect(screen.getByText("2")).toBeTruthy());
   });
 
+  test("uses a custom comparison before publishing a selection", async () => {
+    const store = createStore({ count: 1, label: "one" });
+    const compare = vi.fn(() => true);
+
+    await render(UseSelector, {
+      store,
+      selector: selectCount,
+      compare,
+    });
+    store.setState((state) => ({ ...state, count: 2 }));
+
+    await waitFor(() => expect(compare).toHaveBeenCalledWith(1, 2));
+    expect(screen.getByText("1")).toBeTruthy();
+    expect(screen.queryByText("2")).toBeNull();
+  });
+
   test("updates when the selector changes", async () => {
     const store = createStore({ count: 1, label: "one" });
     const result = await render(UseSelector, {
@@ -37,6 +53,7 @@ describe("use-selector tag", () => {
     await result.rerender({
       store,
       selector: (state) => state.label.length,
+      compare: undefined,
     });
 
     await waitFor(() => expect(screen.getByText("3")).toBeTruthy());
@@ -50,7 +67,11 @@ describe("use-selector tag", () => {
       selector: selectCount,
     });
 
-    await result.rerender({ store: secondStore, selector: selectCount });
+    await result.rerender({
+      store: secondStore,
+      selector: selectCount,
+      compare: undefined,
+    });
     await waitFor(() => expect(screen.getByText("10")).toBeTruthy());
 
     firstStore.setState((state) => ({ ...state, count: 2 }));
