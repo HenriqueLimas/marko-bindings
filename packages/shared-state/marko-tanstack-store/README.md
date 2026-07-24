@@ -119,11 +119,12 @@ Returns a writable `Atom<T>` as a tag variable.
 <use-atom/value=atom/>
 ```
 
-| Input   | Type      | Description                                   |
-| ------- | --------- | --------------------------------------------- |
-| `value` | `Atom<T>` | Default input containing the atom to observe. |
+| Input     | Type                                | Description                                          |
+| --------- | ----------------------------------- | ---------------------------------------------------- |
+| `value`   | `Atom<T>`                           | Default input containing the atom to observe.        |
+| `compare` | `(previous: T, next: T) => boolean` | Optional equality function; defaults to `Object.is`. |
 
-Returns the atom's current `T` as a reactive, writable tag variable. Assignments are forwarded to `atom.set()` through Marko's `valueChange` convention:
+Returns the atom's current `T` as a reactive, writable tag variable. Custom comparison controls which atom values are published without disabling writes. Assignments are forwarded to `atom.set()` through Marko's `valueChange` convention:
 
 ```marko
 <use-atom/count=atom/>

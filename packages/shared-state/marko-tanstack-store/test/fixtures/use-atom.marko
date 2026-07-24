@@ -2,9 +2,10 @@ import type { Atom } from "@tanstack/store";
 
 export interface Input {
   atom: Atom<number>;
+  compare?: (previous: number, next: number) => boolean;
 }
 
-<use-atom/value=input.atom/>
+<use-atom/value=input.atom compare=input.compare/>
 <output>${value}</output>
 <button onClick() {
   value += 5;

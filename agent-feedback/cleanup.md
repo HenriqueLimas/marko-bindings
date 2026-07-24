@@ -2,12 +2,6 @@
 
 Duplication, inconsistencies, refactoring opportunities, and follow-up features. Format and rules: [README.md](README.md).
 
-## marko-tanstack-store: Forward custom comparison through use-atom
-
-`packages/shared-state/marko-tanstack-store/src/tags/use-atom.marko:1` | 2026-07-23 | impact:low | effort:low
-
-`<use-selector>` supports a `compare` function, matching TanStack's Svelte and React adapters, but writable `<use-atom>` does not expose it yet. Add an optional comparison input to `<use-atom>` and forward it to the composed `<use-selector>`. Verify that comparison can suppress a published atom value without breaking assignment through Marko's `valueChange` binding.
-
 ## marko-tanstack-store: Allow use-selector to default to identity selection
 
 `packages/shared-state/marko-tanstack-store/src/tags/use-selector.marko:3` | 2026-07-23 | impact:low | effort:low
