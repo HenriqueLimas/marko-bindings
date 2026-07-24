@@ -23,6 +23,10 @@
       "types": "./src/index.d.ts",
       "import": "./src/index.js"
     },
+    "./utils": {
+      "types": "./src/utils.d.ts",
+      "import": "./src/utils.js"
+    },
     "./marko.json": "./marko.json",
     "./package.json": "./package.json"
   },

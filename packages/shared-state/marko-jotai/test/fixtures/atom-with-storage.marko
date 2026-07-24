@@ -1,0 +1,13 @@
+import { atomWithStorage } from "marko-jotai/utils";
+import { createStore } from "marko-jotai";
+
+<const/store=createStore()>
+<const/countAtom=atomWithStorage("marko-jotai-count", 1)>
+<use-atom/count=countAtom store=store/>
+
+<output>${count}</output>
+<button onClick() {
+  count += 5;
+}>
+  Add five
+</button>

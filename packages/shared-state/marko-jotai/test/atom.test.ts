@@ -8,11 +8,15 @@ import {
 import { atom, createStore } from "marko-jotai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
+import AtomWithStorage from "./fixtures/atom-with-storage.marko";
 import ConditionalUseAtom from "./fixtures/conditional-use-atom.marko";
 import ConstStore from "./fixtures/const-store.marko";
 import UseAtom from "./fixtures/use-atom.marko";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+});
 
 describe("use-atom tag", () => {
   test("uses a store created in a const tag", async () => {
@@ -45,6 +49,14 @@ describe("use-atom tag", () => {
 
     await waitFor(() => expect(store.get(countAtom)).toBe(6));
     expect(screen.getByText("6")).toBeTruthy();
+  });
+
+  test("supports atomWithStorage atoms", async () => {
+    await render(AtomWithStorage);
+    await fireEvent.click(screen.getByRole("button", { name: "Add five" }));
+
+    await waitFor(() => expect(screen.getByText("6")).toBeTruthy());
+    expect(localStorage.getItem("marko-jotai-count")).toBe("6");
   });
 
   test("unsubscribes when the tag is removed", async () => {

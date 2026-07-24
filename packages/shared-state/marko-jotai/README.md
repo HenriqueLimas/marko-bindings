@@ -2,7 +2,7 @@
 
 Jotai bindings for Marko 6.
 
-The package owns its Jotai dependency and re-exports Jotai's framework-independent `jotai/vanilla` API, so applications only need to install `marko-jotai`.
+The package owns its Jotai dependency and re-exports Jotai's framework-independent `jotai/vanilla` API, so applications only need to install `marko-jotai`. Supported utilities are available from `marko-jotai/utils`.
 
 ## Install
 
@@ -59,8 +59,19 @@ import { atom, createStore, getDefaultStore } from "marko-jotai";
 
 The complete `jotai/vanilla` entrypoint is re-exported; React is not required.
 
+### Utilities
+
+`atomWithStorage` is available from the utilities entrypoint and works with `<use-atom>`:
+
+```marko
+import { atomWithStorage } from "marko-jotai/utils";
+import { createStore } from "marko-jotai";
+
+<const/store=createStore()>
+<const/countAtom=atomWithStorage("count", 0)>
+<use-atom/count=countAtom store=store/>
+```
+
 ## Server rendering
 
 A Jotai atom and store can be read during rendering, but their closures cannot cross a Marko server-resume serialization boundary. Create stores in the scope that owns them and avoid process-wide stores for request-specific state.
-
-Async and loadable atom helpers from `jotai/utils` are intentionally outside the initial API.
