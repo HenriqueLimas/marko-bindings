@@ -14,14 +14,13 @@ pnpm add marko-jotai
 
 ## Usage
 
-Create the atom and its explicitly owned store, then expose the atom's value with `<use-atom>`:
+Create a writable atom, then expose its value with `<use-atom>`:
 
 ```marko
-import { atom, createStore } from "marko-jotai";
+import { atom } from "marko-jotai";
 
-<const/store=createStore()>
 <const/countAtom=atom(0)>
-<use-atom/count=countAtom store=store/>
+<use-atom/count=countAtom/>
 
 <button onClick() {
   count++;
@@ -30,26 +29,83 @@ import { atom, createStore } from "marko-jotai";
 </button>
 ```
 
-The `/count` portion names the returned reactive tag variable. Assigning to `count` writes through to the Jotai atom, so separate `use-atom-state` and `use-atom-value` tags are unnecessary. Updates made through `store.set()` also flow back into `count`.
+The `/count` portion names the returned reactive tag variable. Assigning to `count` writes through to the Jotai atom, and store updates flow back into `count`.
 
-A store is required instead of falling back to Jotai's process-wide default store. This keeps ownership and request isolation explicit.
+Like Jotai's React hooks, both tags use `getDefaultStore()` when `store` is omitted. Pass an explicit store when state needs its own owner or request boundary.
+
+### Async atoms
+
+Use `<use-atom-value>` for a readable async atom. Its body parameter is the resolved value, and its internal `<await>` activates the surrounding `<try>` pending and error UI:
+
+```marko
+import { atom } from "marko-jotai";
+
+export interface Input {
+  numPromise: Promise<number>;
+}
+
+<const/asyncAtom=atom(() => input.numPromise)>
+
+<try>
+  <use-atom-value|num|=asyncAtom><output>${num}</output></use-atom-value>
+
+  <@placeholder>Loading...</@placeholder>
+  <@catch|error|>${String(error)}</@catch>
+</try>
+```
+
+Writable async atoms can use the same body-parameter form with `<use-atom>`:
+
+```marko
+<const/asyncAtom=atom(input.numPromise)>
+
+<try>
+  <use-atom|num|=asyncAtom><output>${num}</output></use-atom>
+
+  <@placeholder>Loading...</@placeholder>
+  <@catch|error|>${String(error)}</@catch>
+</try>
+```
 
 ## API
 
 ### `<use-atom>`
 
 ```marko
-<use-atom/value=atom store=store/>
+<use-atom/value=atom/>
+
+<use-atom|value|=atom>
+  <!-- render with value -->
+</use-atom>
 ```
 
-| Input   | Type                             | Description                                   |
-| ------- | -------------------------------- | --------------------------------------------- |
-| `value` | `WritableAtom<T, [T], unknown>`  | Default input containing the atom to observe. |
-| `store` | `ReturnType<typeof createStore>` | Store that owns the atom's state.             |
+| Input     | Type                             | Description                                      |
+| --------- | -------------------------------- | ------------------------------------------------ |
+| `value`   | `WritableAtom<T, [T], unknown>`  | Default input containing the writable atom.      |
+| `store`   | `ReturnType<typeof createStore>` | Optional store; defaults to `getDefaultStore()`. |
+| `content` | `Marko.Body<[Awaited<T>]>`       | Optional body receiving the resolved atom value. |
 
-Returns the atom's current `T` as a reactive, writable tag variable. The tag reads with `store.get()`, subscribes with `store.sub()`, forwards assignments through `store.set()`, and unsubscribes when it leaves the document.
+The `/value` form returns the atom's current `T` as a reactive, writable tag variable. The `|value|` form renders body content with `Awaited<T>` and resolves promises through an internal `<await>`. The tag subscribes with `store.sub()` and unsubscribes when it leaves the document.
 
 Atoms whose write function requires multiple arguments do not map to a single Marko assignment and are not accepted by this initial API.
+
+### `<use-atom-value>`
+
+```marko
+<use-atom-value/value=atom/>
+
+<use-atom-value|value|=atom>
+  <!-- render with value -->
+</use-atom-value>
+```
+
+| Input     | Type                             | Description                                      |
+| --------- | -------------------------------- | ------------------------------------------------ |
+| `value`   | `Atom<T>`                        | Default input containing any readable atom.      |
+| `store`   | `ReturnType<typeof createStore>` | Optional store; defaults to `getDefaultStore()`. |
+| `content` | `Marko.Body<[Awaited<T>]>`       | Optional body receiving the resolved atom value. |
+
+The `/value` form returns the atom's current `T` as a reactive, read-only tag variable. For async atoms this is the raw promise. The `|value|` form resolves promise values through `<await>` and passes `Awaited<T>` to its body.
 
 ### JavaScript exports
 
@@ -65,13 +121,11 @@ The complete `jotai/vanilla` entrypoint is re-exported; React is not required.
 
 ```marko
 import { atomWithStorage } from "marko-jotai/utils";
-import { createStore } from "marko-jotai";
 
-<const/store=createStore()>
 <const/countAtom=atomWithStorage("count", 0)>
-<use-atom/count=countAtom store=store/>
+<use-atom/count=countAtom/>
 ```
 
 ## Server rendering
 
-A Jotai atom and store can be read during rendering, but their closures cannot cross a Marko server-resume serialization boundary. Create stores in the scope that owns them and avoid process-wide stores for request-specific state.
+A Jotai atom and store can be read during rendering, but their closures cannot cross a Marko server-resume serialization boundary. The default store is process-wide, so pass an explicitly owned store for request-specific server state.

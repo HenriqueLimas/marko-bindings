@@ -1,7 +1,7 @@
-import { getDefaultStore, type WritableAtom } from "jotai/vanilla";
+import { type Atom, getDefaultStore } from "jotai/vanilla";
 
 export interface Input<T> {
-  value: WritableAtom<T, [T], unknown>;
+  value: Atom<T>;
   store?: ReturnType<typeof getDefaultStore>;
   content?: Marko.Body<[Awaited<T>]>;
 }
@@ -24,8 +24,4 @@ export interface Input<T> {
   </await>
 </if>
 
-<return=value
-  valueChange(next) {
-    store.set(atom, next);
-  }
->
+<return=value>

@@ -5,13 +5,16 @@ import {
   screen,
   waitFor,
 } from "@marko/testing-library";
-import { atom, createStore } from "marko-jotai";
+import { atom, createStore, getDefaultStore } from "marko-jotai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
+import AsyncAtom from "./fixtures/async-atom.marko";
+import AsyncWritableAtom from "./fixtures/async-writable-atom.marko";
 import AtomWithStorage from "./fixtures/atom-with-storage.marko";
 import ConditionalUseAtom from "./fixtures/conditional-use-atom.marko";
-import ConstStore from "./fixtures/const-store.marko";
+import DefaultStore from "./fixtures/default-store.marko";
 import UseAtom from "./fixtures/use-atom.marko";
+import UseAtomValue from "./fixtures/use-atom-value.marko";
 
 afterEach(() => {
   cleanup();
@@ -19,8 +22,30 @@ afterEach(() => {
 });
 
 describe("use-atom tag", () => {
-  test("uses a store created in a const tag", async () => {
-    await render(ConstStore);
+  test("resolves async writable atoms through a body parameter", async () => {
+    const value = deferred<number>();
+    const asyncAtom = atom(value.promise);
+    const store = createStore();
+    await render(AsyncWritableAtom, { atom: asyncAtom, store });
+
+    expect(await screen.findByText("Loading...")).toBeTruthy();
+
+    value.resolve(42);
+
+    await waitFor(() => expect(screen.getByText("42")).toBeTruthy());
+
+    const nextValue = deferred<number>();
+    store.set(asyncAtom, nextValue.promise);
+
+    expect(await screen.findByText("Loading...")).toBeTruthy();
+
+    nextValue.resolve(43);
+
+    await waitFor(() => expect(screen.getByText("43")).toBeTruthy());
+  });
+
+  test("uses the default store when one is not provided", async () => {
+    await render(DefaultStore);
 
     expect(screen.getByText("2")).toBeTruthy();
     await fireEvent.click(screen.getByRole("button", { name: "Increment" }));
@@ -75,3 +100,63 @@ describe("use-atom tag", () => {
     expect(unsubscribe).toHaveBeenCalledOnce();
   });
 });
+
+describe("use-atom-value tag", () => {
+  test("returns a reactive read-only atom value", async () => {
+    const sourceAtom = atom(1);
+    const readableAtom = atom((get) => get(sourceAtom));
+    const store = createStore();
+
+    await render(UseAtomValue, { atom: readableAtom, store });
+    expect(screen.getByText("1")).toBeTruthy();
+
+    store.set(sourceAtom, 2);
+
+    await waitFor(() => expect(screen.getByText("2")).toBeTruthy());
+  });
+
+  test("supports async atoms with a try placeholder", async () => {
+    const value = deferred<number>();
+    const sourceAtom = atom(value.promise);
+    const asyncAtom = atom((get) => get(sourceAtom));
+    const store = getDefaultStore();
+    await render(AsyncAtom, { atom: asyncAtom });
+
+    expect(await screen.findByText("Loading...")).toBeTruthy();
+
+    value.resolve(42);
+
+    await waitFor(() => expect(screen.getByText("42")).toBeTruthy());
+
+    const nextValue = deferred<number>();
+    store.set(sourceAtom, nextValue.promise);
+
+    expect(await screen.findByText("Loading...")).toBeTruthy();
+
+    nextValue.resolve(43);
+
+    await waitFor(() => expect(screen.getByText("43")).toBeTruthy());
+  });
+
+  test("catches rejected async atoms", async () => {
+    const value = deferred<number>();
+    const asyncAtom = atom(() => value.promise);
+    await render(AsyncAtom, { atom: asyncAtom, store: createStore() });
+    await screen.findByText("Loading...");
+
+    value.reject(new Error("No number"));
+
+    expect(await screen.findByText("Error: No number")).toBeTruthy();
+  });
+});
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+
+  return { promise, reject, resolve };
+}

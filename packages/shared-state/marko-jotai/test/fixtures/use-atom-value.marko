@@ -1,0 +1,9 @@
+import { type Atom, type createStore } from "marko-jotai";
+
+export interface Input {
+  atom: Atom<number>;
+  store: ReturnType<typeof createStore>;
+}
+
+<use-atom-value/value=input.atom store=input.store/>
+<output>${value}</output>
