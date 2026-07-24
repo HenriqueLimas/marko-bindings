@@ -3,11 +3,17 @@ packages:
   - "examples/*"
 
 catalog:
+  "@marko/language-tools": ^2.6.5
   "@marko/testing-library": ^6.4.2
   "@marko/type-check": ^3.1.3
   "@marko/vite": ^6.1.7
+  "@tanstack/store": ^0.11.0
   "@types/node": ^26.1.1
+  jsdom: ^29.1.1
   marko: ^6.3.20
   typescript: ^6.0.3
   vite: ^8.1.5
   vitest: ^4.1.10
+
+minimumReleaseAgeExclude:
+  - marko@6.3.20

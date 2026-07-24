@@ -1,0 +1,20 @@
+import type { Readable } from "@tanstack/store";
+
+export interface Input<TState, TSelected> {
+  value: (state: TState) => TSelected;
+  store: Readable<TState>;
+}
+
+<const/selector=input.value>
+<const/store=input.store>
+<let/selected: TSelected=selector(store.get())>
+<script>
+  selected = selector(store.get());
+  const subscription = store.subscribe((state) => {
+    selected = selector(state);
+  });
+
+  $signal.onabort = () => subscription.unsubscribe();
+</script>
+
+<return=selected>

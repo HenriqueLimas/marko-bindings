@@ -29,7 +29,7 @@ packages/
 - **Marko 6 only.** New code uses the tags API, typed inputs, and current Marko syntax rather than class components.
 - **Progressive enhancement matters.** Keep server rendering useful and isolate browser-only behavior.
 - **Own the lifecycle.** Subscriptions, effects, and library instances must be scoped and cleaned up by the binding.
-- **Keep libraries as peers.** A binding's upstream library and `marko` belong in `peerDependencies` so applications control their versions.
+- **Make dependency ownership explicit.** Keep `marko` as a peer. Upstream libraries may be dependencies when a binding deliberately re-exports their API as a single-install package; otherwise prefer peers.
 - **Packages stay independent.** Each binding has its own tests, changelog, version, and release.
 
 ## Development

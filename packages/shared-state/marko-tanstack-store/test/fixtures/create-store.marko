@@ -1,0 +1,13 @@
+export interface Input {
+  initialCount: number;
+}
+
+<create-store/counter={ count: input.initialCount }/>
+<use-selector/count=(state) => state.count store=counter/>
+
+<output>${count}</output>
+<button onClick() {
+  counter.setState((state) => ({ ...state, count: state.count + 1 }));
+}>
+  Increment
+</button>

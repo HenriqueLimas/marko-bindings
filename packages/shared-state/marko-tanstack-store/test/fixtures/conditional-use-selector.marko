@@ -1,0 +1,11 @@
+import type { Readable } from "@tanstack/store";
+
+export interface Input {
+  store: Readable<{ count: number; label: string }>;
+  show: boolean;
+}
+
+<if=input.show>
+  <use-selector/selected=(state) => state.count store=input.store/>
+  <output>${selected}</output>
+</if>

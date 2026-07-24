@@ -30,7 +30,7 @@ Use a package-level `marko.json` to make the tag library explicit:
 
 ## Package contract
 
-A typical manifest starts with the following shape. Replace `library` and its version range with the real upstream package.
+A typical peer-based manifest starts with the following shape. Replace `library` and its version range with the real upstream package. If the binding intentionally re-exports the upstream API as a single-install package, put `library` in `dependencies` instead and document that ownership decision.
 
 ```json
 {
@@ -49,9 +49,11 @@ A typical manifest starts with the following shape. Replace `library` and its ve
     "marko": "^6.3.20"
   },
   "devDependencies": {
+    "@marko/language-tools": "catalog:",
     "@marko/testing-library": "catalog:",
     "@marko/type-check": "catalog:",
     "@marko/vite": "catalog:",
+    "jsdom": "catalog:",
     "library": "^1.0.0",
     "marko": "catalog:",
     "typescript": "catalog:",

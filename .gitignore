@@ -4,6 +4,7 @@ coverage/
 .marko-cache/
 .vite/
 *.log
+*.tsbuildinfo
 .DS_Store
 .env
 .env.*

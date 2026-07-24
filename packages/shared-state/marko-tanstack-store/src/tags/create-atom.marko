@@ -1,0 +1,9 @@
+import { createAtom, type AtomOptions } from "@tanstack/store";
+
+export interface Input<T> {
+  value: T;
+  options?: AtomOptions<T>;
+}
+
+<const/atom=createAtom(input.value, input.options)>
+<return=atom>

@@ -15,7 +15,7 @@ Every binding should include:
 - typed Marko tag inputs and tag parameters;
 - tests for rendering, updates, teardown, and relevant SSR behavior;
 - a README showing the tag API rather than only low-level JavaScript;
-- `marko` and the wrapped library as peer dependencies;
+- `marko` as a peer dependency and an explicit ownership decision for the wrapped library;
 - package scripts for `build`, `typecheck`, and `test` when applicable.
 
 Run `pnpm check` and `pnpm build` before opening a pull request.
