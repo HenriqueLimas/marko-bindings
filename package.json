@@ -1,0 +1,30 @@
+{
+  "name": "marko-bindings",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Marko 6 tag-first bindings for the JavaScript ecosystem",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm --recursive --if-present build",
+    "changeset": "changeset",
+    "check": "pnpm format:check && pnpm typecheck && pnpm test",
+    "clean": "pnpm --recursive --if-present clean",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "release": "pnpm build && changeset publish",
+    "test": "pnpm --recursive --if-present test",
+    "typecheck": "pnpm --recursive --if-present typecheck",
+    "version-packages": "changeset version"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.31.1",
+    "prettier": "^3.9.6",
+    "prettier-plugin-marko": "^4.0.10",
+    "prettier-plugin-packagejson": "^3.0.2"
+  },
+  "packageManager": "pnpm@11.15.1",
+  "engines": {
+    "node": ">=22.12.0",
+    "pnpm": ">=11.0.0"
+  }
+}

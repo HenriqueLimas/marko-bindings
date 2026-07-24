@@ -1,0 +1,7 @@
+node_modules/
+dist/
+coverage/
+.marko-cache/
+.vite/
+pnpm-lock.yaml
+CHANGELOG.md
