@@ -1,0 +1,12 @@
+import { atom, createStore } from "marko-jotai";
+
+<const/store=createStore()>
+<const/countAtom=atom(2)>
+<use-atom/count=countAtom store=store/>
+
+<output>${count}</output>
+<button onClick() {
+  count++;
+}>
+  Increment
+</button>

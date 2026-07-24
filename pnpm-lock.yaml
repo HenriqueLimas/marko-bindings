@@ -54,6 +54,40 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2(prettier@3.9.6)
 
+  packages/shared-state/marko-jotai:
+    dependencies:
+      jotai:
+        specifier: ^2.20.2
+        version: 2.20.2
+    devDependencies:
+      '@marko/language-tools':
+        specifier: 'catalog:'
+        version: 2.6.5
+      '@marko/testing-library':
+        specifier: 'catalog:'
+        version: 6.4.2(marko@6.3.20)
+      '@marko/type-check':
+        specifier: 'catalog:'
+        version: 3.1.3
+      '@marko/vite':
+        specifier: 'catalog:'
+        version: 6.1.7(@marko/compiler@5.41.4)(vite@8.1.5)
+      jsdom:
+        specifier: 'catalog:'
+        version: 29.1.1
+      marko:
+        specifier: 'catalog:'
+        version: 6.3.20
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vite:
+        specifier: 'catalog:'
+        version: 8.1.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.10(jsdom@29.1.1)(vite@8.1.5)
+
   packages/shared-state/marko-tanstack-store:
     dependencies:
       '@tanstack/store':
@@ -869,6 +903,24 @@ packages:
 
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==, tarball: https://artifactory.corp.ebay.com/artifactory/api/npm/npm-corp/isexe/-/isexe-2.0.0.tgz}
+
+  jotai@2.20.2:
+    resolution: {integrity: sha512-aHB4CNb9qRcyf0mwSB6EO5bCGAjx8cTwFgOFCE2leOnTzqACbnSWG8XoWB3LxCT1Qoj03I1OWAHszDmN4uHb/w==, tarball: https://artifactory.corp.ebay.com/artifactory/api/npm/npm-corp/jotai/-/jotai-2.20.2.tgz}
+    engines: {node: '>=12.20.0'}
+    peerDependencies:
+      '@babel/core': '>=7.0.0'
+      '@babel/template': '>=7.0.0'
+      '@types/react': '>=17.0.0'
+      react: '>=17.0.0'
+    peerDependenciesMeta:
+      '@babel/core':
+        optional: true
+      '@babel/template':
+        optional: true
+      '@types/react':
+        optional: true
+      react:
+        optional: true
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==, tarball: https://artifactory.corp.ebay.com/artifactory/api/npm/npm-corp/js-tokens/-/js-tokens-4.0.0.tgz}
@@ -2215,6 +2267,8 @@ snapshots:
   is-windows@1.0.2: {}
 
   isexe@2.0.0: {}
+
+  jotai@2.20.2: {}
 
   js-tokens@4.0.0: {}
 

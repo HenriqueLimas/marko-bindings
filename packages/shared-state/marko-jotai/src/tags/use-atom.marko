@@ -1,0 +1,24 @@
+import { type createStore, type WritableAtom } from "jotai/vanilla";
+
+export interface Input<T> {
+  value: WritableAtom<T, [T], unknown>;
+  store: ReturnType<typeof createStore>;
+}
+
+<const/atom=input.value>
+<const/store=input.store>
+<let/value=store.get(atom)>
+<script>
+  value = store.get(atom);
+  const unsubscribe = store.sub(atom, () => {
+    value = store.get(atom);
+  });
+
+  $signal.onabort = unsubscribe;
+</script>
+
+<return=value
+  valueChange(next) {
+    store.set(atom, next);
+  }
+>

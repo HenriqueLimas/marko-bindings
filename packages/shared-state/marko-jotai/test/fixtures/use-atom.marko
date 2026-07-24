@@ -1,0 +1,14 @@
+import type { createStore, PrimitiveAtom } from "jotai/vanilla";
+
+export interface Input {
+  atom: PrimitiveAtom<number>;
+  store: ReturnType<typeof createStore>;
+}
+
+<use-atom/value=input.atom store=input.store/>
+<output>${value}</output>
+<button onClick() {
+  value += 5;
+}>
+  Add five
+</button>
