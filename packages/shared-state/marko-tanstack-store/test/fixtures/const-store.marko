@@ -1,8 +1,6 @@
-export interface Input {
-  initialCount: number;
-}
+import { createStore } from "marko-tanstack-store";
 
-<create-store/counter={ count: input.initialCount }/>
+<const/counter=createStore({ count: 2 })>
 <use-selector/count=(state) => state.count store=counter/>
 
 <output>${count}</output>

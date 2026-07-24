@@ -1,6 +1,6 @@
 # marko-tanstack-store
 
-TanStack Store creation and reactive selectors as native Marko 6 tags.
+TanStack Store and atom bindings for Marko 6.
 
 The package owns its `@tanstack/store` dependency and re-exports its public API, so applications only need to install `marko-tanstack-store`.
 
@@ -40,10 +40,12 @@ The expression assigned to `<use-selector>` is its default `value` input. The `/
 
 ### Creating a store in markup
 
-Use `<create-store>` when the store belongs to a Marko tag rather than a JavaScript module:
+Call `createStore` from a Marko `<const>` when the store belongs to a tag rather than a JavaScript module:
 
 ```marko
-<create-store/counter={ count: 0 }/>
+import { createStore } from "marko-tanstack-store";
+
+<const/counter=createStore({ count: 0 })>
 <use-selector/count=(state) => state.count store=counter/>
 
 <button onClick() {
@@ -53,14 +55,16 @@ Use `<create-store>` when the store belongs to a Marko tag rather than a JavaScr
 </button>
 ```
 
-The returned value is the same typed TanStack `Store` produced by the JavaScript `createStore` API. Use `createStore()` when a JavaScript module owns the store or when an actions factory is needed; use `<create-store>` for a simple tag-local store.
+Calling the JavaScript API directly preserves all of TanStack's overloads and inferred return types for mutable, action, and readonly derived stores.
 
 ### Creating and using an atom in markup
 
-`<create-atom>` creates a writable atom. `<use-atom>` exposes it as one writable Marko tag variable, using Marko's `value`/`valueChange` binding instead of a `[state, setState]` tuple:
+Call `createAtom` from a Marko `<const>` and use `<use-atom>` to expose it as one writable tag variable. `<use-atom>` uses Marko's `value`/`valueChange` binding instead of a `[state, setState]` tuple:
 
 ```marko
-<create-atom/atom=0/>
+import { createAtom } from "marko-tanstack-store";
+
+<const/atom=createAtom(0)>
 <use-atom/count=atom/>
 
 <button onClick() {
@@ -87,31 +91,6 @@ Selectors can return any value:
 ```
 
 ## API
-
-### `<create-store>`
-
-```marko
-<create-store/store=initialState/>
-```
-
-| Input   | Type     | Description                                 |
-| ------- | -------- | ------------------------------------------- |
-| `value` | `TState` | Default input containing the initial state. |
-
-Returns a typed mutable store as a tag variable. The store is recreated if the input changes and is discarded when the owning tag leaves the document. Use the JavaScript `createStore` export for action factories.
-
-### `<create-atom>`
-
-```marko
-<create-atom/atom=initialValue options=options/>
-```
-
-| Input     | Type             | Description                                        |
-| --------- | ---------------- | -------------------------------------------------- |
-| `value`   | `T`              | Default input containing the atom's initial value. |
-| `options` | `AtomOptions<T>` | Optional TanStack comparison options.              |
-
-Returns a writable `Atom<T>` as a tag variable.
 
 ### `<use-atom>`
 
@@ -192,4 +171,4 @@ No separate `@tanstack/store` installation is required.
 
 ## Server rendering
 
-TanStack Store and atom instances contain closures and cannot currently cross a Marko server-resume serialization boundary. Use `<create-store>`, `<create-atom>`, `<use-atom>`, and `<use-selector>` with client-rendered state. A future server binding will need an explicit strategy for recreating request-scoped stores in the browser rather than serializing Store instances directly.
+TanStack Store and atom instances contain closures and cannot currently cross a Marko server-resume serialization boundary. Use `createStore`, `createAtom`, `<use-atom>`, and `<use-selector>` with client-rendered state. A future server binding will need an explicit strategy for recreating request-scoped stores in the browser rather than serializing Store instances directly.

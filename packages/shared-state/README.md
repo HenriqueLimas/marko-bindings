@@ -6,4 +6,4 @@ Packages in this group should make ownership and request isolation explicit. Avo
 
 ## Packages
 
-- [`marko-tanstack-store`](marko-tanstack-store) — tag-local stores and atoms with reactive TanStack Store selectors.
+- [`marko-tanstack-store`](marko-tanstack-store) — TanStack stores and atoms with native Marko reactive bindings.

@@ -1,8 +1,15 @@
-import { cleanup, render, screen, waitFor } from "@marko/testing-library";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@marko/testing-library";
 import { createStore } from "marko-tanstack-store";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import ConditionalUseSelector from "./fixtures/conditional-use-selector.marko";
+import ConstStore from "./fixtures/const-store.marko";
 import UseSelectorIdentity from "./fixtures/use-selector-identity.marko";
 import UseSelector from "./fixtures/use-selector.marko";
 
@@ -11,6 +18,15 @@ afterEach(cleanup);
 const selectCount = (state: { count: number }) => state.count;
 
 describe("use-selector tag", () => {
+  test("selects from a store created in a const tag", async () => {
+    await render(ConstStore);
+
+    expect(screen.getByText("2")).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: "Increment" }));
+
+    await waitFor(() => expect(screen.getByText("3")).toBeTruthy());
+  });
+
   test("returns the selected store value", async () => {
     const store = createStore({ count: 1, label: "one" });
 
