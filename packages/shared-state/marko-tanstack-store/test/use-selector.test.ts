@@ -3,6 +3,7 @@ import { createStore } from "marko-tanstack-store";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import ConditionalUseSelector from "./fixtures/conditional-use-selector.marko";
+import UseSelectorIdentity from "./fixtures/use-selector-identity.marko";
 import UseSelector from "./fixtures/use-selector.marko";
 
 afterEach(cleanup);
@@ -16,6 +17,15 @@ describe("use-selector tag", () => {
     await render(UseSelector, { store, selector: selectCount });
 
     expect(screen.getByText("1")).toBeTruthy();
+  });
+
+  test("defaults to selecting the complete store value", async () => {
+    const store = createStore({ count: 1, label: "one" });
+
+    await render(UseSelectorIdentity, { store });
+    store.setState(() => ({ count: 2, label: "two" }));
+
+    await waitFor(() => expect(screen.getByText("2:two")).toBeTruthy());
   });
 
   test("reacts to selected store updates", async () => {

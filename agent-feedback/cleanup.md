@@ -2,12 +2,6 @@
 
 Duplication, inconsistencies, refactoring opportunities, and follow-up features. Format and rules: [README.md](README.md).
 
-## marko-tanstack-store: Allow use-selector to default to identity selection
-
-`packages/shared-state/marko-tanstack-store/src/tags/use-selector.marko:3` | 2026-07-23 | impact:low | effort:low
-
-Other TanStack adapters allow the selector to be omitted when the whole source value is needed. Make the default `value` input optional so consumers can write `<use-selector/state store=store/>`, while preserving inference for explicit selectors. `<use-atom>` should remain the writable convenience for mutable atoms; identity `<use-selector>` must also support readonly atoms and stores.
-
 ## marko-tanstack-store: Add typed readonly and asynchronous creation tags
 
 `packages/shared-state/marko-tanstack-store/src/tags/create-atom.marko:1` | 2026-07-23 | impact:med | effort:med

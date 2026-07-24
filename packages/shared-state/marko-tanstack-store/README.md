@@ -139,15 +139,23 @@ Use `<use-selector>` for readonly and computed atoms.
 
 ### `<use-selector>`
 
+Select part of a source:
+
 ```marko
 <use-selector/selected=(state) => state.someValue store=store/>
 ```
 
-| Input     | Type                                                | Description                                          |
-| --------- | --------------------------------------------------- | ---------------------------------------------------- |
-| `value`   | `(state: TState) => TSelected`                      | Default input containing the selector function.      |
-| `store`   | `Readable<TState>`                                  | TanStack store or atom to observe.                   |
-| `compare` | `(previous: TSelected, next: TSelected) => boolean` | Optional equality function; defaults to `Object.is`. |
+Omit the selector to observe the complete source value:
+
+```marko
+<use-selector/state store=store/>
+```
+
+| Input     | Type                                                | Description                                               |
+| --------- | --------------------------------------------------- | --------------------------------------------------------- |
+| `value`   | `(state: TState) => TSelected`                      | Optional default input; omitted means identity selection. |
+| `store`   | `Readable<TState>`                                  | TanStack store or atom to observe.                        |
+| `compare` | `(previous: TSelected, next: TSelected) => boolean` | Optional equality function; defaults to `Object.is`.      |
 
 Returns `TSelected` as a reactive, read-only tag variable. The tag:
 

@@ -1,15 +1,19 @@
 import type { Readable } from "@tanstack/store";
 
-export interface Input<TState, TSelected> {
-  value: (state: TState) => TSelected;
+export interface Input<TState, TSelected = NoInfer<TState>> {
+  value?: (state: TState) => TSelected;
   store: Readable<TState>;
   compare?: (previous: TSelected, next: TSelected) => boolean;
 }
 
-<const/selector=input.value>
+static const defaultSelector = <TState,>(state: TState): TState => state;
+
+<const/selector=(input.value ?? defaultSelector) as (
+  state: TState,
+) => TSelected>
 <const/store=input.store>
 <const/compare=input.compare ?? Object.is>
-<let/selected: TSelected=selector(store.get())>
+<let/selected=selector(store.get())>
 <script>
   let current = selector(store.get());
   selected = current;
