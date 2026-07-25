@@ -9,7 +9,9 @@ import {
 export type Input<
   TData = unknown,
   TVariables extends OperationVariables = OperationVariables,
-> = ApolloClient.WatchQueryOptions<TData, TVariables>;
+> = ApolloClient.WatchQueryOptions<TData, TVariables> & {
+  client: ApolloClient;
+};
 
 static const pendingResult = {
   data: undefined,
@@ -19,12 +21,12 @@ static const pendingResult = {
   partial: false,
 } as const;
 
-<use-apollo-client/client/>
-<const/query=client?.watchQuery(input)>
+<const/{ client, ...options }=input>
+<const/query=client.watchQuery(
+  options as ApolloClient.WatchQueryOptions<TData, TVariables>,
+)>
 <let/result=pendingResult as ObservableQuery.Result<MaybeMasked<TData>>>
 <script>
-  if (!query) return;
-
   result = query.getCurrentResult();
   const subscription = query.subscribe((next) => {
     result = next;

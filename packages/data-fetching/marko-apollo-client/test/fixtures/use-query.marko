@@ -5,8 +5,7 @@ export interface Input {
   query: TypedDocumentNode<{ greeting: string }>;
 }
 
-<apollo-provider client=input.client/>
-<use-query/result query=input.query/>
+<use-query/result client=input.client query=input.query/>
 <output data-loading=result.loading>
   ${result.data?.greeting ?? "No greeting"}
 </output>

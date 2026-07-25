@@ -10,7 +10,6 @@ import type { Observer } from "rxjs";
 import { describe, expect, test, vi } from "vitest";
 
 import ConditionalUseQuery from "./fixtures/conditional-use-query.marko";
-import UseApolloClient from "./fixtures/use-apollo-client.marko";
 import UseQuery from "./fixtures/use-query.marko";
 
 const GREETING_QUERY = gql`
@@ -19,18 +18,7 @@ const GREETING_QUERY = gql`
   }
 `;
 
-describe("apollo-provider and use-query tags", () => {
-  test("returns the client configured by apollo-provider", async () => {
-    const client = new ApolloClient({
-      cache: new InMemoryCache(),
-      link: ApolloLink.empty(),
-    });
-
-    await render(UseApolloClient, { client });
-
-    await waitFor(() => expect(screen.getByText("true")).toBeTruthy());
-  });
-
+describe("use-query tag", () => {
   test("publishes loading and query results from the provided client", async () => {
     const observers: Array<Observer<{ data: { greeting: string } }>> = [];
     const client = new ApolloClient({
@@ -78,6 +66,7 @@ describe("apollo-provider and use-query tags", () => {
       show: true,
     });
     await waitFor(() => expect(watchQuery).toHaveBeenCalledOnce());
+    expect(watchQuery).toHaveBeenCalledWith({ query: GREETING_QUERY });
     await result.rerender({
       client,
       query: GREETING_QUERY,

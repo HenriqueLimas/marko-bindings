@@ -15,8 +15,7 @@ pnpm add marko-apollo-client
 
 ## Usage
 
-Create an Apollo Client, provide it to the current Marko render, and observe a
-query:
+Create an Apollo Client and pass it to each query:
 
 ```marko
 import {
@@ -40,84 +39,49 @@ static const GET_DOG = gql(`
     }
   `);
 
-<apollo-provider client=client/>
-<use-query/result query=GET_DOG variables={ name: input.name }/>
+<use-query/result client=client query=GET_DOG variables={ name: input.name }/>
 
 <if=result.loading>Loading…</if>
 <else-if=result.error>${result.error.message}</else-if>
 <else><img src=result.data?.dog.displayImage></else>
 ```
 
-`<use-query>` accepts Apollo's complete `ApolloClient.WatchQueryOptions` shape.
-This includes `variables`, `fetchPolicy`, `errorPolicy`, polling, partial-data,
-and network-status options.
+`<use-query>` requires an Apollo Client and accepts Apollo's complete
+`ApolloClient.WatchQueryOptions` shape. This includes `variables`,
+`fetchPolicy`, `errorPolicy`, polling, partial-data, and network-status options.
 
 ## API
-
-### `<apollo-provider>`
-
-```marko
-<apollo-provider client=client/>
-```
-
-| Input    | Type           | Description                              |
-| -------- | -------------- | ---------------------------------------- |
-| `client` | `ApolloClient` | Client stored as `$global.apolloClient`. |
-
-The tag returns the provided client. It does not call `client.stop()` because
-the application owns the client and may use it across multiple query tags.
-
-`$global` belongs to the current Marko render, so server applications should use
-a request-scoped client rather than sharing one cache between users. A client
-can also be supplied directly when invoking a template:
-
-```js
-await Page.render({
-  $global: { apolloClient: client },
-});
-```
-
-### `<use-apollo-client>`
-
-Return the Apollo Client configured on `$global`:
-
-```marko
-<use-apollo-client/client/>
-
-<button onClick() {
-  client.refetchQueries({ include: [GET_DOG] });
-}>
-  Refresh
-</button>
-```
-
-The tag returns `ApolloClient` and does not render content.
 
 ### `<use-query>`
 
 Return a reactive query result:
 
 ```marko
-<use-query/result query=GET_DOG variables={ name: "Buck" }/>
+<use-query/result client=client query=GET_DOG variables={ name: "Buck" }/>
 
 <if=result.loading>Loading…</if>
 <else>${result.data?.dog.displayImage}</else>
 ```
 
-The tag return value is
-`ObservableQuery.Result<MaybeMasked<TData>>`. Use `<use-apollo-client>` when
-imperative Apollo Client methods are needed.
+| Input    | Type                             | Description                     |
+| -------- | -------------------------------- | ------------------------------- |
+| `client` | `ApolloClient`                   | Client that observes the query. |
+| `...`    | `ApolloClient.WatchQueryOptions` | Apollo watch-query options.     |
+
+The tag return value is `ObservableQuery.Result<MaybeMasked<TData>>`. Use the
+same client directly when imperative Apollo Client methods are needed.
 
 The tag:
 
-1. reads the client through `<use-apollo-client>`;
-2. creates an Apollo `watchQuery`;
-3. publishes its current result;
-4. reacts to cache and network result updates; and
-5. unsubscribes and stops the observable when its inputs change or it leaves the
+1. creates an Apollo `watchQuery` from the provided client;
+2. publishes its current result;
+3. reacts to cache and network result updates; and
+4. unsubscribes and stops the observable when its inputs change or it leaves the
    document.
 
-Configure the client with `<apollo-provider>` before rendering `<use-query>`.
+Passing the client explicitly keeps ownership visible and avoids render-global
+state. Server applications should create a request-scoped client rather than
+sharing one cache between users.
 
 ## JavaScript exports
 
@@ -140,5 +104,5 @@ import {
 Apollo Client and `ObservableQuery` instances are class instances and cannot
 cross Marko's server-resume serialization boundary. Use this initial binding
 with client-rendered query state. For server data, load it in a Marko Run route
-handler and render the returned promise with `<await>`, then initialize
-`<apollo-provider>` for later client-side queries.
+handler and render the returned promise with `<await>`, then initialize a
+separate browser client for later client-side queries.

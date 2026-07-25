@@ -6,8 +6,7 @@ export interface Input {
   show: boolean;
 }
 
-<apollo-provider client=input.client/>
 <if=input.show>
-  <use-query/result query=input.query/>
+  <use-query/result client=input.client query=input.query/>
   <output>${result.data?.greeting}</output>
 </if>
