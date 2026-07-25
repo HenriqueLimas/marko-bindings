@@ -117,7 +117,24 @@ The complete `jotai/vanilla` entrypoint is re-exported; React is not required.
 
 ### Utilities
 
-`atomWithStorage` is available from the utilities entrypoint and works with `<use-atom>`:
+`atomWithLazy` defers creation of an atom's initial value until a store first reads it. It works with `<use-atom>` like any other writable atom:
+
+```marko
+import { atomWithLazy } from "marko-jotai/utils";
+
+<const/countAtom=atomWithLazy(() => 40)>
+<use-atom/count=countAtom/>
+
+<button onClick() {
+  count++;
+}>
+  ${count}
+</button>
+```
+
+The initializer runs once for each store that reads the atom.
+
+`atomWithStorage` is also available from the utilities entrypoint:
 
 ```marko
 import { atomWithStorage } from "marko-jotai/utils";

@@ -6,6 +6,7 @@ import {
   waitFor,
 } from "@marko/testing-library";
 import { atom, createStore, getDefaultStore } from "marko-jotai";
+import { atomWithLazy } from "marko-jotai/utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import AsyncAtom from "./fixtures/async-atom.marko";
@@ -82,6 +83,27 @@ describe("use-atom tag", () => {
 
     await waitFor(() => expect(screen.getByText("6")).toBeTruthy());
     expect(localStorage.getItem("marko-jotai-count")).toBe("6");
+  });
+
+  test("supports lazily initialized atoms", async () => {
+    const initialize = vi.fn(() => 1);
+    const countAtom = atomWithLazy(initialize);
+    const store = createStore();
+
+    expect(initialize).not.toHaveBeenCalled();
+
+    await render(UseAtom, { atom: countAtom, store });
+
+    expect(initialize).toHaveBeenCalledOnce();
+    expect(screen.getByText("1")).toBeTruthy();
+
+    await fireEvent.click(screen.getByRole("button", { name: "Add five" }));
+
+    await waitFor(() => expect(store.get(countAtom)).toBe(6));
+    expect(initialize).toHaveBeenCalledOnce();
+
+    expect(createStore().get(countAtom)).toBe(1);
+    expect(initialize).toHaveBeenCalledTimes(2);
   });
 
   test("unsubscribes when the tag is removed", async () => {
