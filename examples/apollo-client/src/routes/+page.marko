@@ -1,17 +1,10 @@
-import { ApolloClient, HttpLink, InMemoryCache } from "marko-apollo-client";
-
+import { client as runtimeClient } from "../apollo-client.js";
 import { BOOKS_QUERY } from "../books-query.js";
 
-<let/client=undefined as ApolloClient | undefined>
-<script>
-  const ownedClient = new ApolloClient({
-    cache: new InMemoryCache(),
-    link: new HttpLink({ uri: "/gql" }),
-  });
-
-  client = ownedClient;
-  $signal.onabort = () => ownedClient.stop();
-</script>
+<let/client=undefined as typeof runtimeClient | undefined>
+<lifecycle onMount() {
+  client = runtimeClient;
+}>
 
 <!doctype html>
 <html lang="en">
@@ -104,7 +97,7 @@ import { BOOKS_QUERY } from "../books-query.js";
       <div class="eyebrow">Marko Run + Apollo</div>
       <h1>Books from a local GraphQL route</h1>
       <p class="intro">
-        This page passes a browser-owned Apollo Client directly to
+        This page passes a runtime-local Apollo Client directly to
         <code>&lt;use-query&gt;</code>. The same Marko Run application serves Apollo
         Server at <a href="/gql"><code>/gql</code></a>.
       </p>

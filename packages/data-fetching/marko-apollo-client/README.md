@@ -48,8 +48,8 @@ static const GET_DOG = gql(`
 
 `<use-query>` requires a `client` input and accepts Apollo's complete
 `ApolloClient.WatchQueryOptions` shape. The client may be `undefined` while the
-application initializes it; the result stays in its loading state and begins
-observing the query when the client becomes available.
+application initializes it; the result stays in its loading state, logs an
+error, and begins observing the query when the client becomes available.
 
 See the runnable
 [Marko Run and Apollo Server example](../../../examples/apollo-client/README.md)

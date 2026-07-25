@@ -26,9 +26,15 @@ future bindings should follow.
 
 - **Constraint:** `ApolloClient` and `ObservableQuery` are class instances and
   cannot cross Marko's server-resume serialization boundary.
-- **Ended with:** Server data is loaded as serializable route data; browser
-  clients are created after mount and passed explicitly to queries. Consumer
-  tags accept `undefined` and stay pending during client initialization.
+- **Tried:** Creating an `ApolloClient` in a template `<const>`. Server rendering
+  worked, but the instance and its constructor were absent from the resumed
+  browser bundle.
+- **Ended with:** Server data is loaded as serializable route data. Each runtime
+  creates its own client outside Marko state (for example, as a module export).
+  A browser lifecycle exposes that instance to reactive template state after
+  mount, then the application passes it explicitly to queries. Consumer tags
+  require the `client` input, accept `undefined` during initialization, stay
+  pending without it, and log an error until a client is available.
 - **Rule:** Do not put library instances in serializable Marko state. Serialize
   plain data and recreate instances at the appropriate runtime boundary.
 

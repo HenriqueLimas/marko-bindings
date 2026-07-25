@@ -20,6 +20,9 @@ const GREETING_QUERY = gql`
 
 describe("use-query tag", () => {
   test("waits for the client and cleans up if it becomes unavailable", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
     const client = new ApolloClient({
       cache: new InMemoryCache(),
       link: ApolloLink.empty(),
@@ -30,12 +33,15 @@ describe("use-query tag", () => {
       .spyOn(client, "watchQuery")
       .mockReturnValue(observable);
 
+    // @ts-expect-error Exercise the runtime diagnostic for invalid callers.
     const rendered = await render(UseQuery, {
-      client: undefined,
       query: GREETING_QUERY,
     });
 
     expect(watchQuery).not.toHaveBeenCalled();
+    expect(consoleError).toHaveBeenCalledWith(
+      "<use-query> requires a client input.",
+    );
     expect(screen.getByText("No greeting").hasAttribute("data-loading")).toBe(
       true,
     );
@@ -47,12 +53,14 @@ describe("use-query tag", () => {
       client: undefined,
       query: GREETING_QUERY,
     });
+    expect(consoleError).toHaveBeenCalledTimes(2);
     expect(stop).toHaveBeenCalledOnce();
     await waitFor(() =>
       expect(screen.getByText("No greeting").hasAttribute("data-loading")).toBe(
         true,
       ),
     );
+    consoleError.mockRestore();
   });
 
   test("publishes loading and query results from the provided client", async () => {

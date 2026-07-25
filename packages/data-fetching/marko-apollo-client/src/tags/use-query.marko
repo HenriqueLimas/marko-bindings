@@ -27,6 +27,7 @@ export type Input<
 <let/result=pendingResult as ObservableQuery.Result<MaybeMasked<TData>>>
 <script>
   if (!query) {
+    console.error("<use-query> requires a client input.");
     result = pendingResult;
     return;
   }
