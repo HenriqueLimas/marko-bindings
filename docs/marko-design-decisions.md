@@ -27,7 +27,7 @@ future bindings should follow.
 - **Constraint:** `ApolloClient` and `ObservableQuery` are class instances and
   cannot cross Marko's server-resume serialization boundary.
 - **Ended with:** Server data is loaded as serializable route data; browser
-  queries receive a separately created client.
+  clients are created after mount and passed explicitly to queries.
 - **Rule:** Do not put library instances in serializable Marko state. Serialize
   plain data and recreate instances at the appropriate runtime boundary.
 

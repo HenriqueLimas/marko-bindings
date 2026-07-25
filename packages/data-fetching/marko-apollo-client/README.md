@@ -50,6 +50,10 @@ static const GET_DOG = gql(`
 `ApolloClient.WatchQueryOptions` shape. This includes `variables`,
 `fetchPolicy`, `errorPolicy`, polling, partial-data, and network-status options.
 
+See the runnable
+[Marko Run and Apollo Server example](../../../examples/apollo-client/README.md)
+for a complete application with a local `/gql` route.
+
 ## API
 
 ### `<use-query>`

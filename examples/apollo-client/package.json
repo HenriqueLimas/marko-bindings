@@ -1,0 +1,24 @@
+{
+  "name": "@marko-bindings/example-apollo-client",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Marko Run example using marko-apollo-client with a local Apollo Server",
+  "type": "module",
+  "scripts": {
+    "build": "marko-run build",
+    "dev": "marko-run dev",
+    "typecheck": "mtc"
+  },
+  "dependencies": {
+    "@apollo/server": "^5.5.1",
+    "@marko/run": "^0.11.6",
+    "graphql": "^16.14.2",
+    "marko": "catalog:",
+    "marko-apollo-client": "workspace:*"
+  },
+  "devDependencies": {
+    "@marko/language-tools": "catalog:",
+    "@marko/type-check": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -2,6 +2,10 @@ packages:
   - "packages/*/*"
   - "examples/*"
 
+allowBuilds:
+  "@apollo/protobufjs": true
+  esbuild: true
+
 catalog:
   "@marko/language-tools": ^2.6.5
   "@marko/testing-library": ^6.4.2
