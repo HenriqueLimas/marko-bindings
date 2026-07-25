@@ -14,6 +14,7 @@ import AsyncWritableAtom from "./fixtures/async-writable-atom.marko";
 import AtomWithStorage from "./fixtures/atom-with-storage.marko";
 import ConditionalUseAtom from "./fixtures/conditional-use-atom.marko";
 import DefaultStore from "./fixtures/default-store.marko";
+import ResetAtom from "./fixtures/reset-atom.marko";
 import UseAtom from "./fixtures/use-atom.marko";
 import UseAtomValue from "./fixtures/use-atom-value.marko";
 
@@ -169,6 +170,21 @@ describe("use-atom-value tag", () => {
     value.reject(new Error("No number"));
 
     expect(await screen.findByText("Error: No number")).toBeTruthy();
+  });
+});
+
+describe("use-reset-atom tag", () => {
+  test.each([
+    ["the default store", undefined],
+    ["an explicit store", createStore()],
+  ])("resets an atom using %s", async (_name, store) => {
+    await render(ResetAtom, { store });
+    await fireEvent.click(screen.getByRole("button", { name: "Add five" }));
+    await waitFor(() => expect(screen.getByText("6")).toBeTruthy());
+
+    await fireEvent.click(screen.getByRole("button", { name: "Reset" }));
+
+    await waitFor(() => expect(screen.getByText("1")).toBeTruthy());
   });
 });
 

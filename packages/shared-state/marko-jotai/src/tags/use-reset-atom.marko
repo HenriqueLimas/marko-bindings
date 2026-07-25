@@ -1,0 +1,12 @@
+import { getDefaultStore, type WritableAtom } from "jotai/vanilla";
+import { RESET } from "jotai/vanilla/utils";
+
+export interface Input<T> {
+  value: WritableAtom<unknown, [typeof RESET], T>;
+  store?: ReturnType<typeof getDefaultStore>;
+}
+
+<const/atom=input.value>
+<const/store=input.store ?? getDefaultStore()>
+<const/reset=() => store.set(atom, RESET)>
+<return=reset>

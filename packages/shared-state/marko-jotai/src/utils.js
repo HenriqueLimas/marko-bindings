@@ -1,1 +1,5 @@
-export { atomWithLazy, atomWithStorage } from "jotai/vanilla/utils";
+export {
+  atomWithLazy,
+  atomWithReset,
+  atomWithStorage,
+} from "jotai/vanilla/utils";

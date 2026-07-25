@@ -107,6 +107,19 @@ Atoms whose write function requires multiple arguments do not map to a single Ma
 
 The `/value` form returns the atom's current `T` as a reactive, read-only tag variable. For async atoms this is the raw promise. The `|value|` form resolves promise values through `<await>` and passes `Awaited<T>` to its body.
 
+### `<use-reset-atom>`
+
+```marko
+<use-reset-atom/reset=atom/>
+```
+
+| Input   | Type                                       | Description                                      |
+| ------- | ------------------------------------------ | ------------------------------------------------ |
+| `value` | `WritableAtom<unknown, [typeof RESET], T>` | Default input containing an atom that can reset. |
+| `store` | `ReturnType<typeof createStore>`           | Optional store; defaults to `getDefaultStore()`. |
+
+Returns a zero-argument function that resets the atom by writing Jotai's `RESET` symbol. It works with utilities such as `atomWithReset` and `atomWithStorage`.
+
 ### JavaScript exports
 
 ```js
@@ -116,6 +129,24 @@ import { atom, createStore, getDefaultStore } from "marko-jotai";
 The complete `jotai/vanilla` entrypoint is re-exported; React is not required.
 
 ### Utilities
+
+`atomWithReset` creates a writable atom that can return to its initial value with `<use-reset-atom>`:
+
+```marko
+import { atomWithReset } from "marko-jotai/utils";
+
+<const/countAtom=atomWithReset(1)>
+<use-atom/count=countAtom/>
+<use-reset-atom/reset=countAtom/>
+
+<output>${count}</output>
+<button onClick() {
+  count++;
+}>
+  Increment
+</button>
+<button onClick=reset>Reset</button>
+```
 
 `atomWithLazy` defers creation of an atom's initial value until a store first reads it. It works with `<use-atom>` like any other writable atom:
 

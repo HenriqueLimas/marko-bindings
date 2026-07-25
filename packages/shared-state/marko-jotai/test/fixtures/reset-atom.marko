@@ -1,0 +1,18 @@
+import { type createStore } from "marko-jotai";
+import { atomWithReset } from "marko-jotai/utils";
+
+export interface Input {
+  store?: ReturnType<typeof createStore>;
+}
+
+<const/countAtom=atomWithReset(1)>
+<use-atom/count=countAtom store=input.store/>
+<use-reset-atom/reset=countAtom store=input.store/>
+
+<output>${count}</output>
+<button onClick() {
+  count += 5;
+}>
+  Add five
+</button>
+<button onClick=reset>Reset</button>
