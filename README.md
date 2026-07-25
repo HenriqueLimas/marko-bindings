@@ -51,4 +51,6 @@ Useful commands:
 - `pnpm test` — test every package that defines a `test` script
 - `pnpm changeset` — describe a publishable change
 
-See [Creating a binding package](docs/creating-a-binding.md) before adding the first integration.
+See [Creating a binding package](docs/creating-a-binding.md) and the living
+[Marko design decisions](docs/marko-design-decisions.md) before adding an
+integration.
