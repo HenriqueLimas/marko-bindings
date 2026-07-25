@@ -19,6 +19,42 @@ const GREETING_QUERY = gql`
 `;
 
 describe("use-query tag", () => {
+  test("waits for the client and cleans up if it becomes unavailable", async () => {
+    const client = new ApolloClient({
+      cache: new InMemoryCache(),
+      link: ApolloLink.empty(),
+    });
+    const observable = client.watchQuery({ query: GREETING_QUERY });
+    const stop = vi.spyOn(observable, "stop");
+    const watchQuery = vi
+      .spyOn(client, "watchQuery")
+      .mockReturnValue(observable);
+
+    const rendered = await render(UseQuery, {
+      client: undefined,
+      query: GREETING_QUERY,
+    });
+
+    expect(watchQuery).not.toHaveBeenCalled();
+    expect(screen.getByText("No greeting").hasAttribute("data-loading")).toBe(
+      true,
+    );
+
+    await rendered.rerender({ client, query: GREETING_QUERY });
+    await waitFor(() => expect(watchQuery).toHaveBeenCalledOnce());
+
+    await rendered.rerender({
+      client: undefined,
+      query: GREETING_QUERY,
+    });
+    expect(stop).toHaveBeenCalledOnce();
+    await waitFor(() =>
+      expect(screen.getByText("No greeting").hasAttribute("data-loading")).toBe(
+        true,
+      ),
+    );
+  });
+
   test("publishes loading and query results from the provided client", async () => {
     const observers: Array<Observer<{ data: { greeting: string } }>> = [];
     const client = new ApolloClient({

@@ -46,9 +46,10 @@ static const GET_DOG = gql(`
 <else><img src=result.data?.dog.displayImage></else>
 ```
 
-`<use-query>` requires an Apollo Client and accepts Apollo's complete
-`ApolloClient.WatchQueryOptions` shape. This includes `variables`,
-`fetchPolicy`, `errorPolicy`, polling, partial-data, and network-status options.
+`<use-query>` requires a `client` input and accepts Apollo's complete
+`ApolloClient.WatchQueryOptions` shape. The client may be `undefined` while the
+application initializes it; the result stays in its loading state and begins
+observing the query when the client becomes available.
 
 See the runnable
 [Marko Run and Apollo Server example](../../../examples/apollo-client/README.md)
@@ -67,19 +68,19 @@ Return a reactive query result:
 <else>${result.data?.dog.displayImage}</else>
 ```
 
-| Input    | Type                             | Description                     |
-| -------- | -------------------------------- | ------------------------------- |
-| `client` | `ApolloClient`                   | Client that observes the query. |
-| `...`    | `ApolloClient.WatchQueryOptions` | Apollo watch-query options.     |
+| Input    | Type                             | Description                                |
+| -------- | -------------------------------- | ------------------------------------------ |
+| `client` | `ApolloClient \| undefined`      | Client, or `undefined` while initializing. |
+| `...`    | `ApolloClient.WatchQueryOptions` | Apollo watch-query options.                |
 
 The tag return value is `ObservableQuery.Result<MaybeMasked<TData>>`. Use the
 same client directly when imperative Apollo Client methods are needed.
 
 The tag:
 
-1. creates an Apollo `watchQuery` from the provided client;
-2. publishes its current result;
-3. reacts to cache and network result updates; and
+1. stays in its loading state until a client is available;
+2. creates an Apollo `watchQuery` from the provided client;
+3. publishes and reacts to cache and network result updates; and
 4. unsubscribes and stops the observable when its inputs change or it leaves the
    document.
 

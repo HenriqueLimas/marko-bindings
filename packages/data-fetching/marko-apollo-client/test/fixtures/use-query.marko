@@ -1,7 +1,7 @@
 import { type ApolloClient, type TypedDocumentNode } from "marko-apollo-client";
 
 export interface Input {
-  client: ApolloClient;
+  client: ApolloClient | undefined;
   query: TypedDocumentNode<{ greeting: string }>;
 }
 

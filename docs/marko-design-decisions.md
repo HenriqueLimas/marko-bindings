@@ -27,17 +27,21 @@ future bindings should follow.
 - **Constraint:** `ApolloClient` and `ObservableQuery` are class instances and
   cannot cross Marko's server-resume serialization boundary.
 - **Ended with:** Server data is loaded as serializable route data; browser
-  clients are created after mount and passed explicitly to queries.
+  clients are created after mount and passed explicitly to queries. Consumer
+  tags accept `undefined` and stay pending during client initialization.
 - **Rule:** Do not put library instances in serializable Marko state. Serialize
   plain data and recreate instances at the appropriate runtime boundary.
 
 ## Scope cleanup to what the tag owns
 
 - **Ended with:** `<use-query>` unsubscribes and stops its `ObservableQuery` when
-  its inputs change or the tag leaves the document. It does not stop the shared
-  `ApolloClient` supplied by the application.
+  its inputs change or the tag leaves the document. Its script captures that
+  query for cleanup instead of rereading a reactive binding that may have
+  changed. It does not stop the shared `ApolloClient` supplied by the
+  application.
 - **Rule:** A binding cleans up subscriptions and instances it creates, but not
-  dependencies passed in by its caller.
+  dependencies passed in by its caller. Cleanup closures must capture the
+  resource owned by their specific reactive script run.
 
 ## Adding a decision
 

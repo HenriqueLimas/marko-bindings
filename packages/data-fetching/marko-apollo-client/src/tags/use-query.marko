@@ -10,7 +10,7 @@ export type Input<
   TData = unknown,
   TVariables extends OperationVariables = OperationVariables,
 > = ApolloClient.WatchQueryOptions<TData, TVariables> & {
-  client: ApolloClient;
+  client: ApolloClient | undefined;
 };
 
 <const/pendingResult={
@@ -21,19 +21,25 @@ export type Input<
   partial: false,
 } as ObservableQuery.Result<MaybeMasked<TData>>>
 <const/{ client, ...options }=input>
-<const/query=client.watchQuery(
+<const/query=client?.watchQuery(
   options as ApolloClient.WatchQueryOptions<TData, TVariables>,
 )>
 <let/result=pendingResult as ObservableQuery.Result<MaybeMasked<TData>>>
 <script>
-  result = query.getCurrentResult();
-  const subscription = query.subscribe((next) => {
+  if (!query) {
+    result = pendingResult;
+    return;
+  }
+
+  const activeQuery = query;
+  result = activeQuery.getCurrentResult();
+  const subscription = activeQuery.subscribe((next) => {
     result = next;
   });
 
   $signal.onabort = () => {
     subscription.unsubscribe();
-    query.stop();
+    activeQuery.stop();
   };
 </script>
 

@@ -110,27 +110,20 @@ import { BOOKS_QUERY } from "../books-query.js";
       </p>
 
       <section class="result" aria-live="polite">
-        <if=client>
-          <use-query/result client=client query=BOOKS_QUERY/>
+        <use-query/result client=client query=BOOKS_QUERY/>
 
-          <if=result.loading>
-            <p>Loading books…</p>
-          </if>
-          <else-if=result.error>
-            <p role="alert">GraphQL error: ${result.error.message}</p>
-          </else-if>
-          <else>
-            <ul>
-              <for|book| of=result.data?.books ?? []>
-                <li>
-                  <strong>${book.title}</strong><span>${book.author}</span>
-                </li>
-              </for>
-            </ul>
-          </else>
+        <if=result.loading>
+          <p>Loading books…</p>
         </if>
+        <else-if=result.error>
+          <p role="alert">GraphQL error: ${result.error.message}</p>
+        </else-if>
         <else>
-          <p>Starting Apollo Client…</p>
+          <ul>
+            <for|book| of=result.data?.books ?? []>
+              <li><strong>${book.title}</strong><span>${book.author}</span></li>
+            </for>
+          </ul>
         </else>
       </section>
     </main>
