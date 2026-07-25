@@ -130,6 +130,26 @@ The complete `jotai/vanilla` entrypoint is re-exported; React is not required.
 
 ### Utilities
 
+`unwrap` converts an async atom into a synchronous atom. Its value is `undefined` while the promise is pending unless a fallback function is provided:
+
+```marko
+import { atom } from "marko-jotai";
+import { unwrap } from "marko-jotai/utils";
+
+export interface Input {
+  numPromise: Promise<number>;
+}
+
+<const/asyncAtom=atom(() => input.numPromise)>
+<const/unwrappedAtom=unwrap(asyncAtom)>
+<use-atom-value/num=unwrappedAtom/>
+
+<if=num === undefined>Loading...</if>
+<if=num !== undefined>${num}</if>
+```
+
+Pass a fallback such as `(previous) => previous` to retain the last resolved value while a replacement promise is pending.
+
 `atomWithReset` creates a writable atom that can return to its initial value with `<use-reset-atom>`:
 
 ```marko

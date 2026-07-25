@@ -15,6 +15,7 @@ import AtomWithStorage from "./fixtures/atom-with-storage.marko";
 import ConditionalUseAtom from "./fixtures/conditional-use-atom.marko";
 import DefaultStore from "./fixtures/default-store.marko";
 import ResetAtom from "./fixtures/reset-atom.marko";
+import UnwrappedAtom from "./fixtures/unwrapped-atom.marko";
 import UseAtom from "./fixtures/use-atom.marko";
 import UseAtomValue from "./fixtures/use-atom-value.marko";
 
@@ -185,6 +186,32 @@ describe("use-reset-atom tag", () => {
     await fireEvent.click(screen.getByRole("button", { name: "Reset" }));
 
     await waitFor(() => expect(screen.getByText("1")).toBeTruthy());
+  });
+});
+
+describe("unwrap utility", () => {
+  test("exposes pending promises as synchronous values", async () => {
+    const firstValue = deferred<number>();
+    const sourceAtom = atom(firstValue.promise);
+    const asyncAtom = atom((get) => get(sourceAtom));
+    const store = createStore();
+
+    await render(UnwrappedAtom, { atom: asyncAtom, store });
+
+    expect(screen.getByText("Loading...")).toBeTruthy();
+
+    firstValue.resolve(42);
+
+    await waitFor(() => expect(screen.getByText("42")).toBeTruthy());
+
+    const nextValue = deferred<number>();
+    store.set(sourceAtom, nextValue.promise);
+
+    await waitFor(() => expect(screen.getByText("Loading...")).toBeTruthy());
+
+    nextValue.resolve(43);
+
+    await waitFor(() => expect(screen.getByText("43")).toBeTruthy());
   });
 });
 
