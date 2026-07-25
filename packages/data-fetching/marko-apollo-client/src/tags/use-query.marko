@@ -1,0 +1,41 @@
+import {
+  type ApolloClient,
+  type MaybeMasked,
+  type ObservableQuery,
+  type OperationVariables,
+} from "@apollo/client";
+
+import { getApolloClient, watchQuery } from "../internal.js";
+
+export type Input<
+  TData = unknown,
+  TVariables extends OperationVariables = OperationVariables,
+> = ApolloClient.WatchQueryOptions<TData, TVariables> & {
+  content?: Marko.Body<
+    [
+      ObservableQuery.Result<MaybeMasked<TData>>,
+      ObservableQuery<TData, TVariables>,
+    ]
+  >;
+};
+
+<const/client=getApolloClient($global)>
+<const/query=watchQuery(client, input)>
+<let/result=query.getCurrentResult()>
+<script>
+  result = query.getCurrentResult();
+  const subscription = query.subscribe((next) => {
+    result = next;
+  });
+
+  $signal.onabort = () => {
+    subscription.unsubscribe();
+    query.stop();
+  };
+</script>
+
+<if=input.content>
+  <${input.content}(result, query)/>
+</if>
+
+<return=result>

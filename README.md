@@ -6,17 +6,19 @@ The goal is not to expose framework-agnostic libraries through thin function wra
 
 ## Package groups
 
-| Group                                             | Purpose                                                              |
-| ------------------------------------------------- | -------------------------------------------------------------------- |
-| [`shared-state`](packages/shared-state/README.md) | Stores, caches, signals, and server/client state coordination        |
-| [`routing`](packages/routing/README.md)           | Routers, navigation, route matching, and URL state                   |
-| [`ui`](packages/ui/README.md)                     | Headless UI, component systems, overlays, and interaction primitives |
-| [`forms`](packages/forms/README.md)               | Form state, validation, field composition, and submission            |
+| Group                                               | Purpose                                                              |
+| --------------------------------------------------- | -------------------------------------------------------------------- |
+| [`data-fetching`](packages/data-fetching/README.md) | Query clients, remote data caches, and request lifecycle bindings    |
+| [`shared-state`](packages/shared-state/README.md)   | Stores, caches, signals, and server/client state coordination        |
+| [`routing`](packages/routing/README.md)             | Routers, navigation, route matching, and URL state                   |
+| [`ui`](packages/ui/README.md)                       | Headless UI, component systems, overlays, and interaction primitives |
+| [`forms`](packages/forms/README.md)                 | Form state, validation, field composition, and submission            |
 
 A binding lives at `packages/<group>/<library>` and is published independently. The group is organizational and does not become another package layer.
 
 ```text
 packages/
+├── data-fetching/
 ├── forms/
 ├── routing/
 ├── shared-state/

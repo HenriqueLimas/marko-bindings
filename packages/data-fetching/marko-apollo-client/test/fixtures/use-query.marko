@@ -1,0 +1,19 @@
+import { type ApolloClient, type TypedDocumentNode } from "marko-apollo-client";
+
+export interface Input {
+  client: ApolloClient;
+  query: TypedDocumentNode<{ greeting: string }>;
+}
+
+<apollo-provider client=input.client>
+  <use-query|result, observable| query=input.query>
+    <output data-loading=result.loading>
+      ${result.data?.greeting ?? "No greeting"}
+    </output>
+    <button onClick() {
+      observable.refetch();
+    }>
+      Refetch
+    </button>
+  </use-query>
+</apollo-provider>
