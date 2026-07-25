@@ -2,7 +2,7 @@
 
 Jotai bindings for Marko 6.
 
-The package owns its Jotai dependency and re-exports Jotai's framework-independent `jotai/vanilla` API, so applications only need to install `marko-jotai`. Supported utilities are available from `marko-jotai/utils`.
+The package owns its Jotai dependency and re-exports Jotai's framework-independent `jotai/vanilla` API, so applications only need to install `marko-jotai`. The complete `jotai/vanilla/utils` entrypoint is available from `marko-jotai/utils`.
 
 ## Install
 
