@@ -1,5 +1,6 @@
 export {
   atomWithLazy,
+  atomWithObservable,
   atomWithReset,
   atomWithStorage,
   unwrap,

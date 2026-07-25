@@ -5,5 +5,6 @@ export default defineConfig({
   plugins: [marko()],
   test: {
     environment: "jsdom",
+    setupFiles: ["./test/setup.ts"],
   },
 });

@@ -1,0 +1,15 @@
+import { type Atom, type createStore } from "marko-jotai";
+
+export interface Input {
+  atom: Atom<number | Promise<number>>;
+  store: ReturnType<typeof createStore>;
+}
+
+<try>
+  <use-atom-value|num|=input.atom store=input.store>
+    <output>${num}</output>
+  </use-atom-value>
+
+  <@placeholder>Waiting for first value...</@placeholder>
+  <@catch|error|>${String(error)}</@catch>
+</try>

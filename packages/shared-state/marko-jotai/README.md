@@ -150,6 +150,31 @@ export interface Input {
 
 Pass a fallback such as `(previous) => previous` to retain the last resolved value while a replacement promise is pending.
 
+`atomWithObservable` creates a readable atom from an observable. Without an
+`initialValue`, its value is a promise until the observable emits for the first
+time. Use the body-parameter form of `<use-atom-value>` so its internal `<await>`
+activates the surrounding `<try>` placeholder and catch blocks:
+
+```marko
+import { atomWithObservable } from "marko-jotai/utils";
+import { count$ } from "./count-observable.js";
+
+<const/countAtom=atomWithObservable(() => count$)>
+
+<try>
+  <use-atom-value|count|=countAtom><output>${count}</output></use-atom-value>
+
+  <@placeholder>Waiting for first value...</@placeholder>
+  <@catch|error|>${String(error)}</@catch>
+</try>
+```
+
+There is no need to add another `<await>` inside `<use-atom-value>`. Pass
+`{ initialValue: 0 }` as the second argument to `atomWithObservable` when the
+first render should be synchronous; later observable emissions update the tag
+normally. If the factory returns a subject, Jotai creates a writable atom that
+can instead be used with `<use-atom>`.
+
 `atomWithReset` creates a writable atom that can return to its initial value with `<use-reset-atom>`:
 
 ```marko
