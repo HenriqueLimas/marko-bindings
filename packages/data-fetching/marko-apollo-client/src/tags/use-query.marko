@@ -13,13 +13,13 @@ export type Input<
   client: ApolloClient;
 };
 
-static const pendingResult = {
+<const/pendingResult = {
   data: undefined,
   dataState: "empty",
   loading: true,
   networkStatus: NetworkStatus.loading,
   partial: false,
-} as const;
+} as ObservableQuery.Result<MaybeMasked<TData>>>;
 
 <const/{ client, ...options }=input>
 <const/query=client.watchQuery(
