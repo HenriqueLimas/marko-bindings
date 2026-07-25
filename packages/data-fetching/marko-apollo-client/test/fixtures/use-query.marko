@@ -5,15 +5,8 @@ export interface Input {
   query: TypedDocumentNode<{ greeting: string }>;
 }
 
-<apollo-provider client=input.client>
-  <use-query|result, observable| query=input.query>
-    <output data-loading=result.loading>
-      ${result.data?.greeting ?? "No greeting"}
-    </output>
-    <button onClick() {
-      observable.refetch();
-    }>
-      Refetch
-    </button>
-  </use-query>
-</apollo-provider>
+<apollo-provider client=input.client/>
+<use-query/result query=input.query/>
+<output data-loading=result.loading>
+  ${result.data?.greeting ?? "No greeting"}
+</output>

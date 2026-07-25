@@ -10,7 +10,7 @@ import type { Observer } from "rxjs";
 import { describe, expect, test, vi } from "vitest";
 
 import ConditionalUseQuery from "./fixtures/conditional-use-query.marko";
-import MissingProvider from "./fixtures/missing-provider.marko";
+import UseApolloClient from "./fixtures/use-apollo-client.marko";
 import UseQuery from "./fixtures/use-query.marko";
 
 const GREETING_QUERY = gql`
@@ -20,6 +20,17 @@ const GREETING_QUERY = gql`
 `;
 
 describe("apollo-provider and use-query tags", () => {
+  test("returns the client configured by apollo-provider", async () => {
+    const client = new ApolloClient({
+      cache: new InMemoryCache(),
+      link: ApolloLink.empty(),
+    });
+
+    await render(UseApolloClient, { client });
+
+    await waitFor(() => expect(screen.getByText("true")).toBeTruthy());
+  });
+
   test("publishes loading and query results from the provided client", async () => {
     const observers: Array<Observer<{ data: { greeting: string } }>> = [];
     const client = new ApolloClient({
@@ -34,9 +45,12 @@ describe("apollo-provider and use-query tags", () => {
 
     await render(UseQuery, { client, query: GREETING_QUERY });
 
-    expect(screen.getByText("No greeting").hasAttribute("data-loading")).toBe(
-      true,
+    await waitFor(() =>
+      expect(screen.getByText("No greeting").hasAttribute("data-loading")).toBe(
+        true,
+      ),
     );
+    await waitFor(() => expect(observers).toHaveLength(1));
 
     observers[0].next({ data: { greeting: "Hello, Marko" } });
     observers[0].complete();
@@ -54,13 +68,16 @@ describe("apollo-provider and use-query tags", () => {
     });
     const observable = client.watchQuery({ query: GREETING_QUERY });
     const stop = vi.spyOn(observable, "stop");
-    vi.spyOn(client, "watchQuery").mockReturnValue(observable);
+    const watchQuery = vi
+      .spyOn(client, "watchQuery")
+      .mockReturnValue(observable);
 
     const result = await render(ConditionalUseQuery, {
       client,
       query: GREETING_QUERY,
       show: true,
     });
+    await waitFor(() => expect(watchQuery).toHaveBeenCalledOnce());
     await result.rerender({
       client,
       query: GREETING_QUERY,
@@ -68,13 +85,5 @@ describe("apollo-provider and use-query tags", () => {
     });
 
     expect(stop).toHaveBeenCalledOnce();
-  });
-
-  test("throws a useful error when no provider configured $global", async () => {
-    await expect(
-      render(MissingProvider, {
-        query: GREETING_QUERY,
-      }),
-    ).rejects.toThrow("No Apollo Client was found on $global");
   });
 });

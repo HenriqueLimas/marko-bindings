@@ -1,0 +1,9 @@
+import { type ApolloClient } from "marko-apollo-client";
+
+export interface Input {
+  client: ApolloClient;
+}
+
+<apollo-provider client=input.client/>
+<use-apollo-client/client/>
+<output>${client === input.client}</output>

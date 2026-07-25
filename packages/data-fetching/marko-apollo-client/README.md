@@ -40,20 +40,12 @@ static const GET_DOG = gql(`
     }
   `);
 
-<apollo-provider client=client>
-  <use-query|result, query| query=GET_DOG variables={ name: input.name }>
-    <if=result.loading>Loading…</if>
-    <else-if=result.error>${result.error.message}</else-if>
-    <else>
-      <img src=result.data?.dog.displayImage>
-      <button onClick() {
-        query.refetch();
-      }>
-        Refresh
-      </button>
-    </else>
-  </use-query>
-</apollo-provider>
+<apollo-provider client=client/>
+<use-query/result query=GET_DOG variables={ name: input.name }/>
+
+<if=result.loading>Loading…</if>
+<else-if=result.error>${result.error.message}</else-if>
+<else><img src=result.data?.dog.displayImage></else>
 ```
 
 `<use-query>` accepts Apollo's complete `ApolloClient.WatchQueryOptions` shape.
@@ -65,13 +57,12 @@ and network-status options.
 ### `<apollo-provider>`
 
 ```marko
-<apollo-provider client=client>...</apollo-provider>
+<apollo-provider client=client/>
 ```
 
-| Input     | Type           | Description                                         |
-| --------- | -------------- | --------------------------------------------------- |
-| `client`  | `ApolloClient` | Client stored as `$global.apolloClient`.            |
-| `content` | `Marko.Body`   | Optional content rendered after setting the client. |
+| Input    | Type           | Description                              |
+| -------- | -------------- | ---------------------------------------- |
+| `client` | `ApolloClient` | Client stored as `$global.apolloClient`. |
 
 The tag returns the provided client. It does not call `client.stop()` because
 the application owns the client and may use it across multiple query tags.
@@ -86,6 +77,22 @@ await Page.render({
 });
 ```
 
+### `<use-apollo-client>`
+
+Return the Apollo Client configured on `$global`:
+
+```marko
+<use-apollo-client/client/>
+
+<button onClick() {
+  client.refetchQueries({ include: [GET_DOG] });
+}>
+  Refresh
+</button>
+```
+
+The tag returns `ApolloClient` and does not render content.
+
 ### `<use-query>`
 
 Return a reactive query result:
@@ -97,34 +104,20 @@ Return a reactive query result:
 <else>${result.data?.dog.displayImage}</else>
 ```
 
-Render body content with both the result and its `ObservableQuery`:
-
-```marko
-<use-query|result, query| query=GET_DOG variables={ name: "Buck" }>
-  <button onClick() {
-    query.refetch();
-  }>
-    Refresh ${result.data?.dog.displayImage}
-  </button>
-</use-query>
-```
-
-The first body parameter and tag return value are
-`ObservableQuery.Result<MaybeMasked<TData>>`. The second body parameter exposes
-Apollo's `ObservableQuery<TData, TVariables>` methods, including `refetch`,
-`fetchMore`, `subscribeToMore`, and polling controls.
+The tag return value is
+`ObservableQuery.Result<MaybeMasked<TData>>`. Use `<use-apollo-client>` when
+imperative Apollo Client methods are needed.
 
 The tag:
 
-1. reads the client from `$global.apolloClient`;
+1. reads the client through `<use-apollo-client>`;
 2. creates an Apollo `watchQuery`;
 3. publishes its current result;
 4. reacts to cache and network result updates; and
 5. unsubscribes and stops the observable when its inputs change or it leaves the
    document.
 
-Rendering `<use-query>` without an `<apollo-provider>` or a directly configured
-`$global.apolloClient` throws an error explaining how to provide one.
+Configure the client with `<apollo-provider>` before rendering `<use-query>`.
 
 ## JavaScript exports
 

@@ -1,28 +1,30 @@
 import {
   type ApolloClient,
   type MaybeMasked,
+  NetworkStatus,
   type ObservableQuery,
   type OperationVariables,
 } from "@apollo/client";
 
-import { getApolloClient, watchQuery } from "../internal.js";
-
 export type Input<
   TData = unknown,
   TVariables extends OperationVariables = OperationVariables,
-> = ApolloClient.WatchQueryOptions<TData, TVariables> & {
-  content?: Marko.Body<
-    [
-      ObservableQuery.Result<MaybeMasked<TData>>,
-      ObservableQuery<TData, TVariables>,
-    ]
-  >;
-};
+> = ApolloClient.WatchQueryOptions<TData, TVariables>;
 
-<const/client=getApolloClient($global)>
-<const/query=watchQuery(client, input)>
-<let/result=query.getCurrentResult()>
+static const pendingResult = {
+  data: undefined,
+  dataState: "empty",
+  loading: true,
+  networkStatus: NetworkStatus.loading,
+  partial: false,
+} as const;
+
+<use-apollo-client/client/>
+<const/query=client?.watchQuery(input)>
+<let/result=pendingResult as ObservableQuery.Result<MaybeMasked<TData>>>
 <script>
+  if (!query) return;
+
   result = query.getCurrentResult();
   const subscription = query.subscribe((next) => {
     result = next;
@@ -33,9 +35,5 @@ export type Input<
     query.stop();
   };
 </script>
-
-<if=input.content>
-  <${input.content}(result, query)/>
-</if>
 
 <return=result>

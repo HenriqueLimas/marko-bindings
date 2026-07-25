@@ -1,16 +1,9 @@
 import type { ApolloClient } from "@apollo/client";
 
-import { provideApolloClient } from "../internal.js";
-
 export interface Input {
   client: ApolloClient;
-  content?: Marko.Body;
 }
 
-<const/client=provideApolloClient($global, input.client)>
+<script>$global.apolloClient = input.client;</script>
 
-<if=input.content>
-  <${input.content}/>
-</if>
-
-<return=client>
+<return=input.client>
