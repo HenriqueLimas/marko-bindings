@@ -1,3 +1,11 @@
 {
-  "plugins": ["prettier-plugin-marko", "prettier-plugin-packagejson"]
+  "plugins": ["prettier-plugin-marko", "prettier-plugin-packagejson"],
+  "overrides": [
+    {
+      "files": "examples/**/*.marko",
+      "options": {
+        "markoSyntax": "html"
+      }
+    }
+  ]
 }

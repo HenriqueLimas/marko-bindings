@@ -2,8 +2,8 @@ import { ApolloClient, HttpLink, InMemoryCache } from "marko-apollo-client";
 
 import { BOOKS_QUERY } from "../books-query.js";
 
-let/client=(undefined as ApolloClient | undefined)
-script --
+<let/client=undefined as ApolloClient | undefined>
+<script>
   const ownedClient = new ApolloClient({
     cache: new InMemoryCache(),
     link: new HttpLink({ uri: "/gql" }),
@@ -11,14 +11,15 @@ script --
 
   client = ownedClient;
   $signal.onabort = () => ownedClient.stop();
+</script>
 
 <!doctype html>
-html lang="en"
-  head
-    meta charset="utf-8"
-    meta name="viewport" content="width=device-width, initial-scale=1"
-    title -- Marko Apollo Client example
-    style --
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Marko Apollo Client example</title>
+    <style>
       :root {
         color: #17212b;
         background: #f4f7fa;
@@ -96,31 +97,42 @@ html lang="en"
       a {
         color: #6b42d8;
       }
-  body
-    main
-      div class="eyebrow" -- Marko Run + Apollo
-      h1 -- Books from a local GraphQL route
-      p class="intro"
-        -- This page passes a browser-owned Apollo Client directly to${" "}
-        code -- &lt;use-query&gt;
-        -- . The same Marko Run application serves Apollo Server at${" "}
-        a href="/gql"
-          code -- /gql
-        -- .
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="eyebrow">Marko Run + Apollo</div>
+      <h1>Books from a local GraphQL route</h1>
+      <p class="intro">
+        This page passes a browser-owned Apollo Client directly to
+        <code>&lt;use-query&gt;</code>. The same Marko Run application serves Apollo
+        Server at <a href="/gql"><code>/gql</code></a>.
+      </p>
 
-      section class="result" aria-live="polite"
-        if=client
-          use-query/result client=client query=BOOKS_QUERY
+      <section class="result" aria-live="polite">
+        <if=client>
+          <use-query/result client=client query=BOOKS_QUERY/>
 
-          if=result.loading
-            p -- Loading books…
-          else-if=result.error
-            p role="alert" -- GraphQL error: ${result.error.message}
-          else
-            ul
-              for|book| of=(result.data?.books ?? [])
-                li
-                  strong -- ${book.title}
-                  span -- ${book.author}
-        else
-          p -- Starting Apollo Client…
+          <if=result.loading>
+            <p>Loading books…</p>
+          </if>
+          <else-if=result.error>
+            <p role="alert">GraphQL error: ${result.error.message}</p>
+          </else-if>
+          <else>
+            <ul>
+              <for|book| of=result.data?.books ?? []>
+                <li>
+                  <strong>${book.title}</strong><span>${book.author}</span>
+                </li>
+              </for>
+            </ul>
+          </else>
+        </if>
+        <else>
+          <p>Starting Apollo Client…</p>
+        </else>
+      </section>
+    </main>
+  </body>
+</html>
