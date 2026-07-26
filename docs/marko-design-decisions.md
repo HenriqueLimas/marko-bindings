@@ -28,12 +28,14 @@ future bindings should follow.
   cannot cross Marko's server-resume serialization boundary.
 - **Tried:** Creating an `ApolloClient` in a template `<const>`, and passing a
   module export directly as `client=client`, including through a `client import`.
-  These render-time values did not become resumable browser state, so Apollo and
-  the instance were absent from the browser bundle.
+  Moving `watchQuery` and input access into `<use-query>`'s browser script still
+  did not make the parent import cross the custom-tag input boundary. Apollo and
+  the instance remained absent from the browser bundle.
 - **Ended with:** Server data is loaded as serializable route data. The client is
   a module export loaded with `client import`, so it is created only in the
   browser. A `<let>` holds the reactive client input, and `<lifecycle onMount>`
-  assigns the imported instance after mount.
+  assigns the imported instance after mount. `<use-query>` creates its
+  `ObservableQuery` inside its browser script rather than during rendering.
   Consumer tags require the `client` input, accept `undefined` during
   initialization, stay pending without it, and log an error until a client is
   available.

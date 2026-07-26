@@ -20,19 +20,18 @@ export type Input<
   networkStatus: NetworkStatus.loading,
   partial: false,
 } as ObservableQuery.Result<MaybeMasked<TData>>>
-<const/{ client, ...options }=input>
-<const/query=client?.watchQuery(
-  options as ApolloClient.WatchQueryOptions<TData, TVariables>,
-)>
 <let/result=pendingResult as ObservableQuery.Result<MaybeMasked<TData>>>
 <script>
-  if (!query) {
+  const { client, ...options } = input;
+  if (!client) {
     console.error("<use-query> requires a client input.");
     result = pendingResult;
     return;
   }
 
-  const activeQuery = query;
+  const activeQuery = client.watchQuery(
+    options as ApolloClient.WatchQueryOptions<TData, TVariables>,
+  );
   result = activeQuery.getCurrentResult();
   const subscription = activeQuery.subscribe((next) => {
     result = next;
