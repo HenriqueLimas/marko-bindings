@@ -26,14 +26,14 @@ future bindings should follow.
 
 - **Constraint:** `ApolloClient` and `ObservableQuery` are class instances and
   cannot cross Marko's server-resume serialization boundary.
-- **Tried:** Creating an `ApolloClient` in a template `<const>`, and importing a
-  module-level client and passing it directly as `client=runtimeClient`. Both
-  worked during server rendering, but Apollo and the instance were absent from
-  the resumed browser bundle.
-- **Ended with:** Server data is loaded as serializable route data. Each runtime
-  creates its own client outside Marko state (for example, as a module export).
-  A `<let>` holds the reactive client input, and `<lifecycle onMount>` references
-  the module from browser-only code and assigns that browser runtime's instance.
+- **Tried:** Creating an `ApolloClient` in a template `<const>`, and passing a
+  module export directly as `client=client`, including through a `client import`.
+  These render-time values did not become resumable browser state, so Apollo and
+  the instance were absent from the browser bundle.
+- **Ended with:** Server data is loaded as serializable route data. The client is
+  a module export loaded with `client import`, so it is created only in the
+  browser. A `<let>` holds the reactive client input, and `<lifecycle onMount>`
+  assigns the imported instance after mount.
   Consumer tags require the `client` input, accept `undefined` during
   initialization, stay pending without it, and log an error until a client is
   available.

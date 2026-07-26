@@ -1,9 +1,9 @@
-import { client as runtimeClient } from "../apollo-client.js";
+client import { client } from "../apollo-client.js";
 import { BOOKS_QUERY } from "../books-query.js";
 
-<let/client=undefined as typeof runtimeClient | undefined>
+<let/queryClient=undefined as typeof client | undefined>
 <lifecycle onMount() {
-  client = runtimeClient;
+  queryClient = client;
 }>
 
 <!doctype html>
@@ -103,7 +103,7 @@ import { BOOKS_QUERY } from "../books-query.js";
       </p>
 
       <section class="result" aria-live="polite">
-        <use-query/result client=client query=BOOKS_QUERY/>
+        <use-query/result client=queryClient query=BOOKS_QUERY/>
 
         <if=result.loading>
           <p>Loading books…</p>
