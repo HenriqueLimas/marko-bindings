@@ -1,0 +1,75 @@
+import { ApolloClient, InMemoryCache } from "marko-apollo-client";
+server import { ApolloLink, Observable } from "marko-apollo-client";
+client import { HttpLink } from "marko-apollo-client";
+server import { server, serverStarted } from "./graphql-server.js";
+
+client let client: ApolloClient | undefined;
+
+server function createServerClient() {
+  const link = new ApolloLink(
+    (operation) =>
+      new Observable((observer) => {
+        let active = true;
+
+        void serverStarted
+          .then(() =>
+            server.executeOperation({
+              query: operation.query,
+              operationName: operation.operationName,
+              variables: operation.variables,
+            }),
+          )
+          .then(
+            (response) => {
+              if (!active) return;
+              if (response.body.kind !== "single") {
+                throw new Error(
+                  "The example link does not support incremental GraphQL results.",
+                );
+              }
+
+              observer.next(response.body.singleResult);
+              observer.complete();
+            },
+            (error: unknown) => {
+              if (active) observer.error(error);
+            },
+          );
+
+        return () => {
+          active = false;
+        };
+      }),
+  );
+
+  return new ApolloClient({
+    ssrMode: true,
+    cache: new InMemoryCache(),
+    link,
+  });
+}
+
+client function createClientBrowser() {
+  return (client ??= new ApolloClient({
+    cache: new InMemoryCache(),
+    link: new HttpLink({ uri: "/gql" }),
+  }));
+}
+
+server function getNoServerClient() {
+  return undefined;
+}
+
+client function getClientOnlyBrowser() {
+  return createClientBrowser();
+}
+
+export const createClient =
+  typeof createServerClient !== "undefined"
+    ? createServerClient
+    : createClientBrowser;
+
+export const createClientOnly =
+  typeof getNoServerClient !== "undefined"
+    ? getNoServerClient
+    : getClientOnlyBrowser;

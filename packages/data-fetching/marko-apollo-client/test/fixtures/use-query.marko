@@ -1,0 +1,15 @@
+import { type ApolloClient, type TypedDocumentNode } from "marko-apollo-client";
+
+export interface Input {
+  client: () => ApolloClient | undefined;
+  query: () => TypedDocumentNode<{ greeting: string }>;
+}
+
+<try>
+  <use-query|result| client=input.client query=input.query>
+    <output>${result.data?.greeting ?? "No greeting"}</output>
+  </use-query>
+
+  <@placeholder><output>Loading...</output></@placeholder>
+  <@catch|error|><output>${String(error)}</output></@catch>
+</try>
