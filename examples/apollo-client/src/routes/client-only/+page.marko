@@ -1,12 +1,12 @@
-import { createClient } from "../apollo-client.marko";
-import { BOOKS_QUERY } from "../books-query.marko";
+import { createClientOnly } from "../../apollo-client.marko";
+import { BOOKS_QUERY } from "../../books-query.marko";
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Marko Apollo Client example</title>
+    <title>Client-only Apollo query example</title>
     <style>
       :root {
         color: #17212b;
@@ -30,7 +30,7 @@ import { BOOKS_QUERY } from "../books-query.marko";
       }
 
       .eyebrow {
-        color: #6b42d8;
+        color: #0a7a68;
         font-size: 0.75rem;
         font-weight: 700;
         letter-spacing: 0.12em;
@@ -69,7 +69,7 @@ import { BOOKS_QUERY } from "../books-query.marko";
       li {
         padding: 1rem;
         border-radius: 0.75rem;
-        background: #f4f1ff;
+        background: #eaf8f5;
       }
 
       strong,
@@ -79,31 +79,31 @@ import { BOOKS_QUERY } from "../books-query.marko";
 
       span {
         margin-top: 0.25rem;
-        color: #665f73;
+        color: #526b66;
       }
 
       a {
-        color: #6b42d8;
+        color: #087565;
       }
     </style>
   </head>
   <body>
     <main>
-      <div class="eyebrow">Marko Run + Apollo</div>
-      <h1>Books from a local GraphQL route</h1>
+      <div class="eyebrow">Browser Apollo Client</div>
+      <h1>Books loaded after resumption</h1>
       <p class="intro">
-        This page passes a target-specific Apollo Client and parsed query to
-        <code>&lt;use-query&gt;</code> through resumable getters. The same Marko
-        Run application serves Apollo Server at
-        <a href="/gql"><code>/gql</code></a>. Compare it with the <a href="/client-only">
-          client-only query page
+        This page passes the same single <code>client</code> input, but its
+        getter returns <code>undefined</code> on the server. After Marko resumes
+        in the browser, it returns the browser Apollo Client and requests
+        <a href="/gql"><code>/gql</code></a>. Compare it with the <a href="/">
+          server-rendered query page
         </a>.
       </p>
 
       <section class="result" aria-live="polite">
         <try>
           <use-query|result|
-            client=() => createClient()
+            client=() => createClientOnly()
             query=() => BOOKS_QUERY()
           >
             <if=result.error>
@@ -121,7 +121,7 @@ import { BOOKS_QUERY } from "../books-query.marko";
           </use-query>
 
           <@placeholder>
-            <p>Loading books…</p>
+            <p>Loading books in the browser…</p>
           </@placeholder>
           <@catch|error|>
             <p role="alert">

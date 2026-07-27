@@ -19,7 +19,45 @@ const GREETING_QUERY = gql`
 `;
 
 describe("use-query tag", () => {
-  test("waits for the client and cleans up if it becomes unavailable", async () => {
+  test("logs and publishes an error when the client getter is missing", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    // @ts-expect-error Exercise the runtime diagnostic for invalid callers.
+    await render(UseQuery, {
+      query: () => GREETING_QUERY,
+    });
+
+    expect(consoleError).toHaveBeenCalledWith(
+      "<use-query> requires a client input.",
+    );
+    expect(
+      await screen.findByText("Error: <use-query> requires a client input."),
+    ).toBeTruthy();
+    consoleError.mockRestore();
+  });
+
+  test("logs and publishes an error when the browser getter returns undefined", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    await render(UseQuery, {
+      client: () => undefined,
+      query: () => GREETING_QUERY,
+    });
+
+    expect(consoleError).toHaveBeenCalledWith(
+      "<use-query> requires a client input.",
+    );
+    expect(
+      await screen.findByText("Error: <use-query> requires a client input."),
+    ).toBeTruthy();
+    consoleError.mockRestore();
+  });
+
+  test("logs and publishes an error when the query getter is missing", async () => {
     const consoleError = vi
       .spyOn(console, "error")
       .mockImplementation(() => undefined);
@@ -27,43 +65,20 @@ describe("use-query tag", () => {
       cache: new InMemoryCache(),
       link: ApolloLink.empty(),
     });
-    const observable = client.watchQuery({ query: GREETING_QUERY });
-    const stop = vi.spyOn(observable, "stop");
-    const watchQuery = vi
-      .spyOn(client, "watchQuery")
-      .mockReturnValue(observable);
 
     // @ts-expect-error Exercise the runtime diagnostic for invalid callers.
-    const rendered = await render(UseQuery, {
-      query: GREETING_QUERY,
-    });
+    await render(UseQuery, { client: () => client, query: GREETING_QUERY });
 
-    expect(watchQuery).not.toHaveBeenCalled();
     expect(consoleError).toHaveBeenCalledWith(
-      "<use-query> requires a client input.",
+      "<use-query> requires a query input.",
     );
-    expect(screen.getByText("No greeting").hasAttribute("data-loading")).toBe(
-      true,
-    );
-
-    await rendered.rerender({ client, query: GREETING_QUERY });
-    await waitFor(() => expect(watchQuery).toHaveBeenCalledOnce());
-
-    await rendered.rerender({
-      client: undefined,
-      query: GREETING_QUERY,
-    });
-    expect(consoleError).toHaveBeenCalledTimes(2);
-    expect(stop).toHaveBeenCalledOnce();
-    await waitFor(() =>
-      expect(screen.getByText("No greeting").hasAttribute("data-loading")).toBe(
-        true,
-      ),
-    );
+    expect(
+      await screen.findByText("Error: <use-query> requires a query input."),
+    ).toBeTruthy();
     consoleError.mockRestore();
   });
 
-  test("publishes loading and query results from the provided client", async () => {
+  test("uses the browser client during client-only rendering", async () => {
     const observers: Array<Observer<{ data: { greeting: string } }>> = [];
     const client = new ApolloClient({
       cache: new InMemoryCache(),
@@ -75,22 +90,19 @@ describe("use-query tag", () => {
       ),
     });
 
-    await render(UseQuery, { client, query: GREETING_QUERY });
+    await render(UseQuery, {
+      client: () => client,
+      query: () => GREETING_QUERY,
+    });
 
-    await waitFor(() =>
-      expect(screen.getByText("No greeting").hasAttribute("data-loading")).toBe(
-        true,
-      ),
-    );
+    expect(await screen.findByText("Loading...")).toBeTruthy();
     await waitFor(() => expect(observers).toHaveLength(1));
 
     observers[0].next({ data: { greeting: "Hello, Marko" } });
     observers[0].complete();
 
     await waitFor(() => expect(screen.getByText("Hello, Marko")).toBeTruthy());
-    expect(screen.getByText("Hello, Marko").hasAttribute("data-loading")).toBe(
-      false,
-    );
+    expect(screen.queryByText("Loading...")).toBeNull();
   });
 
   test("stops the observable query when the tag is removed", async () => {
@@ -98,22 +110,28 @@ describe("use-query tag", () => {
       cache: new InMemoryCache(),
       link: ApolloLink.empty(),
     });
+    client.writeQuery({
+      query: GREETING_QUERY,
+      data: { greeting: "Cached greeting" },
+    });
     const observable = client.watchQuery({ query: GREETING_QUERY });
     const stop = vi.spyOn(observable, "stop");
     const watchQuery = vi
       .spyOn(client, "watchQuery")
       .mockReturnValue(observable);
+    const getClient = () => client;
+    const getQuery = () => GREETING_QUERY;
 
     const result = await render(ConditionalUseQuery, {
-      client,
-      query: GREETING_QUERY,
+      client: getClient,
+      query: getQuery,
       show: true,
     });
     await waitFor(() => expect(watchQuery).toHaveBeenCalledOnce());
     expect(watchQuery).toHaveBeenCalledWith({ query: GREETING_QUERY });
     await result.rerender({
-      client,
-      query: GREETING_QUERY,
+      client: getClient,
+      query: getQuery,
       show: false,
     });
 
