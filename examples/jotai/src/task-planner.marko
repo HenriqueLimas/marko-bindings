@@ -1,0 +1,161 @@
+import { atom, createStore } from "marko-jotai";
+import { atomWithReset } from "marko-jotai/utils";
+import type { Filter, Task } from "./task-state.js";
+
+static {
+  const initialTasks: Task[] = [
+    { id: 1, title: "Sketch the Marko view", complete: true },
+    { id: 2, title: "Connect writable Jotai atoms", complete: false },
+    { id: 3, title: "Ship a tiny example", complete: false },
+  ];
+  const tasksAtom = atomWithReset<Task[]>(initialTasks);
+  const editableTasksAtom = atom(
+    (get) => get(tasksAtom),
+    (_get, set, tasks: Task[]) => set(tasksAtom, tasks),
+  );
+  const filterAtom = atom<Filter>("all");
+  const visibleTasksAtom = atom((get) => {
+    const tasks = get(tasksAtom);
+    const filter = get(filterAtom);
+
+    if (filter === "active") return tasks.filter((task) => !task.complete);
+    if (filter === "complete") return tasks.filter((task) => task.complete);
+    return tasks;
+  });
+  const progressAtom = atom((get) => {
+    const tasks = get(tasksAtom);
+    const complete = tasks.filter((task) => task.complete).length;
+
+    return {
+      complete,
+      remaining: tasks.length - complete,
+      total: tasks.length,
+    };
+  });
+  const store = createStore();
+}
+
+<section class="planner" aria-labelledby="planner-title">
+  <use-atom-value/progress=() => progressAtom store=() => store/>
+  <header class="planner__header">
+    <div>
+      <span class="label">Today</span>
+      <h2 id="planner-title">Binding launch list</h2>
+    </div>
+    <div
+      class="progress"
+      aria-label=`${progress.complete} of ${progress.total} tasks complete`
+    >
+      <strong>${progress.complete}/${progress.total}</strong>
+      <span>complete</span>
+    </div>
+  </header>
+
+  <use-atom/tasks=() => editableTasksAtom store=() => store/>
+  <let/draft="">
+  <let/nextId=initialTasks.length + 1>
+  <form
+    class="add-task"
+    onSubmit(event) {
+      event.preventDefault();
+      const title = draft.trim();
+      if (!title) return;
+
+      tasks = [...tasks, { id: nextId++, title, complete: false }];
+      draft = "";
+    }
+  >
+    <label class="sr-only" for="new-task">New task</label>
+    <input
+      id="new-task"
+      value=draft
+      placeholder="What should happen next?"
+      autocomplete="off"
+      onInput(_event, element) {
+        draft = element.value;
+      }
+    >
+    <button type="submit">Add task</button>
+  </form>
+
+  <use-atom/selectedFilter=() => filterAtom store=() => store/>
+  <div class="toolbar">
+    <div class="filters" aria-label="Filter tasks">
+      <for|filter| of=["all", "active", "complete"] as const>
+        <button
+          type="button"
+          class={ active: selectedFilter === filter }
+          aria-pressed=selectedFilter === filter ? "true" : "false"
+          onClick() {
+            selectedFilter = filter;
+          }
+        >
+          ${filter[0].toUpperCase() + filter.slice(1)}
+        </button>
+      </for>
+    </div>
+    <span class="remaining">${progress.remaining} remaining</span>
+  </div>
+
+  <use-atom-value/visibleTasks=() => visibleTasksAtom store=() => store/>
+  <div class="task-list" aria-live="polite">
+    <for|task| of=visibleTasks>
+      <article class=["task", { done: task.complete }]>
+        <button
+          type="button"
+          class="check"
+          aria-label=(
+            task.complete
+              ? `Mark ${task.title} active`
+              : `Mark ${task.title} complete`
+          )
+          aria-pressed=task.complete ? "true" : "false"
+          onClick() {
+            tasks = tasks.map((candidate) =>
+              candidate.id === task.id
+                ? { ...candidate, complete: !candidate.complete }
+                : candidate,
+            );
+          }
+        >
+          <span aria-hidden="true">${task.complete ? "✓" : ""}</span>
+        </button>
+        <span class="task__title">${task.title}</span>
+        <button
+          type="button"
+          class="remove"
+          aria-label=`Remove ${task.title}`
+          onClick() {
+            tasks = tasks.filter((candidate) => candidate.id !== task.id);
+          }
+        >
+          Remove
+        </button>
+      </article>
+    </for>
+    <if=!visibleTasks.length>
+      <div class="empty">
+        <strong>Nothing here.</strong>
+        <span>Try another filter or add a task.</span>
+      </div>
+    </if>
+  </div>
+
+  <use-reset-atom/resetTasks=() => tasksAtom store=() => store/>
+  <footer class="planner__footer">
+    <p>
+      <code>&lt;use-atom&gt;</code> writes state;
+      <code>&lt;use-atom-value&gt;</code> reads derived state.
+    </p>
+    <button
+      type="button"
+      class="reset"
+      onClick() {
+        resetTasks();
+        selectedFilter = "all";
+      }
+    >
+      Reset example
+    </button>
+  </footer>
+</section>

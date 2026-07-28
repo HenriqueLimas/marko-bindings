@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["@marko/run"]
+  },
+  "include": [
+    ".marko-run/routes.d.ts",
+    "../../packages/shared-state/marko-jotai/src",
+    "src"
+  ]
+}

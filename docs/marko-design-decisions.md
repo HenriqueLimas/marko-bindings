@@ -109,6 +109,21 @@ future bindings should follow.
   SSR, then start after resumption and unsubscribe on input changes or cleanup.
   Never block SSR on a Promise that only browser work can settle.
 
+## Reconstruct non-serializable shared-state dependencies
+
+- **Tried:** A server-rendered Marko Run page passed Jotai atoms and a store
+  directly to `<use-atom>` and `<use-atom-value>`. Their closures disappeared
+  from resume state, so browser subscriptions had no dependencies. Starting the
+  whole planner after resume worked but discarded useful SSR.
+- **Tried next:** Wrapping a render-owned store with `store=() => store` still
+  captured the instance and made Marko attempt to serialize it.
+- **Ended with:** Atom and explicit store inputs use inline getters that reference
+  static definitions, such as `value=() => progressAtom store=() => store`.
+  Marko creates those definitions independently in each target.
+- **Rule:** Inline getters for non-serializable dependencies must reference
+  statically reconstructable values. A render-local store needs a different
+  first-class API; do not hide that limitation behind serialization workarounds.
+
 ## Adding a decision
 
 ```md

@@ -1,18 +1,18 @@
 import { getDefaultStore, type WritableAtom } from "jotai/vanilla";
 
 export interface Input<T> {
-  value: WritableAtom<T, [T], unknown>;
-  store?: ReturnType<typeof getDefaultStore>;
+  value: () => WritableAtom<T, [T], unknown>;
+  store?: () => ReturnType<typeof getDefaultStore> | undefined;
   content?: Marko.Body<[Awaited<T>]>;
 }
 
-<const/atom=input.value>
-<const/store=input.store ?? getDefaultStore()>
-<let/value=store.get(atom)>
+<let/value=(input.store?.() ?? getDefaultStore()).get(input.value())>
 <script>
-  value = store.get(atom);
-  const unsubscribe = store.sub(atom, () => {
-    value = store.get(atom);
+  const browserAtom = input.value();
+  const browserStore = input.store?.() ?? getDefaultStore();
+  value = browserStore.get(browserAtom);
+  const unsubscribe = browserStore.sub(browserAtom, () => {
+    value = browserStore.get(browserAtom);
   });
 
   $signal.onabort = unsubscribe;
@@ -26,6 +26,8 @@ export interface Input<T> {
 
 <return=value
   valueChange(next) {
-    store.set(atom, next);
+    const browserAtom = input.value();
+    const browserStore = input.store?.() ?? getDefaultStore();
+    browserStore.set(browserAtom, next);
   }
 >

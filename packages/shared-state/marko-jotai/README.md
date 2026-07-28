@@ -19,8 +19,9 @@ Create a writable atom, then expose its value with `<use-atom>`:
 ```marko
 import { atom } from "marko-jotai";
 
-<const/countAtom=atom(0)>
-<use-atom/count=countAtom/>
+static const countAtom = atom(0);
+
+<use-atom/count=() => countAtom/>
 
 <button onClick() {
   count++;
@@ -31,7 +32,15 @@ import { atom } from "marko-jotai";
 
 The `/count` portion names the returned reactive tag variable. Assigning to `count` writes through to the Jotai atom, and store updates flow back into `count`.
 
-Like Jotai's React hooks, both tags use `getDefaultStore()` when `store` is omitted. Pass an explicit store when state needs its own owner or request boundary.
+Atom and store inputs are zero-argument getters. Write them inline so Marko can reconstruct their dependencies in both the server and browser bundles. Like Jotai's React hooks, the tags use `getDefaultStore()` when `store` is omitted. An explicit store must also be statically defined so each target creates its own instance:
+
+```marko
+import { createStore } from "marko-jotai";
+
+static const store = createStore();
+
+<use-atom/count=() => countAtom store=() => store/>
+```
 
 ### Async atoms
 
@@ -40,14 +49,10 @@ Use `<use-atom-value>` for a readable async atom. Its body parameter is the reso
 ```marko
 import { atom } from "marko-jotai";
 
-export interface Input {
-  numPromise: Promise<number>;
-}
-
-<const/asyncAtom=atom(() => input.numPromise)>
+static const asyncAtom = atom(Promise.resolve(42));
 
 <try>
-  <use-atom-value|num|=asyncAtom><output>${num}</output></use-atom-value>
+  <use-atom-value|num|=() => asyncAtom><output>${num}</output></use-atom-value>
 
   <@placeholder>Loading...</@placeholder>
   <@catch|error|>${String(error)}</@catch>
@@ -57,10 +62,10 @@ export interface Input {
 Writable async atoms can use the same body-parameter form with `<use-atom>`:
 
 ```marko
-<const/asyncAtom=atom(input.numPromise)>
+static const asyncAtom = atom(Promise.resolve(42));
 
 <try>
-  <use-atom|num|=asyncAtom><output>${num}</output></use-atom>
+  <use-atom|num|=() => asyncAtom><output>${num}</output></use-atom>
 
   <@placeholder>Loading...</@placeholder>
   <@catch|error|>${String(error)}</@catch>
@@ -72,18 +77,18 @@ Writable async atoms can use the same body-parameter form with `<use-atom>`:
 ### `<use-atom>`
 
 ```marko
-<use-atom/value=atom/>
+<use-atom/value=() => atom/>
 
-<use-atom|value|=atom>
+<use-atom|value|=() => atom>
   <!-- render with value -->
 </use-atom>
 ```
 
-| Input     | Type                             | Description                                      |
-| --------- | -------------------------------- | ------------------------------------------------ |
-| `value`   | `WritableAtom<T, [T], unknown>`  | Default input containing the writable atom.      |
-| `store`   | `ReturnType<typeof createStore>` | Optional store; defaults to `getDefaultStore()`. |
-| `content` | `Marko.Body<[Awaited<T>]>`       | Optional body receiving the resolved atom value. |
+| Input     | Type                                                | Description                                              |
+| --------- | --------------------------------------------------- | -------------------------------------------------------- |
+| `value`   | `() => WritableAtom<T, [T], unknown>`               | Inline getter returning the writable atom.               |
+| `store`   | `() => ReturnType<typeof createStore> \| undefined` | Optional inline getter; defaults to `getDefaultStore()`. |
+| `content` | `Marko.Body<[Awaited<T>]>`                          | Optional body receiving the resolved atom value.         |
 
 The `/value` form returns the atom's current `T` as a reactive, writable tag variable. The `|value|` form renders body content with `Awaited<T>` and resolves promises through an internal `<await>`. The tag subscribes with `store.sub()` and unsubscribes when it leaves the document.
 
@@ -92,31 +97,31 @@ Atoms whose write function requires multiple arguments do not map to a single Ma
 ### `<use-atom-value>`
 
 ```marko
-<use-atom-value/value=atom/>
+<use-atom-value/value=() => atom/>
 
-<use-atom-value|value|=atom>
+<use-atom-value|value|=() => atom>
   <!-- render with value -->
 </use-atom-value>
 ```
 
-| Input     | Type                             | Description                                      |
-| --------- | -------------------------------- | ------------------------------------------------ |
-| `value`   | `Atom<T>`                        | Default input containing any readable atom.      |
-| `store`   | `ReturnType<typeof createStore>` | Optional store; defaults to `getDefaultStore()`. |
-| `content` | `Marko.Body<[Awaited<T>]>`       | Optional body receiving the resolved atom value. |
+| Input     | Type                                                | Description                                              |
+| --------- | --------------------------------------------------- | -------------------------------------------------------- |
+| `value`   | `() => Atom<T>`                                     | Inline getter returning any readable atom.               |
+| `store`   | `() => ReturnType<typeof createStore> \| undefined` | Optional inline getter; defaults to `getDefaultStore()`. |
+| `content` | `Marko.Body<[Awaited<T>]>`                          | Optional body receiving the resolved atom value.         |
 
 The `/value` form returns the atom's current `T` as a reactive, read-only tag variable. For async atoms this is the raw promise. The `|value|` form resolves promise values through `<await>` and passes `Awaited<T>` to its body.
 
 ### `<use-reset-atom>`
 
 ```marko
-<use-reset-atom/reset=atom/>
+<use-reset-atom/reset=() => atom/>
 ```
 
-| Input   | Type                                       | Description                                      |
-| ------- | ------------------------------------------ | ------------------------------------------------ |
-| `value` | `WritableAtom<unknown, [typeof RESET], T>` | Default input containing an atom that can reset. |
-| `store` | `ReturnType<typeof createStore>`           | Optional store; defaults to `getDefaultStore()`. |
+| Input   | Type                                                | Description                                              |
+| ------- | --------------------------------------------------- | -------------------------------------------------------- |
+| `value` | `() => WritableAtom<unknown, [typeof RESET], T>`    | Inline getter returning an atom that can reset.          |
+| `store` | `() => ReturnType<typeof createStore> \| undefined` | Optional inline getter; defaults to `getDefaultStore()`. |
 
 Returns a zero-argument function that resets the atom by writing Jotai's `RESET` symbol. It works with utilities such as `atomWithReset` and `atomWithStorage`.
 
@@ -136,13 +141,10 @@ The complete `jotai/vanilla` entrypoint is re-exported; React is not required.
 import { atom } from "marko-jotai";
 import { unwrap } from "marko-jotai/utils";
 
-export interface Input {
-  numPromise: Promise<number>;
-}
+static const asyncAtom = atom(Promise.resolve(42));
+static const unwrappedAtom = unwrap(asyncAtom);
 
-<const/asyncAtom=atom(() => input.numPromise)>
-<const/unwrappedAtom=unwrap(asyncAtom)>
-<use-atom-value/num=unwrappedAtom/>
+<use-atom-value/num=() => unwrappedAtom/>
 
 <if=num === undefined>Loading...</if>
 <if=num !== undefined>${num}</if>
@@ -159,10 +161,12 @@ activates the surrounding `<try>` placeholder and catch blocks:
 import { atomWithObservable } from "marko-jotai/utils";
 import { count$ } from "./count-observable.js";
 
-<const/countAtom=atomWithObservable(() => count$)>
+static const countAtom = atomWithObservable(() => count$);
 
 <try>
-  <use-atom-value|count|=countAtom><output>${count}</output></use-atom-value>
+  <use-atom-value|count|=() => countAtom>
+    <output>${count}</output>
+  </use-atom-value>
 
   <@placeholder>Waiting for first value...</@placeholder>
   <@catch|error|>${String(error)}</@catch>
@@ -180,9 +184,10 @@ can instead be used with `<use-atom>`.
 ```marko
 import { atomWithReset } from "marko-jotai/utils";
 
-<const/countAtom=atomWithReset(1)>
-<use-atom/count=countAtom/>
-<use-reset-atom/reset=countAtom/>
+static const countAtom = atomWithReset(1);
+
+<use-atom/count=() => countAtom/>
+<use-reset-atom/reset=() => countAtom/>
 
 <output>${count}</output>
 <button onClick() {
@@ -198,8 +203,9 @@ import { atomWithReset } from "marko-jotai/utils";
 ```marko
 import { atomWithLazy } from "marko-jotai/utils";
 
-<const/countAtom=atomWithLazy(() => 40)>
-<use-atom/count=countAtom/>
+static const countAtom = atomWithLazy(() => 40);
+
+<use-atom/count=() => countAtom/>
 
 <button onClick() {
   count++;
@@ -215,10 +221,13 @@ The initializer runs once for each store that reads the atom.
 ```marko
 import { atomWithStorage } from "marko-jotai/utils";
 
-<const/countAtom=atomWithStorage("count", 0)>
-<use-atom/count=countAtom/>
+static const countAtom = atomWithStorage("count", 0);
+
+<use-atom/count=() => countAtom/>
 ```
 
 ## Server rendering
 
-A Jotai atom and store can be read during rendering, but their closures cannot cross a Marko server-resume serialization boundary. The default store is process-wide, so pass an explicitly owned store for request-specific server state.
+Jotai atoms and stores contain closures that cannot cross Marko's server-resume serialization boundary. Declare atom definitions with Marko's `static` syntax and reference them through inline getters so Marko includes them in both bundles.
+
+The default store and a statically declared explicit store are process-wide in each target. A render-owned `<const/store=createStore()>` cannot resume because its closure is not serializable; `store=() => store` must refer to a statically reconstructable store.

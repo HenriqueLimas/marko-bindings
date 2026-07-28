@@ -5,5 +5,5 @@ export interface Input {
   store: ReturnType<typeof createStore>;
 }
 
-<use-atom-value/value=input.atom store=input.store/>
+<use-atom-value/value=() => input.atom store=() => input.store/>
 <output>${value}</output>

@@ -5,7 +5,7 @@ export interface Input {
   store: ReturnType<typeof createStore>;
 }
 
-<use-atom/value=input.atom store=input.store/>
+<use-atom/value=() => input.atom store=() => input.store/>
 <output>${value}</output>
 <button onClick() {
   value += 5;

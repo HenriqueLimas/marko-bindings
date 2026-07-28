@@ -6,7 +6,7 @@ export interface Input {
 }
 
 <try>
-  <use-atom-value|num|=input.atom store=input.store>
+  <use-atom-value|num|=() => input.atom store=() => input.store>
     <output>${num}</output>
   </use-atom-value>
 

@@ -1,0 +1,23 @@
+{
+  "name": "@marko-bindings/example-jotai",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Marko Run task planner demonstrating marko-jotai shared state",
+  "type": "module",
+  "scripts": {
+    "build": "marko-run build",
+    "dev": "marko-run dev",
+    "preview": "marko-run preview",
+    "typecheck": "mtc"
+  },
+  "dependencies": {
+    "@marko/run": "^0.11.6",
+    "marko": "catalog:",
+    "marko-jotai": "workspace:*"
+  },
+  "devDependencies": {
+    "@marko/language-tools": "catalog:",
+    "@marko/type-check": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -7,7 +7,7 @@ export interface Input {
 }
 
 <const/unwrappedAtom=unwrap(input.atom)>
-<use-atom-value/value=unwrappedAtom store=input.store/>
+<use-atom-value/value=() => unwrappedAtom store=() => input.store/>
 
 <if=value === undefined><output>Loading...</output></if>
 <if=value !== undefined><output>${value}</output></if>

@@ -7,6 +7,6 @@ export interface Input {
 }
 
 <if=input.show>
-  <use-atom/value=input.atom store=input.store/>
+  <use-atom/value=() => input.atom store=() => input.store/>
   <output>${value}</output>
 </if>
