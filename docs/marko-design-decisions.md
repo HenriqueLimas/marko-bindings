@@ -49,8 +49,10 @@ future bindings should follow.
   Queries are likewise exported from `.marko` modules as getter functions and
   invoked through an inline `query=() => GET_QUERY()` wrapper. Passing an
   imported getter directly was still classified as server-only and disappeared
-  from the resumed child input. Direct client and parsed-query inputs remain
-  intentionally unsupported.
+  from the resumed child input. Registering exported arrow functions with a
+  module `<return>` made their IDs serializable, but the browser entry still
+  omitted their implementations, so they resumed as `undefined`. Direct client
+  and parsed-query inputs remain intentionally unsupported.
 - **Rule:** Hide target-specific, non-serializable dependencies behind an inline
   or Marko-module getter. Server work must be explicitly awaited and only plain
   results may cross the resume boundary; `ssrMode` does not start queries.
@@ -80,6 +82,17 @@ future bindings should follow.
 - **Rule:** A binding cleans up subscriptions and instances it creates, but not
   dependencies passed in by its caller. Cleanup closures must capture the
   resource owned by their specific reactive script run.
+
+## Keep mutations event driven
+
+- **Ended with:** `<use-mutation>` renders immediately, returns `mutate` as its
+  tag variable, and passes reactive result state to an optional body. It never
+  starts a mutation during SSR. `mutate` resolves the client and mutation
+  document only when called, and the result intentionally omits the
+  non-serializable client instance.
+- **Rule:** Do not suspend rendering for work that begins from a browser event.
+  Keep the trigger inside the tag's resumable scope, publish plain result state,
+  and ignore late results after reset, replacement, or cleanup.
 
 ## Adding a decision
 

@@ -29,10 +29,25 @@ export const server = new ApolloServer({
     type Query {
       books: [Book!]!
     }
+
+    type Mutation {
+      addBook(title: String!, author: String!): Book!
+    }
   `,
   resolvers: {
     Query: {
       books: () => books,
+    },
+    Mutation: {
+      addBook: (_parent: unknown, input: { title: string; author: string }) => {
+        const book = {
+          id: input.title.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-"),
+          title: input.title,
+          author: input.author,
+        };
+        books.push(book);
+        return book;
+      },
     },
   },
 });

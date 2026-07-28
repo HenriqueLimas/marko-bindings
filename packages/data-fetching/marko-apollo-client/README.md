@@ -137,6 +137,68 @@ Passing the client explicitly keeps ownership visible and avoids render-global
 state. Server applications should create a request-scoped client rather than
 sharing one cache between users.
 
+### `<use-mutation>`
+
+Render with a mutation function and its reactive result:
+
+```marko
+import { createClient } from "./apollo-client.marko";
+import { ADD_DOG } from "./add-dog.marko";
+
+<use-mutation/addDog|result|
+  client=() => createClient()
+  mutation=() => ADD_DOG()
+>
+  <button
+    type="button"
+    disabled=result.loading
+    onClick() {
+      void addDog({
+        variables: { name: "Buck" },
+      }).catch(() => {});
+    }
+  >
+    Add dog
+  </button>
+
+  <if=result.error>${result.error.message}</if>
+  <else-if=result.data>Added ${result.data.addDog.name}</else-if>
+</use-mutation>
+```
+
+| Input      | Type                              | Description                                 |
+| ---------- | --------------------------------- | ------------------------------------------- |
+| `client`   | `() => ApolloClient \| undefined` | Required target-specific client getter.     |
+| `mutation` | `() => MutateOptions["mutation"]` | Required target-specific mutation getter.   |
+| `content`  | `Marko.Body<[Result]>`            | Optional body receiving reactive state.     |
+| `...`      | Mutation options without document | Default options merged into each execution. |
+
+The tag variable calls `ApolloClient.mutate`. It accepts per-execution mutation
+options, merges their variables with defaults supplied to the tag, and returns
+Apollo's mutation Promise. Rejections remain rejections, so event handlers that
+rely on the reactive `result.error` should explicitly handle the Promise as
+shown above.
+
+The optional body parameter contains:
+
+| Field     | Type                              | Description                              |
+| --------- | --------------------------------- | ---------------------------------------- |
+| `called`  | `boolean`                         | Whether the mutation has been called.    |
+| `loading` | `boolean`                         | Whether its latest execution is pending. |
+| `data`    | `MaybeMasked<TData> \| undefined` | The latest mutation data.                |
+| `error`   | `ErrorLike \| undefined`          | The latest mutation error.               |
+| `reset`   | `() => void`                      | Restore the initial idle result.         |
+
+The tag renders immediately and never executes a mutation during SSR. Client
+and mutation getters are resolved only when `mutate` is called, keeping both
+non-serializable values out of resumed state. Only the latest execution updates
+the result; resetting, replacing, or removing the tag prevents an older Promise
+from publishing stale state. When result UI is unnecessary, omit the body:
+
+```marko
+<use-mutation/addDog client=() => createClient() mutation=() => ADD_DOG()/>
+```
+
 ## JavaScript exports
 
 The package re-exports the complete `@apollo/client` entrypoint:

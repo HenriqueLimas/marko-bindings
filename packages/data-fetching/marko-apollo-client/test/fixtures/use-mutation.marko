@@ -1,0 +1,46 @@
+import { type ApolloClient, type TypedDocumentNode } from "marko-apollo-client";
+
+export interface GreetingMutation {
+  setGreeting: string;
+}
+
+export interface GreetingVariables {
+  greeting: string;
+  language?: string;
+}
+
+export interface Input {
+  client: () => ApolloClient | undefined;
+  mutation: () => TypedDocumentNode<GreetingMutation, GreetingVariables>;
+  variables?: GreetingVariables;
+}
+
+<use-mutation/mutate|result|
+  client=input.client
+  mutation=input.mutation
+  variables=input.variables
+>
+  <button
+    type="button"
+    onClick() {
+      void mutate({ variables: { greeting: "Hello, Marko" } }).catch(() => {});
+    }
+  >
+    Mutate
+  </button>
+  <button
+    type="button"
+    onClick() {
+      result.reset();
+    }
+  >
+    Reset
+  </button>
+  <output>
+    <if=result.loading>Loading...</if>
+    <else-if=result.error>Error: ${result.error.message}</else-if>
+    <else-if=result.data>${result.data.setGreeting}</else-if>
+    <else-if=result.called>Called</else-if>
+    <else>Idle</else>
+  </output>
+</use-mutation>
