@@ -7,6 +7,7 @@
   "scripts": {
     "build": "marko-run build",
     "dev": "marko-run dev",
+    "preview": "marko-run preview",
     "typecheck": "mtc"
   },
   "dependencies": {

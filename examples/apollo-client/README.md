@@ -11,6 +11,10 @@ The pages use an Apollo Server exposed by the same application at `/gql`:
 - `/subscription` renders loading state during SSR, then starts a browser
   subscription after resumption.
 
+The root `+layout.marko` owns the shared HTML shell and styles. Each page sets
+CSS custom properties on its wrapper for its accent, link, surface, and detail
+colors.
+
 ```sh
 pnpm --filter @marko-bindings/example-apollo-client dev
 ```
