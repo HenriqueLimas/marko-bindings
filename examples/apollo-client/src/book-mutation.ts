@@ -1,6 +1,6 @@
 import { gql, type TypedDocumentNode } from "marko-apollo-client";
 
-import type { Book } from "./books-query.marko";
+import type { Book } from "./books-query.js";
 
 export interface AddBookMutation {
   addBook: Book;
@@ -11,11 +11,8 @@ export interface AddBookVariables {
   author: string;
 }
 
-export function ADD_BOOK(): TypedDocumentNode<
-  AddBookMutation,
-  AddBookVariables
-> {
-  return gql`
+export const ADD_BOOK: TypedDocumentNode<AddBookMutation, AddBookVariables> =
+  gql`
     mutation AddBook($title: String!, $author: String!) {
       addBook(title: $title, author: $author) {
         id
@@ -24,4 +21,3 @@ export function ADD_BOOK(): TypedDocumentNode<
       }
     }
   `;
-}

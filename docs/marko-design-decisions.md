@@ -46,16 +46,19 @@ future bindings should follow.
   fresh `ssrMode` client and the browser factory memoizes its singleton.
   `<use-query>` awaits `client.query()` on the server, serializes only its plain
   result, seeds the browser cache, and starts `watchQuery` in its browser script.
-  Queries are likewise exported from `.marko` modules as getter functions and
-  invoked through an inline `query=() => GET_QUERY()` wrapper. Passing an
+  GraphQL documents are exported as constants from regular TypeScript modules
+  and returned through inline `query=() => GET_QUERY` wrappers, bundling the
+  parsed document in each target without serializing it. Passing an
   imported getter directly was still classified as server-only and disappeared
   from the resumed child input. Registering exported arrow functions with a
   module `<return>` made their IDs serializable, but the browser entry still
   omitted their implementations, so they resumed as `undefined`. Direct client
   and parsed-query inputs remain intentionally unsupported.
-- **Rule:** Hide target-specific, non-serializable dependencies behind an inline
-  or Marko-module getter. Server work must be explicitly awaited and only plain
-  results may cross the resume boundary; `ssrMode` does not start queries.
+- **Rule:** Export target-agnostic GraphQL documents from regular TypeScript
+  modules and reference them through inline getters. Reserve Marko modules for
+  target-specific dependencies such as client factories. Server work must be
+  explicitly awaited and only plain results may cross the resume boundary;
+  `ssrMode` does not start queries.
 
 ## Complete SSR before browser-only async work
 
@@ -93,6 +96,18 @@ future bindings should follow.
 - **Rule:** Do not suspend rendering for work that begins from a browser event.
   Keep the trigger inside the tag's resumable scope, publish plain result state,
   and ignore late results after reset, replacement, or cleanup.
+
+## Represent browser-only readiness as serializable state
+
+- **Tried:** A never-settling server Promise that the browser would replace with
+  the first subscription event's Promise. Marko kept the server stream open, so
+  the browser could not resume to replace it.
+- **Ended with:** `<use-subscription>` renders a plain `{ loading, data, error }`
+  result during SSR. After resumption it starts the browser subscription and
+  updates that state for events, errors, and completion.
+- **Rule:** Browser-only streams should expose serializable loading state during
+  SSR, then start after resumption and unsubscribe on input changes or cleanup.
+  Never block SSR on a Promise that only browser work can settle.
 
 ## Adding a decision
 

@@ -31,10 +31,11 @@ export function createClient() {
 }
 ```
 
-Put each parsed query behind a getter in a `.marko` module so Marko can resolve
-it independently in the server and browser runtimes:
+Export each parsed GraphQL operation document from a regular TypeScript module.
+The inline tag input keeps the document available independently in the server
+and browser runtimes:
 
-```marko
+```ts
 import { gql, type TypedDocumentNode } from "marko-apollo-client";
 
 export interface GetDogData {
@@ -44,29 +45,30 @@ export interface GetDogData {
   };
 }
 
-export function GET_DOG(): TypedDocumentNode<GetDogData, { name: string }> {
-  return gql`
-    query GetDog($name: String!) {
-      dog(name: $name) {
-        id
-        displayImage
-      }
+export const GET_DOG: TypedDocumentNode<GetDogData, { name: string }> = gql`
+  query GetDog($name: String!) {
+    dog(name: $name) {
+      id
+      displayImage
     }
-  `;
-}
+  }
+`;
 ```
 
-Load the client and query getters from Marko modules. `<use-query>` always
-receives a body parameter containing the reactive result:
+Load the client getter from its target-specific Marko module and the query
+constant from its TypeScript module. `<use-query>` always receives the document
+through an inline getter and a body parameter containing the reactive result.
+GraphQL documents do not need `.marko` modules; reserve those for values such as
+client factories that use Marko's `server` and `client` declarations.
 
 ```marko
 import { createClient } from "./apollo-client.marko";
-import { GET_DOG } from "./get-dog.marko";
+import { GET_DOG } from "./get-dog.js";
 
 <try>
   <use-query|result|
     client=() => createClient()
-    query=() => GET_DOG()
+    query=() => GET_DOG
     variables={ name: input.name }
   >
     <if=result.error>${result.error.message}</if>
@@ -101,7 +103,7 @@ Render with a reactive query result:
 ```marko
 <use-query|result|
   client=() => createClient()
-  query=() => GET_DOG()
+  query=() => GET_DOG
   variables={ name: "Buck" }
 >
   ${result.data?.dog.displayImage}
@@ -111,7 +113,7 @@ Render with a reactive query result:
 | Input     | Type                               | Description                               |
 | --------- | ---------------------------------- | ----------------------------------------- |
 | `client`  | `() => ApolloClient \| undefined`  | Required target-specific client getter.   |
-| `query`   | `() => WatchQueryOptions["query"]` | Required target-specific query getter.    |
+| `query`   | `() => WatchQueryOptions["query"]` | Required inline document getter.          |
 | `content` | `Marko.Body<[Result]>`             | Required body receiving a settled result. |
 | `...`     | `Omit<WatchQueryOptions, "query">` | Remaining Apollo watch-query options.     |
 
@@ -143,12 +145,9 @@ Render with a mutation function and its reactive result:
 
 ```marko
 import { createClient } from "./apollo-client.marko";
-import { ADD_DOG } from "./add-dog.marko";
+import { ADD_DOG } from "./add-dog.js";
 
-<use-mutation/addDog|result|
-  client=() => createClient()
-  mutation=() => ADD_DOG()
->
+<use-mutation/addDog|result| client=() => createClient() mutation=() => ADD_DOG>
   <button
     type="button"
     disabled=result.loading
@@ -169,7 +168,7 @@ import { ADD_DOG } from "./add-dog.marko";
 | Input      | Type                              | Description                                 |
 | ---------- | --------------------------------- | ------------------------------------------- |
 | `client`   | `() => ApolloClient \| undefined` | Required target-specific client getter.     |
-| `mutation` | `() => MutateOptions["mutation"]` | Required target-specific mutation getter.   |
+| `mutation` | `() => MutateOptions["mutation"]` | Required inline document getter.            |
 | `content`  | `Marko.Body<[Result]>`            | Optional body receiving reactive state.     |
 | `...`      | Mutation options without document | Default options merged into each execution. |
 
@@ -196,8 +195,47 @@ the result; resetting, replacing, or removing the tag prevents an older Promise
 from publishing stale state. When result UI is unnecessary, omit the body:
 
 ```marko
-<use-mutation/addDog client=() => createClient() mutation=() => ADD_DOG()/>
+<use-mutation/addDog client=() => createClient() mutation=() => ADD_DOG/>
 ```
+
+### `<use-subscription>`
+
+Render server-resumable loading state followed by subscription events:
+
+```marko
+import { createClient } from "./apollo-client.marko";
+import { DOG_UPDATED } from "./dog-updated.js";
+
+<use-subscription|result|
+  client=() => createClient()
+  subscription=() => DOG_UPDATED
+  variables={ name: "Buck" }
+>
+  <if=result.loading>Waiting for the first update…</if>
+  <else-if=result.error>${result.error.message}</else-if>
+  <else><img src=result.data?.dogUpdated.displayImage></else>
+</use-subscription>
+```
+
+| Input          | Type                              | Description                         |
+| -------------- | --------------------------------- | ----------------------------------- |
+| `client`       | `() => ApolloClient \| undefined` | Required browser client getter.     |
+| `subscription` | `() => SubscribeOptions["query"]` | Required document getter.           |
+| `content`      | `Marko.Body<[Result]>`            | Required body receiving the result. |
+| `...`          | `Omit<SubscribeOptions, "query">` | Remaining subscription options.     |
+
+Subscriptions never start during SSR. The tag initially renders a serializable
+result with `loading: true`. After browser resumption, it calls both getters and
+subscribes with `ApolloClient.subscribe`. Events update the body parameter with
+`loading: false`; stream errors set `error` instead of rejecting a Marko async
+boundary. Changing inputs returns the result to its loading state while the new
+stream starts.
+
+The result extends Apollo's
+`ApolloClient.SubscribeResult<MaybeMasked<TData>>`, containing `data`, optional
+`error`, and optional `extensions`, with a `loading` boolean. The tag
+unsubscribes when its inputs change or it leaves the document. The supplied
+Apollo Client must configure a subscription-capable link.
 
 ## JavaScript exports
 
@@ -219,10 +257,11 @@ import {
 
 Apollo Client and `ObservableQuery` instances, as well as GraphQL
 `DocumentNode` objects, cannot cross Marko's server-resume serialization
-boundary. `<use-query>` invokes the client and query getters separately in each
-runtime. When `client()` returns an Apollo Client on the server, the tag awaits
-its query, serializes only the result, then seeds the browser cache before
-starting `watchQuery`.
+boundary. `<use-query>` and `<use-subscription>` invoke their client and document
+getters separately in each runtime where they are needed. When `client()`
+returns an Apollo Client on the server, `<use-query>` awaits its query,
+serializes only the result, then seeds the browser cache before starting
+`watchQuery`.
 
 When `client()` returns `undefined` on the server, rendering completes without
 opening a pending async stream. A browser script calls the getter again, starts
@@ -241,3 +280,8 @@ Because the server query starts when the tag renders, nested query tags can
 create request waterfalls. Prefer starting data known at the route boundary in
 the Marko Run handler; use this SSR path when the query is owned by the rendered
 tag.
+
+`<use-subscription>` renders `{ loading: true, data: undefined }` during SSR but
+starts its stream only in the browser. A pending server Promise would keep the
+HTML stream open and prevent resumption, so the browser script instead updates
+the serialized result state when the stream emits, errors, or completes.

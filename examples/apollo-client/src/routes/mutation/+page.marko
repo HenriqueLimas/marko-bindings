@@ -1,6 +1,6 @@
 import { createClient } from "../../apollo-client.marko";
-import { ADD_BOOK } from "../../book-mutation.marko";
-import { BOOKS_QUERY } from "../../books-query.marko";
+import { ADD_BOOK } from "../../book-mutation.js";
+import { BOOKS_QUERY } from "../../books-query.js";
 
 <!doctype html>
 <html lang="en">
@@ -119,7 +119,7 @@ import { BOOKS_QUERY } from "../../books-query.marko";
         <try>
           <use-query|booksResult|
             client=() => createClient()
-            query=() => BOOKS_QUERY()
+            query=() => BOOKS_QUERY
           >
             <if=booksResult.error>
               <p role="alert">
@@ -129,7 +129,7 @@ import { BOOKS_QUERY } from "../../books-query.marko";
             <else>
               <use-mutation/addBook|mutationResult|
                 client=() => createClient()
-                mutation=() => ADD_BOOK()
+                mutation=() => ADD_BOOK
                 refetchQueries=["Books"]
                 awaitRefetchQueries=true
               >

@@ -1,5 +1,5 @@
 import { createClientOnly } from "../../apollo-client.marko";
-import { BOOKS_QUERY } from "../../books-query.marko";
+import { BOOKS_QUERY } from "../../books-query.js";
 
 <!doctype html>
 <html lang="en">
@@ -104,7 +104,7 @@ import { BOOKS_QUERY } from "../../books-query.marko";
         <try>
           <use-query|result|
             client=() => createClientOnly()
-            query=() => BOOKS_QUERY()
+            query=() => BOOKS_QUERY
           >
             <if=result.error>
               <p role="alert">GraphQL error: ${result.error.message}</p>

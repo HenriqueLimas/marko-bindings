@@ -10,14 +10,12 @@ export interface BooksQuery {
   books: Book[];
 }
 
-export function BOOKS_QUERY(): TypedDocumentNode<BooksQuery> {
-  return gql`
-    query Books {
-      books {
-        id
-        title
-        author
-      }
+export const BOOKS_QUERY: TypedDocumentNode<BooksQuery> = gql`
+  query Books {
+    books {
+      id
+      title
+      author
     }
-  `;
-}
+  }
+`;

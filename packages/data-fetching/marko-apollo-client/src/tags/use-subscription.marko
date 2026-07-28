@@ -1,0 +1,103 @@
+import {
+  type ApolloClient,
+  type MaybeMasked,
+  type OperationVariables,
+} from "@apollo/client";
+import { toErrorLike } from "@apollo/client/errors";
+import type { Subscription as ObservableSubscription } from "rxjs";
+
+export type Result<TData = unknown> = ApolloClient.SubscribeResult<
+  MaybeMasked<TData>
+> & {
+  loading: boolean;
+};
+
+export type Subscription<
+  TData = unknown,
+  TVariables extends OperationVariables = OperationVariables,
+> = () => ApolloClient.SubscribeOptions<TData, TVariables>["query"];
+
+export type Input<
+  TData = unknown,
+  TVariables extends OperationVariables = OperationVariables,
+> = Omit<ApolloClient.SubscribeOptions<TData, TVariables>, "query"> & {
+  client: () => ApolloClient | undefined;
+  subscription: Subscription<TData, TVariables>;
+  content: Marko.Body<[Result<TData>]>;
+};
+
+static function inputError(name: "client" | "subscription") {
+  const error = new Error(`<use-subscription> requires a ${name} input.`);
+  console.error(error.message);
+  return error;
+}
+
+<let/result={
+  loading: true,
+  data: undefined,
+  error: undefined,
+} as Result<TData>>
+<script>
+  result = {
+    loading: true,
+    data: undefined,
+    error: undefined,
+  };
+
+  const publishError = (error: unknown) => {
+    result = {
+      loading: false,
+      data: undefined,
+      error: toErrorLike(error),
+    };
+  };
+
+  const getClient = input.client;
+  const client = typeof getClient === "function" ? getClient() : undefined;
+  if (!client) {
+    publishError(inputError("client"));
+    return;
+  }
+
+  const getSubscription = input.subscription;
+  if (typeof getSubscription !== "function") {
+    publishError(inputError("subscription"));
+    return;
+  }
+
+  const {
+    client: _client,
+    content: _content,
+    subscription: _subscription,
+    ...options
+  } = input;
+  let activeSubscription: ObservableSubscription | undefined;
+  let received = false;
+  try {
+    activeSubscription = client
+      .subscribe<TData, TVariables>({
+        ...options,
+        query: getSubscription(),
+      } as ApolloClient.SubscribeOptions<TData, TVariables>)
+      .subscribe({
+        next(nextResult) {
+          received = true;
+          result = { ...nextResult, loading: false };
+        },
+        error: publishError,
+        complete() {
+          if (!received) {
+            result = { loading: false, data: undefined };
+          }
+        },
+      });
+  } catch (error) {
+    publishError(error);
+  }
+
+  $signal.onabort = () => {
+    activeSubscription?.unsubscribe();
+  };
+</script>
+
+<${input.content}({ ...result })/>

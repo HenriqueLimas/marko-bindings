@@ -1,0 +1,39 @@
+import {
+  ApolloClient,
+  ApolloLink,
+  InMemoryCache,
+  Observable,
+} from "marko-apollo-client";
+
+client let client: ApolloClient | undefined;
+
+client function createBrowserClient() {
+  return (client ??= new ApolloClient({
+    cache: new InMemoryCache(),
+    link: new ApolloLink(
+      () =>
+        new Observable((observer) => {
+          let tick = 0;
+          const publish = () => {
+            observer.next({ data: { tick: ++tick } });
+          };
+          const firstEvent = setTimeout(publish, 350);
+          const laterEvents = setInterval(publish, 1_000);
+
+          return () => {
+            clearTimeout(firstEvent);
+            clearInterval(laterEvents);
+          };
+        }),
+    ),
+  }));
+}
+
+server function getNoServerClient() {
+  return undefined;
+}
+
+export const createSubscriptionClient =
+  typeof getNoServerClient !== "undefined"
+    ? getNoServerClient
+    : createBrowserClient;
