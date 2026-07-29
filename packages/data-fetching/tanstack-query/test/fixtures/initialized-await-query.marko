@@ -1,0 +1,26 @@
+import {
+  type QueryClient,
+  type QueryObserverOptions,
+} from "@marko-bindings/tanstack-query";
+
+export interface Input {
+  client: () => QueryClient;
+  query: () => QueryObserverOptions<
+    { greeting: string },
+    Error,
+    { greeting: string },
+    { greeting: string },
+    readonly ["greeting"]
+  >;
+}
+
+<init-query-client=input.client/>
+
+<try>
+  <await-query|result| query=input.query>
+    <output>${result.data?.greeting ?? "No greeting"}</output>
+  </await-query>
+
+  <@placeholder><output>Loading...</output></@placeholder>
+  <@catch|error|><output>${String(error)}</output></@catch>
+</try>

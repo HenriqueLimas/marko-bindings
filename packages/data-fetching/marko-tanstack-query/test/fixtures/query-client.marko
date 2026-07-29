@@ -1,7 +1,0 @@
-import { QueryClient } from "marko-tanstack-query";
-
-export function createQueryClient() {
-  return new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
-}

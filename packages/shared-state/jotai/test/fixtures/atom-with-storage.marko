@@ -1,0 +1,13 @@
+import { atomWithStorage } from "@marko-bindings/jotai/utils";
+import { createStore } from "@marko-bindings/jotai";
+
+<const/store=createStore()>
+<const/countAtom=atomWithStorage("@marko-bindings/jotai-count", 1)>
+<let-atom/count=() => countAtom store=() => store/>
+
+<output>${count}</output>
+<button onClick() {
+  count += 5;
+}>
+  Add five
+</button>

@@ -5,7 +5,7 @@
   },
   "include": [
     ".marko-run/routes.d.ts",
-    "../../packages/data-fetching/marko-tanstack-query/src",
+    "../../packages/data-fetching/tanstack-query/src",
     "src"
   ]
 }

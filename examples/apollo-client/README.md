@@ -1,6 +1,6 @@
 # Apollo Client with Marko Run
 
-This example uses the `marko-apollo-client` binding in a Marko Run application.
+This example uses the `@marko-bindings/apollo-client` binding in a Marko Run application.
 The pages use an Apollo Server exposed by the same application at `/gql`:
 
 - `/` loads the query with a request-scoped server client.

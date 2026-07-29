@@ -11,9 +11,9 @@
     "typecheck": "mtc"
   },
   "dependencies": {
+    "@marko-bindings/tanstack-store": "workspace:*",
     "@marko/run": "^0.11.6",
-    "marko": "catalog:",
-    "marko-tanstack-store": "workspace:*"
+    "marko": "catalog:"
   },
   "devDependencies": {
     "@marko/language-tools": "catalog:",

@@ -1,0 +1,23 @@
+import {
+  type ApolloClient,
+  type TypedDocumentNode,
+} from "@marko-bindings/apollo-client";
+
+import type { TickSubscription } from "./const-subscription.marko";
+
+export interface Input {
+  client: () => ApolloClient | undefined;
+  subscription: () => TypedDocumentNode<TickSubscription>;
+  show: boolean;
+}
+
+<if=input.show>
+  <const-subscription/result
+    client=input.client
+    subscription=input.subscription
+  />
+  <output>
+    <if=result.loading>Loading...</if>
+    <else>${result.data?.tick}</else>
+  </output>
+</if>

@@ -1,7 +1,7 @@
 import type {
   QueryObserverOptions,
   QueryFunctionContext,
-} from "marko-tanstack-query";
+} from "@marko-bindings/tanstack-query";
 
 import type { BooksResponse } from "./books.js";
 

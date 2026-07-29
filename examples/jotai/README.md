@@ -1,6 +1,6 @@
 # Jotai task planner with Marko Run
 
-This example uses `marko-jotai` to build a small task planner in a Marko Run
+This example uses `@marko-bindings/jotai` to build a small task planner in a Marko Run
 application. It demonstrates:
 
 - writable task and filter state with `<let-atom>`;

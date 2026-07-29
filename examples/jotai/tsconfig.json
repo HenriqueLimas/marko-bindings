@@ -5,7 +5,7 @@
   },
   "include": [
     ".marko-run/routes.d.ts",
-    "../../packages/shared-state/marko-jotai/src",
+    "../../packages/shared-state/jotai/src",
     "src"
   ]
 }

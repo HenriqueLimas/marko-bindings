@@ -5,7 +5,7 @@
   },
   "include": [
     ".marko-run/routes.d.ts",
-    "../../packages/data-fetching/marko-apollo-client/src",
+    "../../packages/data-fetching/apollo-client/src",
     "src"
   ]
 }

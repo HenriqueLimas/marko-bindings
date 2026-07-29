@@ -1,0 +1,11 @@
+import { atom } from "@marko-bindings/jotai";
+
+<const/countAtom=atom(2)>
+<let-atom/count=() => countAtom/>
+
+<output>${count}</output>
+<button onClick() {
+  count++;
+}>
+  Increment
+</button>

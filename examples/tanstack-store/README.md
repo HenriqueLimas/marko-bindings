@@ -1,6 +1,6 @@
 # TanStack Store cart with Marko Run
 
-This example uses `marko-tanstack-store` to build a small cart in a Marko Run
+This example uses `@marko-bindings/tanstack-store` to build a small cart in a Marko Run
 application. It demonstrates:
 
 - selecting mutable store state with `<const-selected>`;

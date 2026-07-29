@@ -1,4 +1,4 @@
-import { createAtom, createStore } from "marko-tanstack-store";
+import { createAtom, createStore } from "@marko-bindings/tanstack-store";
 
 interface CartItem {
   id: number;

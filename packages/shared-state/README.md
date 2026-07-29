@@ -6,5 +6,5 @@ Packages in this group should make ownership and request isolation explicit. Avo
 
 ## Packages
 
-- [`marko-jotai`](marko-jotai) — Jotai atoms with native Marko reactive bindings.
-- [`marko-tanstack-store`](marko-tanstack-store) — TanStack stores and atoms with native Marko reactive bindings.
+- [`@marko-bindings/jotai`](jotai) — Jotai atoms with native Marko reactive bindings.
+- [`@marko-bindings/tanstack-store`](tanstack-store) — TanStack stores and atoms with native Marko reactive bindings.

@@ -1,4 +1,4 @@
-import { gql, type TypedDocumentNode } from "marko-apollo-client";
+import { gql, type TypedDocumentNode } from "@marko-bindings/apollo-client";
 
 import type { Book } from "./books-query";
 

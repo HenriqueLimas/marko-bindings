@@ -1,0 +1,63 @@
+{
+  "name": "@marko-bindings/tanstack-store",
+  "version": "0.0.0",
+  "description": "TanStack Store and atom bindings for Marko 6",
+  "keywords": [
+    "marko",
+    "markojs",
+    "tanstack",
+    "store",
+    "state"
+  ],
+  "homepage": "https://github.com/HenriqueLimas/marko-bindings/tree/main/packages/shared-state/tanstack-store#readme",
+  "bugs": {
+    "url": "https://github.com/HenriqueLimas/marko-bindings/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HenriqueLimas/marko-bindings.git",
+    "directory": "packages/shared-state/tanstack-store"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./marko.json": "./marko.json",
+    "./package.json": "./package.json"
+  },
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "files": [
+    "src",
+    "marko.json",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "mtc",
+    "test": "vitest run",
+    "typecheck": "mtc"
+  },
+  "dependencies": {
+    "@tanstack/store": "catalog:"
+  },
+  "devDependencies": {
+    "@marko/language-tools": "catalog:",
+    "@marko/testing-library": "catalog:",
+    "@marko/type-check": "catalog:",
+    "@marko/vite": "catalog:",
+    "jsdom": "catalog:",
+    "marko": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "marko": "^6.3.20"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

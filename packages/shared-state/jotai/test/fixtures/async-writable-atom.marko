@@ -1,0 +1,15 @@
+import { type createStore, type PrimitiveAtom } from "@marko-bindings/jotai";
+
+export interface Input {
+  atom: PrimitiveAtom<Promise<number>>;
+  store: ReturnType<typeof createStore>;
+}
+
+<try>
+  <await-atom|num|=() => input.atom store=() => input.store>
+    <output>${num}</output>
+  </await-atom>
+
+  <@placeholder>Loading...</@placeholder>
+  <@catch|error|>${String(error)}</@catch>
+</try>

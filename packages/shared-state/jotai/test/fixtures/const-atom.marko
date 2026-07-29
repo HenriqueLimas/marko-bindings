@@ -1,0 +1,10 @@
+import { type Atom, type createStore } from "@marko-bindings/jotai";
+
+export interface Input {
+  atom: Atom<number>;
+  store: ReturnType<typeof createStore>;
+}
+
+<init-jotai-store=() => input.store/>
+<const-atom/value=() => input.atom/>
+<output>${value}</output>

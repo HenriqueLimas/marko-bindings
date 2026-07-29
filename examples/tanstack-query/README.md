@@ -1,6 +1,6 @@
 # TanStack Query with Marko Run
 
-This example uses `marko-tanstack-query` in one Marko Run application. The page
+This example uses `@marko-bindings/tanstack-query` in one Marko Run application. The page
 at `/` server-renders a query whose fetch function calls the application's own
 JSON endpoint at `/api/books`.
 

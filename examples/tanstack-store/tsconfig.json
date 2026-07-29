@@ -5,7 +5,7 @@
   },
   "include": [
     ".marko-run/routes.d.ts",
-    "../../packages/shared-state/marko-tanstack-store/src",
+    "../../packages/shared-state/tanstack-store/src",
     "src"
   ]
 }
