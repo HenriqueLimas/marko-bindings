@@ -1,0 +1,150 @@
+import { type ApolloClient, type OperationVariables } from "@apollo/client";
+import type { ApolloCache } from "@apollo/client/cache";
+import type { Subscription } from "rxjs";
+
+export type Fragment<
+  TData = unknown,
+  TVariables extends OperationVariables = OperationVariables,
+> = () => ApolloClient.WatchFragmentOptions<TData, TVariables>["fragment"];
+
+export type From<TData = unknown> =
+  ApolloClient.WatchFragmentOptions<TData>["from"];
+
+export type FragmentData<TData, TFrom extends From<TData>> =
+  TFrom extends Array<infer TItem>
+    ? Array<TItem extends null ? null : TData>
+    : TData;
+
+export type Result<
+  TData = unknown,
+  TFrom extends From<TData> = From<TData>,
+> = ApolloClient.WatchFragmentResult<FragmentData<TData, TFrom>>;
+
+export type Input<
+  TData = unknown,
+  TVariables extends OperationVariables = OperationVariables,
+  TFrom extends From<TData> = From<TData>,
+> = Omit<
+  ApolloClient.WatchFragmentOptions<TData, TVariables>,
+  "fragment" | "from"
+> & {
+  client: () => ApolloClient | undefined;
+  fragment: Fragment<TData, TVariables>;
+  from: TFrom;
+};
+
+static {
+  function fallbackResult<TData, TFrom extends From<TData>>(
+    from: TFrom,
+  ): Result<TData, TFrom> {
+    return {
+      data: Array.isArray(from) ? [] : {},
+      dataState: "partial",
+      complete: false,
+    } as Result<TData, TFrom>;
+  }
+
+  function inputError(name: "client" | "fragment" | "from") {
+    const error = new Error(`<const-fragment> requires a ${name} input.`);
+    console.error(error.message);
+    return error;
+  }
+
+  function createFragmentObservable<
+    TData,
+    TVariables extends OperationVariables,
+    TFrom extends From<TData>,
+  >(input: Input<TData, TVariables, TFrom>, client: ApolloClient) {
+    const getFragment = input.fragment;
+    if (typeof getFragment !== "function") {
+      throw inputError("fragment");
+    }
+    if (input.from === undefined) {
+      throw inputError("from");
+    }
+
+    const { client: _client, fragment: _fragment, from, ...options } = input;
+    const identify = (value: ApolloCache.FromOptionValue<TData>) =>
+      typeof value === "string" ? value : client.cache.identify(value);
+    const identifiedFrom = Array.isArray(from)
+      ? from.map((value) => (value === null ? null : identify(value)))
+      : from === null
+        ? null
+        : identify(from);
+
+    return client.watchFragment({
+      ...options,
+      fragment: getFragment(),
+      from: identifiedFrom,
+    } as ApolloClient.WatchFragmentOptions<
+      TData,
+      TVariables
+    >) as ApolloClient.ObservableFragment<FragmentData<TData, TFrom>>;
+  }
+
+  const getInitialClient =
+    typeof getServerInitialClient === "undefined"
+      ? getNoServerInitialClient
+      : getServerInitialClient;
+
+  function getInitialResult<
+    TData,
+    TVariables extends OperationVariables,
+    TFrom extends From<TData>,
+  >(input: Input<TData, TVariables, TFrom>) {
+    const client = getInitialClient(input);
+    if (!client || input.from === null) {
+      return fallbackResult<TData, TFrom>(input.from);
+    }
+
+    return createFragmentObservable(input, client).getCurrentResult();
+  }
+}
+
+server function getServerInitialClient(input: {
+  client?: () => ApolloClient | undefined;
+}) {
+  return input.client?.();
+}
+
+client function getNoServerInitialClient() {
+  return;
+}
+
+<let/result=getInitialResult(input)>
+<script>
+  const getClient = input.client;
+  const client = typeof getClient === "function" ? getClient() : undefined;
+  if (!client) {
+    result = fallbackResult(input.from);
+    inputError("client");
+    return;
+  }
+  if (input.from === null) {
+    result = fallbackResult(input.from);
+    return;
+  }
+
+  if (typeof input.fragment !== "function") {
+    result = fallbackResult(input.from);
+    inputError("fragment");
+    return;
+  }
+  if (input.from === undefined) {
+    result = fallbackResult(input.from);
+    inputError("from");
+    return;
+  }
+
+  const observable = createFragmentObservable(input, client);
+  result = observable.getCurrentResult();
+  const subscription: Subscription = observable.subscribe((nextResult) => {
+    result = nextResult;
+  });
+
+  $signal.onabort = () => {
+    subscription.unsubscribe();
+  };
+</script>
+
+<return=result>

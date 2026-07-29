@@ -1,0 +1,8 @@
+import type { Readable } from "@tanstack/store";
+
+export interface Input {
+  store: Readable<{ count: number; label: string }>;
+}
+
+<const-selected/state store=() => input.store/>
+<output>${state.count}:${state.label}</output>

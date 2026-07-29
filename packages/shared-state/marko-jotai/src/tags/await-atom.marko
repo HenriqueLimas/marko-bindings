@@ -1,0 +1,14 @@
+import { type Atom, getDefaultStore } from "jotai/vanilla";
+import ObserveAtom from "../internal/observe-atom.marko";
+
+export interface Input<T> {
+  value: () => Atom<T>;
+  store?: () => ReturnType<typeof getDefaultStore> | undefined;
+  content: Marko.Body<[Awaited<T>]>;
+}
+
+<ObserveAtom|value| value=input.value store=input.store>
+  <await|resolvedValue|=value as T>
+    <${input.content}(resolvedValue)/>
+  </await>
+</ObserveAtom>

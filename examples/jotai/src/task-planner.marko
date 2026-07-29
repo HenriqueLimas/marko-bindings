@@ -36,7 +36,7 @@ static {
 }
 
 <section class="planner" aria-labelledby="planner-title">
-  <use-atom-value/progress=() => progressAtom store=() => store/>
+  <const-atom/progress=() => progressAtom store=() => store/>
   <header class="planner__header">
     <div>
       <span class="label">Today</span>
@@ -51,7 +51,7 @@ static {
     </div>
   </header>
 
-  <use-atom/tasks=() => editableTasksAtom store=() => store/>
+  <let-atom/tasks=() => editableTasksAtom store=() => store/>
   <let/draft="">
   <let/nextId=initialTasks.length + 1>
   <form
@@ -78,7 +78,7 @@ static {
     <button type="submit">Add task</button>
   </form>
 
-  <use-atom/selectedFilter=() => filterAtom store=() => store/>
+  <let-atom/selectedFilter=() => filterAtom store=() => store/>
   <div class="toolbar">
     <div class="filters" aria-label="Filter tasks">
       <for|filter| of=["all", "active", "complete"] as const>
@@ -97,7 +97,7 @@ static {
     <span class="remaining">${progress.remaining} remaining</span>
   </div>
 
-  <use-atom-value/visibleTasks=() => visibleTasksAtom store=() => store/>
+  <const-atom/visibleTasks=() => visibleTasksAtom store=() => store/>
   <div class="task-list" aria-live="polite">
     <for|task| of=visibleTasks>
       <article class=["task", { done: task.complete }]>
@@ -141,11 +141,11 @@ static {
     </if>
   </div>
 
-  <use-reset-atom/resetTasks=() => tasksAtom store=() => store/>
+  <const-reset-atom/resetTasks=() => tasksAtom store=() => store/>
   <footer class="planner__footer">
     <p>
-      <code>&lt;use-atom&gt;</code> writes state;
-      <code>&lt;use-atom-value&gt;</code> reads derived state.
+      <code>&lt;let-atom&gt;</code> writes state;
+      <code>&lt;const-atom&gt;</code> reads derived state.
     </p>
     <button
       type="button"

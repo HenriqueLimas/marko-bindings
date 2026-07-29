@@ -1,0 +1,19 @@
+import { type ApolloClient, type TypedDocumentNode } from "marko-apollo-client";
+
+import type { DogFragment } from "./const-fragment.marko";
+
+export interface Input {
+  client: () => ApolloClient | undefined;
+  fragment: () => TypedDocumentNode<DogFragment>;
+  from: string;
+  show: boolean;
+}
+
+<if=input.show>
+  <const-fragment/result
+    client=input.client
+    fragment=input.fragment
+    from=input.from
+  />
+  <output>${result.data.name ?? "Unknown dog"}</output>
+</if>

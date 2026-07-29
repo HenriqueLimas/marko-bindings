@@ -1,0 +1,201 @@
+import {
+  type ApolloClient,
+  type MaybeMasked,
+  NetworkStatus,
+  type ObservableQuery,
+  type OperationVariables,
+} from "@apollo/client";
+
+export type Result<TData = unknown> = Omit<
+  ObservableQuery.Result<MaybeMasked<TData>>,
+  "loading"
+>;
+
+export type Query<
+  TData = unknown,
+  TVariables extends OperationVariables = OperationVariables,
+> = () => ApolloClient.WatchQueryOptions<TData, TVariables>["query"];
+
+export type Input<
+  TData = unknown,
+  TVariables extends OperationVariables = OperationVariables,
+> = Omit<ApolloClient.WatchQueryOptions<TData, TVariables>, "query"> & {
+  client: () => ApolloClient | undefined;
+  query: Query<TData, TVariables>;
+  content: Marko.Body<[Result<TData>]>;
+};
+
+static {
+  const settledResult = <TData,>(
+    result: ObservableQuery.Result<MaybeMasked<TData>>,
+  ) => {
+    const { loading: _loading, ...settled } = result;
+    return settled as Result<TData>;
+  };
+
+  async function executeInitialQuery<
+    TData,
+    TVariables extends OperationVariables,
+  >(input: Input<TData, TVariables>, client: ApolloClient) {
+    const {
+      client: _client,
+      content: _content,
+      query: getQuery,
+      ...options
+    } = input;
+    if (typeof getQuery !== "function") {
+      const error = new Error("<await-query> requires a query input.");
+      console.error(error.message);
+      throw error;
+    }
+
+    if (options.fetchPolicy === "standby") {
+      return new Promise<Result<TData>>(() => {});
+    }
+
+    const fetchPolicy =
+      options.fetchPolicy === "cache-and-network"
+        ? "cache-first"
+        : options.fetchPolicy;
+    const queryResult = await client.query({
+      query: getQuery(),
+      variables: options.variables,
+      context: options.context,
+      errorPolicy: options.errorPolicy,
+      fetchPolicy,
+    } as ApolloClient.QueryOptions<TData, TVariables>);
+
+    return {
+      data: queryResult.data,
+      dataState: queryResult.data === undefined ? "empty" : "complete",
+      error: queryResult.error,
+      networkStatus: queryResult.error
+        ? NetworkStatus.error
+        : NetworkStatus.ready,
+      partial: false,
+    } as Result<TData>;
+  }
+
+  const getInitialClient =
+    typeof getServerInitialClient === "undefined"
+      ? getNoServerInitialClient
+      : getServerInitialClient;
+
+  function loadInitialResult<TData, TVariables extends OperationVariables>(
+    input: Input<TData, TVariables>,
+  ) {
+    const client = getInitialClient(input);
+    if (!client) {
+      return;
+    }
+
+    return executeInitialQuery(input, client);
+  }
+}
+
+server function getServerInitialClient(input: {
+  client?: () => ApolloClient | undefined;
+}) {
+  return input.client?.();
+}
+
+client function getNoServerInitialClient() {
+  return;
+}
+
+<const/serverResultPromise=loadInitialResult(input)>
+<const/didStartOnServer=!!serverResultPromise>
+<let/clientResultPromise=undefined as Promise<Result<TData>> | undefined>
+<script>
+  if (!didStartOnServer) {
+    const getClient = input.client;
+    const client = typeof getClient === "function" ? getClient() : undefined;
+    if (!client) {
+      const error = new Error("<await-query> requires a client input.");
+      console.error(error.message);
+      const rejectedResult = new Promise<Result<TData>>((_, reject) => {
+        setTimeout(reject, 0, error);
+      });
+      void rejectedResult.catch(() => {});
+      clientResultPromise = rejectedResult;
+      return;
+    }
+    if (typeof input.query !== "function") {
+      const error = new Error("<await-query> requires a query input.");
+      console.error(error.message);
+      const rejectedResult = new Promise<Result<TData>>((_, reject) => {
+        setTimeout(reject, 0, error);
+      });
+      void rejectedResult.catch(() => {});
+      clientResultPromise = rejectedResult;
+      return;
+    }
+
+    const pendingResult = new Promise<Result<TData>>((resolve, reject) => {
+      setTimeout(() => {
+        void executeInitialQuery(input, client).then(resolve, reject);
+      });
+    });
+    void pendingResult.catch(() => {});
+    clientResultPromise = pendingResult;
+  }
+</script>
+
+<const/initialResultPromise=serverResultPromise ?? clientResultPromise>
+<if=initialResultPromise>
+  <await|initialResult|=initialResultPromise>
+    <const/settledInitialResult=initialResult as Result<TData>>
+    <let/result=settledInitialResult>
+    <script>
+      const {
+        client: getClient,
+        content: _content,
+        query: getQuery,
+        ...options
+      } = input;
+      const client = typeof getClient === "function" ? getClient() : undefined;
+      if (!client) {
+        console.error("<await-query> requires a client input.");
+        return;
+      }
+      if (typeof getQuery !== "function") {
+        console.error("<await-query> requires a query input.");
+        return;
+      }
+      const query = getQuery();
+
+      if (
+        settledInitialResult.data !== undefined &&
+        options.fetchPolicy !== "no-cache"
+      ) {
+        client.writeQuery({
+          query,
+          variables: options.variables,
+          data: settledInitialResult.data as TData,
+        } as ApolloClient.WriteQueryOptions<TData, TVariables>);
+      }
+
+      const activeQuery = client.watchQuery({
+        ...options,
+        query,
+      } as ApolloClient.WatchQueryOptions<TData, TVariables>);
+      const currentResult = activeQuery.getCurrentResult();
+      if (!currentResult.loading) {
+        result = settledResult(currentResult);
+      }
+
+      const subscription = activeQuery.subscribe((next) => {
+        if (!next.loading) {
+          result = settledResult(next);
+        }
+      });
+
+      $signal.onabort = () => {
+        subscription.unsubscribe();
+        activeQuery.stop();
+      };
+    </script>
+
+    <${input.content}(result)/>
+  </await>
+</if>

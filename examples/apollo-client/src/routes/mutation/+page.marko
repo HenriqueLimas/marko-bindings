@@ -16,7 +16,7 @@ import { BOOKS_QUERY } from "../../books-query";
 
   <section class="result" aria-live="polite">
     <try>
-      <use-query|booksResult|
+      <await-query|booksResult|
         client=() => createClient()
         query=() => BOOKS_QUERY
       >
@@ -24,49 +24,46 @@ import { BOOKS_QUERY } from "../../books-query";
           <p role="alert">GraphQL query error: ${booksResult.error.message}</p>
         </if>
         <else>
-          <use-mutation/addBook|mutationResult|
+          <const-mutation/[addBook, mutationResult]
             client=() => createClient()
             mutation=() => ADD_BOOK
             refetchQueries=["Books"]
             awaitRefetchQueries=true
+          />
+          <button
+            type="button"
+            disabled=mutationResult.loading
+            onClick() {
+              void addBook({
+                variables: {
+                  title: "Kindred",
+                  author: "Octavia E. Butler",
+                },
+              }).catch(() => {});
+            }
           >
-            <button
-              type="button"
-              disabled=mutationResult.loading
-              onClick() {
-                void addBook({
-                  variables: {
-                    title: "Kindred",
-                    author: "Octavia E. Butler",
-                  },
-                }).catch(() => {});
-              }
-            >
-              Add Kindred
-            </button>
+            Add Kindred
+          </button>
 
-            <p class="status">
-              <if=mutationResult.loading>Adding and refetching…</if>
-              <else-if=mutationResult.error>
-                GraphQL mutation error: ${mutationResult.error.message}
-              </else-if>
-              <else-if=mutationResult.data>
-                Added ${mutationResult.data.addBook.title}; the list below came from
-                the refetched query.
-              </else-if>
-              <else>The mutation has not run yet.</else>
-            </p>
+          <p class="status">
+            <if=mutationResult.loading>Adding and refetching…</if>
+            <else-if=mutationResult.error>
+              GraphQL mutation error: ${mutationResult.error.message}
+            </else-if>
+            <else-if=mutationResult.data>
+              Added ${mutationResult.data.addBook.title}; the list below came from
+              the refetched query.
+            </else-if>
+            <else>The mutation has not run yet.</else>
+          </p>
 
-            <ul class="mutation-list">
-              <for|book| of=booksResult.data?.books ?? []>
-                <li>
-                  <strong>${book.title}</strong><span>${book.author}</span>
-                </li>
-              </for>
-            </ul>
-          </use-mutation>
+          <ul class="mutation-list">
+            <for|book| of=booksResult.data?.books ?? []>
+              <li><strong>${book.title}</strong><span>${book.author}</span></li>
+            </for>
+          </ul>
         </else>
-      </use-query>
+      </await-query>
 
       <@placeholder>
         <p>Loading books…</p>

@@ -18,7 +18,7 @@ import { BOOKS_QUERY } from "../../books-query";
 
   <section class="result result--tall" aria-live="polite">
     <try>
-      <use-query|result|
+      <await-query|result|
         client=() => createClientOnly()
         query=() => BOOKS_QUERY
       >
@@ -32,7 +32,7 @@ import { BOOKS_QUERY } from "../../books-query";
             </for>
           </ul>
         </else>
-      </use-query>
+      </await-query>
 
       <@placeholder>
         <p>Loading books in the browser…</p>

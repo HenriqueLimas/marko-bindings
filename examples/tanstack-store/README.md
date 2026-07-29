@@ -3,10 +3,10 @@
 This example uses `marko-tanstack-store` to build a small cart in a Marko Run
 application. It demonstrates:
 
-- selecting mutable store state with `<use-selector>`;
+- selecting mutable store state with `<const-selected>`;
 - invoking store actions from Marko event handlers;
 - selecting a readonly store derived from a store and an atom; and
-- writing to an atom through `<use-atom>`.
+- writing to an atom through `<let-atom>`.
 
 The stores and atom are module-scoped exports from `src/cart-store.ts`, so the
 server and browser bundles instantiate them independently. Each binding receives

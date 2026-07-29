@@ -6,7 +6,7 @@ static const price = new Intl.NumberFormat("en-US", {
 });
 
 <section class="cart" aria-labelledby="cart-title">
-  <use-selector/cart store=() => cartStore/>
+  <const-selected/cart store=() => cartStore/>
   <header class="cart__header">
     <div>
       <span class="label">Current order</span>
@@ -66,7 +66,7 @@ static const price = new Intl.NumberFormat("en-US", {
     </if>
   </div>
 
-  <use-atom/member=() => memberAtom/>
+  <let-atom/member=() => memberAtom/>
   <label class="member">
     <input
       type="checkbox"
@@ -79,7 +79,7 @@ static const price = new Intl.NumberFormat("en-US", {
       <strong>Studio member</strong><small>Apply a 10% member discount</small>
     </span>
   </label>
-  <use-selector/summary store=() => summaryStore/>
+  <const-selected/summary store=() => summaryStore/>
   <dl class="summary">
     <div>
       <dt>Subtotal</dt>

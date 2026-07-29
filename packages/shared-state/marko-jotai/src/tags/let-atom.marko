@@ -1,0 +1,16 @@
+import { getDefaultStore, type WritableAtom } from "jotai/vanilla";
+import ObserveAtom from "../internal/observe-atom.marko";
+
+export interface Input<T> {
+  value: () => WritableAtom<T, [NoInfer<T>], unknown>;
+  store?: () => ReturnType<typeof getDefaultStore> | undefined;
+}
+
+<ObserveAtom/value value=input.value store=input.store/>
+<return=value as T
+  valueChange(next: T) {
+    const browserAtom = input.value();
+    const browserStore = input.store?.() ?? getDefaultStore();
+    browserStore.set(browserAtom, next);
+  }
+>

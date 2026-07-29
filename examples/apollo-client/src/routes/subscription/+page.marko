@@ -11,21 +11,20 @@ import { TICK_SUBSCRIPTION } from "../../tick-subscription";
   </p>
 
   <section class="result" aria-live="polite">
-    <use-subscription|result|
+    <const-subscription/result
       client=() => createSubscriptionClient()
       subscription=() => TICK_SUBSCRIPTION
-    >
-      <if=result.loading>
-        <p class="status">Waiting for the first event…</p>
-      </if>
-      <else-if=result.error>
-        <p role="alert">Subscription error: ${result.error.message}</p>
-      </else-if>
-      <else>
-        <p class="status">Latest subscription event</p>
-        <output>${result.data?.tick}</output>
-      </else>
-    </use-subscription>
+    />
+    <if=result.loading>
+      <p class="status">Waiting for the first event…</p>
+    </if>
+    <else-if=result.error>
+      <p role="alert">Subscription error: ${result.error.message}</p>
+    </else-if>
+    <else>
+      <p class="status">Latest subscription event</p>
+      <output>${result.data?.tick}</output>
+    </else>
   </section>
 
   <p><a href="/">Return to the server-rendered query</a></p>

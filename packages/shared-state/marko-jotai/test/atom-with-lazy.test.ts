@@ -3,7 +3,7 @@ import { createStore } from "marko-jotai";
 import { atomWithLazy } from "marko-jotai/utils";
 import { describe, expect, test, vi } from "vitest";
 
-import UseAtom from "./fixtures/use-atom.marko";
+import LetAtom from "./fixtures/let-atom.marko";
 
 describe("atomWithLazy utility", () => {
   test("initializes once for each store that reads the atom", async () => {
@@ -13,7 +13,7 @@ describe("atomWithLazy utility", () => {
 
     expect(initialize).not.toHaveBeenCalled();
 
-    await render(UseAtom, { atom: countAtom, store });
+    await render(LetAtom, { atom: countAtom, store });
 
     expect(initialize).toHaveBeenCalledOnce();
     expect(screen.getByText("1")).toBeTruthy();

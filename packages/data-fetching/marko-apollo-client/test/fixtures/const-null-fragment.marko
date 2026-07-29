@@ -1,0 +1,13 @@
+import { type ApolloClient, type TypedDocumentNode } from "marko-apollo-client";
+
+import type { DogFragment } from "./const-fragment.marko";
+
+export interface Input {
+  client: () => ApolloClient | undefined;
+  fragment: () => TypedDocumentNode<DogFragment>;
+}
+
+<const-fragment/result client=input.client fragment=input.fragment from=null/>
+<output>
+  ${JSON.stringify(result.data)} ${result.complete ? "Complete" : "Partial"}
+</output>

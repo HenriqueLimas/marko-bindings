@@ -1,0 +1,16 @@
+import type { Atom } from "@tanstack/store";
+
+export interface Input<T> {
+  value: () => Atom<T>;
+  compare?: (previous: T, next: T) => boolean;
+}
+
+<const-selected/selected=(value) => value
+  store=input.value
+  compare=input.compare
+/>
+<return=selected
+  valueChange(next) {
+    input.value().set(next);
+  }
+>

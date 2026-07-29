@@ -1,7 +1,7 @@
 import { atom } from "marko-jotai";
 
 <const/countAtom=atom(2)>
-<use-atom/count=() => countAtom/>
+<let-atom/count=() => countAtom/>
 
 <output>${count}</output>
 <button onClick() {

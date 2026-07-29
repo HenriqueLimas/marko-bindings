@@ -1,8 +1,0 @@
-import type { Readable } from "@tanstack/store";
-
-export interface Input {
-  store: Readable<{ count: number; label: string }>;
-}
-
-<use-selector/state store=() => input.store/>
-<output>${state.count}:${state.label}</output>

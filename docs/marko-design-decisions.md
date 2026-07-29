@@ -4,22 +4,31 @@ Living notes for non-obvious API choices caused by Marko's rendering and
 lifecycle model. Keep entries short: what we tried, why it failed, and the rule
 future bindings should follow.
 
+## Name bindings by Marko semantics
+
+- **Tried:** React-style `use-*` names even though custom tags are declarations,
+  not hooks.
+- **Ended with:** `await-*` tags own asynchronous content, `const-*` tags return
+  reactive read-only variables, and `let-*` tags return writable variables.
+- **Rule:** Name a binding for the Marko behavior visible to its caller rather
+  than the equivalent integration primitive from another framework.
+
 ## Pass dependencies explicitly
 
 - **Tried:** An `<apollo-provider>` wrote the client to `$global`, and
   `<use-apollo-client>` read it. A microtask was needed because provider scripts
   run after rendering and mounting.
-- **Ended with:** `<use-query>` requires a `client` input.
+- **Ended with:** `<await-query>` requires a `client` input.
 - **Rule:** Prefer inputs and tag variables over mutable `$global` state.
   `$global` may be populated at the render boundary, but tags should not use it
   as a dependency-injection container.
 
 ## Put server-fetched content inside its async boundary
 
-- **Tried:** `<use-query/result .../>` returned query state for markup rendered
+- **Tried:** `<await-query/result .../>` returned query state for markup rendered
   by its parent. That worked for browser queries, but the parent markup was
   outside the tag's server `<await>` boundary.
-- **Ended with:** `<use-query|result| ...>...</use-query>` requires content and
+- **Ended with:** `<await-query|result| ...>...</await-query>` requires content and
   passes only settled results as a body parameter. Loading is represented by its
   Promise and the surrounding Marko `<@placeholder>`; background loading keeps
   the last settled content visible. The tag returns no tag variable.
@@ -35,7 +44,7 @@ future bindings should follow.
   serialize across the server-resume boundary.
 - **Tried:** Creating an `ApolloClient` in a template `<const>`, and passing a
   module export directly as `client=client`, including through a `client import`.
-  Moving `watchQuery` and input access into `<use-query>`'s browser script still
+  Moving `watchQuery` and input access into `<await-query>`'s browser script still
   did not make the parent import cross the custom-tag input boundary. Apollo and
   the instance remained absent from the browser bundle. An `ssrMode` client also
   stayed unused while all query work lived in a browser `<script>`. Wrapping a
@@ -44,7 +53,7 @@ future bindings should follow.
 - **Ended with:** Both runtime modules export `createClient()`. The required
   inline getter selects the server or browser factory; the server returns a
   fresh `ssrMode` client and the browser factory memoizes its singleton.
-  `<use-query>` awaits `client.query()` on the server, serializes only its plain
+  `<await-query>` awaits `client.query()` on the server, serializes only its plain
   result, seeds the browser cache, and starts `watchQuery` in its browser script.
   GraphQL documents are exported as constants from regular TypeScript modules
   and returned through inline `query=() => GET_QUERY` wrappers, bundling the
@@ -66,7 +75,7 @@ future bindings should follow.
   never-resolving Promise kept the Marko `<@placeholder>` visible.
 - **Problem:** The unresolved server `<await>` also kept the HTML stream open, so
   the browser never reached Marko's resume code and could not start its query.
-- **Ended with:** `<use-query>` has one `client` getter. It may return a
+- **Ended with:** `<await-query>` has one `client` getter. It may return a
   request-scoped client on the server to enable SSR, or `undefined` to create no
   server async branch. A browser `<script>` calls the same getter after
   resumption and places `client.query()` into reactive state, activating the
@@ -77,7 +86,7 @@ future bindings should follow.
 
 ## Scope cleanup to what the tag owns
 
-- **Ended with:** `<use-query>` unsubscribes and stops its `ObservableQuery` when
+- **Ended with:** `<await-query>` unsubscribes and stops its `ObservableQuery` when
   its inputs change or the tag leaves the document. Its script captures that
   query for cleanup instead of rereading a reactive binding that may have
   changed. It does not stop the shared `ApolloClient` supplied by the
@@ -88,11 +97,10 @@ future bindings should follow.
 
 ## Keep mutations event driven
 
-- **Ended with:** `<use-mutation>` renders immediately, returns `mutate` as its
-  tag variable, and passes reactive result state to an optional body. It never
-  starts a mutation during SSR. `mutate` resolves the client and mutation
-  document only when called, and the result intentionally omits the
-  non-serializable client instance.
+- **Ended with:** `<const-mutation>` renders immediately and returns a
+  destructurable `[mutate, result]` tuple. It never starts a mutation during SSR.
+  `mutate` resolves the client and mutation document only when called, and the
+  reactive result intentionally omits the non-serializable client instance.
 - **Rule:** Do not suspend rendering for work that begins from a browser event.
   Keep the trigger inside the tag's resumable scope, publish plain result state,
   and ignore late results after reset, replacement, or cleanup.
@@ -102,7 +110,7 @@ future bindings should follow.
 - **Tried:** A never-settling server Promise that the browser would replace with
   the first subscription event's Promise. Marko kept the server stream open, so
   the browser could not resume to replace it.
-- **Ended with:** `<use-subscription>` renders a plain `{ loading, data, error }`
+- **Ended with:** `<const-subscription>` renders a plain `{ loading, data, error }`
   result during SSR. After resumption it starts the browser subscription and
   updates that state for events, errors, and completion.
 - **Rule:** Browser-only streams should expose serializable loading state during
@@ -115,8 +123,8 @@ future bindings should follow.
   composable both normalize entity objects with `cache.identify`, read
   `watchFragment().getCurrentResult()` synchronously, and subscribe only for
   later cache updates.
-- **Ended with:** `<use-fragment>` follows the same cache contract through a
-  parameterized Marko body. Its parsed fragment uses a getter, while the plain
+- **Ended with:** `<const-fragment>` returns the reactive cache result as a
+  read-only tag variable. Its parsed fragment uses a getter, while the plain
   `from` identifier stays a direct, serializable input. It reads an available
   server cache without suspending, serializes only the plain snapshot,
   reconstructs the browser watch from client and document getters, and
@@ -143,12 +151,23 @@ future bindings should follow.
   statically reconstructable values. A render-local store needs a different
   first-class API; do not hide that limitation behind serialization workarounds.
 
+## Separate synchronous and asynchronous atom declarations
+
+- **Tried:** `<let-atom>` and `<const-atom>` each supported both a returned raw
+  value and a body that resolved async atom values.
+- **Ended with:** `<let-atom>` returns writable synchronous state,
+  `<const-atom>` returns read-only synchronous state, and `<await-atom>` owns the
+  body that consumes a resolved async value. An internal observer tag shares
+  atom reads, subscriptions, and cleanup across all three.
+- **Rule:** Keep lifecycle observation shared, but expose separate public tags
+  when assignment and asynchronous content require different Marko syntax.
+
 ## Hydrate cache state separately from observer views
 
 - **Constraint:** TanStack Query's `select` can make observer data differ from
   the raw value stored in the query cache, and custom key hashing can make
   writing that selected value back by `queryKey` target the wrong cache entry.
-- **Ended with:** `<use-query>` serializes its function-free settled observer
+- **Ended with:** `<await-query>` serializes its function-free settled observer
   result alongside TanStack's dehydrated state for the exact server query. It
   hydrates that state before creating the browser observer. A browser-only
   initial fetch disables the observer's first mount refetch because that fetch

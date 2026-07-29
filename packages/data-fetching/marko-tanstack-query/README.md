@@ -59,13 +59,13 @@ import { createClient } from "./query-client.marko";
 import { dogQuery } from "./queries.js";
 
 <try>
-  <use-query|result|
+  <await-query|result|
     client=() => createClient()
     query=() => dogQuery(input.name)
   >
     <if=result.error>${result.error.message}</if>
     <else><img src=result.data?.image alt=result.data?.name></else>
-  </use-query>
+  </await-query>
 
   <@placeholder>Loading…</@placeholder>
   <@catch|error|>${String(error)}</@catch>
@@ -78,7 +78,7 @@ a client in the browser.
 
 ## API
 
-### `<use-query>`
+### `<await-query>`
 
 | Input     | Type                                  | Description                               |
 | --------- | ------------------------------------- | ----------------------------------------- |

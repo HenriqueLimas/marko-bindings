@@ -1,0 +1,24 @@
+import { type Atom, getDefaultStore } from "jotai/vanilla";
+
+export interface Input<T> {
+  value: () => Atom<T>;
+  store?: () => ReturnType<typeof getDefaultStore> | undefined;
+  content?: Marko.Body<[T]>;
+}
+
+<let/value=(input.store?.() ?? getDefaultStore()).get(input.value())>
+<script>
+  const browserAtom = input.value();
+  const browserStore = input.store?.() ?? getDefaultStore();
+  value = browserStore.get(browserAtom);
+  const unsubscribe = browserStore.sub(browserAtom, () => {
+    value = browserStore.get(browserAtom);
+  });
+
+  $signal.onabort = unsubscribe;
+</script>
+
+<if=input.content>
+  <${input.content}(value)/>
+</if>
+<return=value>

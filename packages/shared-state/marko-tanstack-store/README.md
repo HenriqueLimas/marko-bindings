@@ -14,7 +14,7 @@ pnpm add marko-tanstack-store
 
 ## Usage
 
-Import `createStore` from this package and select the state a template needs with `<use-selector>`:
+Import `createStore` from this package and select the state a template needs with `<const-selected>`:
 
 ```marko
 import { createStore } from "marko-tanstack-store";
@@ -27,7 +27,7 @@ static const counter = createStore(
   }),
 );
 
-<use-selector/count=(state) => state.count store=() => counter/>
+<const-selected/count=(state) => state.count store=() => counter/>
 
 <button onClick() {
   counter.actions.increment();
@@ -36,7 +36,7 @@ static const counter = createStore(
 </button>
 ```
 
-The expression assigned to `<use-selector>` is its default `value` input. The `/count` portion names the returned reactive tag variable.
+The expression assigned to `<const-selected>` is its default `value` input. The `/count` portion names the returned reactive tag variable.
 
 ### Declaring a store
 
@@ -47,7 +47,7 @@ import { createStore } from "marko-tanstack-store";
 
 static const counter = createStore({ count: 0 });
 
-<use-selector/count=(state) => state.count store=() => counter/>
+<const-selected/count=(state) => state.count store=() => counter/>
 
 <button onClick() {
   counter.setState((state) => ({ ...state, count: state.count + 1 }));
@@ -62,14 +62,14 @@ Calling the JavaScript API directly preserves all of TanStack's overloads and in
 
 ### Creating and using an atom
 
-Declare an atom statically and use `<use-atom>` to expose it as one writable tag variable. Its default `value` input is an inline getter. `<use-atom>` uses Marko's `value`/`valueChange` binding instead of a `[state, setState]` tuple:
+Declare an atom statically and use `<let-atom>` to expose it as one writable tag variable. Its default `value` input is an inline getter. `<let-atom>` uses Marko's `value`/`valueChange` binding instead of a `[state, setState]` tuple:
 
 ```marko
 import { createAtom } from "marko-tanstack-store";
 
 static const countAtom = createAtom(0);
 
-<use-atom/count=() => countAtom/>
+<let-atom/count=() => countAtom/>
 
 <button onClick() {
   count += 5;
@@ -78,14 +78,15 @@ static const countAtom = createAtom(0);
 </button>
 ```
 
-Assigning to `count` calls `countAtom.set()`; updates made directly through the atom also flow back into `count`. Use `<use-selector/value=(state) => state store=() => computedAtom/>` to observe readonly or computed atoms.
+Assigning to `count` calls `countAtom.set()`; updates made directly through the atom also flow back into `count`. Use `<const-selected/value=(state) => state store=() => computedAtom/>` to observe readonly or computed atoms.
 
 ### Selecting values
 
 Selectors can return any value:
 
 ```marko
-<use-selector/incomplete=(state) => state.todos.filter((todo) => !todo.complete)
+<const-selected/incomplete=(state) =>
+  state.todos.filter((todo) => !todo.complete)
   store=() => todoStore
 />
 
@@ -96,10 +97,10 @@ Selectors can return any value:
 
 ## API
 
-### `<use-atom>`
+### `<let-atom>`
 
 ```marko
-<use-atom/value=() => atom/>
+<let-atom/value=() => atom/>
 ```
 
 | Input     | Type                                | Description                                          |
@@ -110,7 +111,7 @@ Selectors can return any value:
 Returns the atom's current `T` as a reactive, writable tag variable. Custom comparison controls which atom values are published without disabling writes. Assignments are forwarded to `atom.set()` through Marko's `valueChange` convention:
 
 ```marko
-<use-atom/count=() => atom/>
+<let-atom/count=() => atom/>
 <button onClick() {
   count += 5;
 }>
@@ -118,20 +119,20 @@ Returns the atom's current `T` as a reactive, writable tag variable. Custom comp
 </button>
 ```
 
-Use `<use-selector>` for readonly and computed atoms.
+Use `<const-selected>` for readonly and computed atoms.
 
-### `<use-selector>`
+### `<const-selected>`
 
 Select part of a source:
 
 ```marko
-<use-selector/selected=(state) => state.someValue store=() => store/>
+<const-selected/selected=(state) => state.someValue store=() => store/>
 ```
 
 Omit the selector to observe the complete source value:
 
 ```marko
-<use-selector/state store=() => store/>
+<const-selected/state store=() => store/>
 ```
 
 | Input     | Type                                                | Description                                               |
@@ -154,7 +155,7 @@ Use the re-exported `shallow` comparator for object or array selections:
 ```marko
 import { shallow } from "marko-tanstack-store";
 
-<use-selector/user=(state) => state.user store=() => store compare=shallow/>
+<const-selected/user=(state) => state.user store=() => store compare=shallow/>
 ```
 
 ### JavaScript exports

@@ -3,9 +3,9 @@
 This example uses `marko-jotai` to build a small task planner in a Marko Run
 application. It demonstrates:
 
-- writable task and filter state with `<use-atom>`;
-- read-only filtered tasks and progress with `<use-atom-value>`;
-- resetting an `atomWithReset` with `<use-reset-atom>`; and
+- writable task and filter state with `<let-atom>`;
+- read-only filtered tasks and progress with `<const-atom>`;
+- resetting an `atomWithReset` with `<const-reset-atom>`; and
 - one explicit Jotai store shared by every binding on the page.
 
 The atoms and store are static definitions, so Marko creates them independently

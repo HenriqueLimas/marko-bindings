@@ -11,12 +11,13 @@ import { BOOK_FRAGMENT, BOOKS_QUERY } from "../../books-query";
     The query populates Apollo's normalized cache. Each plain book is passed
     directly as the serializable <code>from</code> input while the parsed
     fragment uses a resumable getter. After browser resumption, each
-    <code>&lt;use-fragment&gt;</code> watches its book for future cache updates.
+    <code>&lt;const-fragment&gt;</code> watches its book for future cache
+    updates.
   </p>
 
   <section class="result result--tall" aria-live="polite">
     <try>
-      <use-query|result| client=() => createClient() query=() => BOOKS_QUERY>
+      <await-query|result| client=() => createClient() query=() => BOOKS_QUERY>
         <if=result.error>
           <p role="alert">GraphQL error: ${result.error.message}</p>
         </if>
@@ -24,24 +25,23 @@ import { BOOK_FRAGMENT, BOOKS_QUERY } from "../../books-query";
           <ul>
             <for|book| of=result.data?.books ?? []>
               <li>
-                <use-fragment|fragmentResult|
+                <const-fragment/fragmentResult
                   client=() => createClient()
                   fragment=() => BOOK_FRAGMENT
                   from=book
-                >
-                  <strong>
-                    ${fragmentResult.data.title ?? "Waiting for browser cache"}
-                  </strong>
-                  <span>
-                    ${fragmentResult.data.author ?? book.author} ·
-                    ${fragmentResult.complete ? "complete" : "partial"} fragment
-                  </span>
-                </use-fragment>
+                />
+                <strong>
+                  ${fragmentResult.data.title ?? "Waiting for browser cache"}
+                </strong>
+                <span>
+                  ${fragmentResult.data.author ?? book.author} ·
+                  ${fragmentResult.complete ? "complete" : "partial"} fragment
+                </span>
               </li>
             </for>
           </ul>
         </else>
-      </use-query>
+      </await-query>
 
       <@placeholder>
         <p>Loading books…</p>

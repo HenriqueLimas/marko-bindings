@@ -3,7 +3,7 @@ import { createStore } from "marko-jotai";
 
 <const/store=createStore()>
 <const/countAtom=atomWithStorage("marko-jotai-count", 1)>
-<use-atom/count=() => countAtom store=() => store/>
+<let-atom/count=() => countAtom store=() => store/>
 
 <output>${count}</output>
 <button onClick() {

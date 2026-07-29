@@ -6,9 +6,9 @@ export interface Input {
 }
 
 <try>
-  <use-atom-value|num|=() => input.atom store=() => input.store>
+  <await-atom|num|=() => input.atom store=() => input.store>
     <output>${num}</output>
-  </use-atom-value>
+  </await-atom>
 
   <@placeholder>Loading...</@placeholder>
   <@catch|error|>${String(error)}</@catch>

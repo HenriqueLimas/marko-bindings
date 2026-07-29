@@ -1,0 +1,9 @@
+import { createQueryClient } from "./query-client.marko";
+import { greetingQuery } from "./server-query.js";
+
+<await-query|result|
+  client=() => createQueryClient()
+  query=() => greetingQuery()
+>
+  <output>${result.data?.greeting ?? "No greeting"}</output>
+</await-query>

@@ -9,16 +9,16 @@ import { BOOKS_QUERY } from "../books-query";
   <h1>Books from a local GraphQL route</h1>
   <p class="intro">
     This page passes a target-specific Apollo Client and parsed query to
-    <code>&lt;use-query&gt;</code> through resumable getters. The same Marko Run
-    application serves Apollo Server at <a href="/gql"><code>/gql</code></a>. Compare
-    it with the <a href="/client-only">client-only query page</a> or the <a href="/fragments">
+    <code>&lt;await-query&gt;</code> through resumable getters. The same Marko
+    Run application serves Apollo Server at <a href="/gql"><code>/gql</code></a>.
+    Compare it with the <a href="/client-only">client-only query page</a> or the <a href="/fragments">
       fragment cache page
     </a>.
   </p>
 
   <section class="result result--tall" aria-live="polite">
     <try>
-      <use-query|result| client=() => createClient() query=() => BOOKS_QUERY>
+      <await-query|result| client=() => createClient() query=() => BOOKS_QUERY>
         <if=result.error>
           <p role="alert">GraphQL error: ${result.error.message}</p>
         </if>
@@ -29,7 +29,7 @@ import { BOOKS_QUERY } from "../books-query";
             </for>
           </ul>
         </else>
-      </use-query>
+      </await-query>
 
       <@placeholder>
         <p>Loading books…</p>

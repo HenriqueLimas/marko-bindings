@@ -6,8 +6,8 @@ export interface Input {
 }
 
 <const/countAtom=atomWithReset(1)>
-<use-atom/count=() => countAtom store=() => input.store/>
-<use-reset-atom/reset=() => countAtom store=() => input.store/>
+<let-atom/count=() => countAtom store=() => input.store/>
+<const-reset-atom/reset=() => countAtom store=() => input.store/>
 
 <output>${count}</output>
 <button onClick() {

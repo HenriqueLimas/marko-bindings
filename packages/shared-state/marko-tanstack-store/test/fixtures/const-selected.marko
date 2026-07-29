@@ -1,0 +1,13 @@
+import type { Readable } from "@tanstack/store";
+
+export interface Input {
+  store: Readable<{ count: number; label: string }>;
+  selector: (state: { count: number; label: string }) => number;
+  compare?: (previous: number, next: number) => boolean;
+}
+
+<const-selected/selected=input.selector
+  store=() => input.store
+  compare=input.compare
+/>
+<output>${selected}</output>

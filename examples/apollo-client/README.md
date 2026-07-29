@@ -28,7 +28,7 @@ is at <http://localhost:3000/subscription>. Open
 <http://localhost:3000/gql> for Apollo Sandbox.
 
 The query page passes one target-specific client getter and one inline query
-getter to `<use-query>`. GraphQL documents are ordinary TypeScript module
+getter to `<await-query>`. GraphQL documents are ordinary TypeScript module
 constants; only the client factories need `.marko` modules for target-specific
 `server` and `client` declarations. On the server, the client runs in `ssrMode`
 and executes directly against the local Apollo Server. In the browser, the same
@@ -36,14 +36,14 @@ getter returns a separate memoized client that receives the serialized query
 result before `watchQuery` starts. The query body receives only settled results;
 its surrounding Marko `<@placeholder>` owns the loading UI.
 
-The fragment page composes `<use-query>` and `<use-fragment>`. Parsed query and
+The fragment page composes `<await-query>` and `<const-fragment>`. Parsed query and
 fragment `DocumentNode` values require getters because they cannot cross Marko's
 resume boundary. The fragment's `from` input does not: each book is plain query
 data, so the page passes `from=book` directly and Marko serializes it for
 resumption. Independently created fragment clients do not share the query's
 server cache, so their initial result is partial. In the browser, all getters
-resolve to the memoized client; `<use-query>` seeds its serialized result into
-that cache and each `<use-fragment>` publishes a complete result. This exercises
+resolve to the memoized client; `<await-query>` seeds its serialized result into
+that cache and each `<const-fragment>` publishes a complete result. This exercises
 the plain `from` value across resumption while keeping client instances and
 parsed documents out of resume state.
 
@@ -52,16 +52,16 @@ returns `undefined`. The server finishes without an async query; after
 resumption, the same `client` input resolves to the browser client, which sends
 the initial request to `/gql` and uses the same placeholder boundary.
 
-The mutation page nests `<use-mutation>` inside `<use-query>`. The initial book
+The mutation page nests `<const-mutation>` inside `<await-query>`. The initial book
 list is server-rendered, while the mutation tag returns its resumable function
-and passes reactive state to its body. Clicking the button adds a book, refetches
+and reactive state as a tuple. Clicking the button adds a book, refetches
 the watched `Books` query, and updates the same list. No mutation starts during
 SSR, and neither tag serializes the Apollo Client or parsed documents.
 
 The subscription page uses a browser-only Apollo Link that emits an incrementing
-value. `<use-subscription>` renders serializable loading state during SSR, starts
-the stream only after Marko resumes, and updates the same body parameter for
-later events.
+value. `<const-subscription>` returns serializable loading state during SSR,
+starts the stream only after Marko resumes, and updates the same reactive tag
+variable for later events.
 
 The GraphQL endpoint is a Marko Run `+handler.ts` that adapts its web-standard
 request and response objects to the same Apollo Server.
