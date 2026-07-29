@@ -65,12 +65,10 @@ client factories that use Marko's `server` and `client` declarations.
 import { createClient } from "./apollo-client.marko";
 import { GET_DOG } from "./get-dog.js";
 
+<init-apollo-client=() => createClient()/>
+
 <try>
-  <await-query|result|
-    client=() => createClient()
-    query=() => GET_DOG
-    variables={ name: input.name }
-  >
+  <await-query|result| query=() => GET_DOG variables={ name: input.name }>
     <if=result.error>${result.error.message}</if>
     <else><img src=result.data?.dog.displayImage></else>
   </await-query>
@@ -80,11 +78,12 @@ import { GET_DOG } from "./get-dog.js";
 </try>
 ```
 
-`<await-query>` requires functions for both `client` and `query`, plus a
-parameterized body. The client getter may return an Apollo Client or `undefined`.
-Returning a client on the server enables SSR; returning `undefined` there
-defers the initial request to the browser. The getter must return a client in
-the browser. The tag accepts the rest of Apollo's
+`<init-apollo-client>` installs the getter's result as the render-wide default
+client. `<await-query>` requires a `query` getter and a parameterized body; its
+`client` getter is only needed to override that default. A client getter may
+return an Apollo Client or `undefined`. Returning a client on the server enables
+SSR; returning `undefined` there defers the initial request to the browser. The
+getter must return a client in the browser. The tag accepts the rest of Apollo's
 `ApolloClient.WatchQueryOptions` shape. The getters resolve runtime-local values
 without asking Marko to serialize either the client or parsed GraphQL document.
 If a required browser getter is missing, the tag logs an error that can be
@@ -96,26 +95,34 @@ for a complete application with a local `/gql` route.
 
 ## API
 
+### `<init-apollo-client>`
+
+```marko
+<init-apollo-client/client=() => createClient()/>
+```
+
+Calls the required `value` getter during server rendering and again in the
+browser, stores the runtime-local result on a symbol-keyed `$global` property,
+and returns it. Render this tag before bindings that omit `client`. The default
+is render-wide rather than lexically scoped: a later initializer replaces it
+for subsequent bindings. An explicit `client` input always takes precedence.
+
 ### `<await-query>`
 
 Render with a reactive query result:
 
 ```marko
-<await-query|result|
-  client=() => createClient()
-  query=() => GET_DOG
-  variables={ name: "Buck" }
->
+<await-query|result| query=() => GET_DOG variables={ name: "Buck" }>
   ${result.data?.dog.displayImage}
 </await-query>
 ```
 
-| Input     | Type                               | Description                               |
-| --------- | ---------------------------------- | ----------------------------------------- |
-| `client`  | `() => ApolloClient \| undefined`  | Required target-specific client getter.   |
-| `query`   | `() => WatchQueryOptions["query"]` | Required inline document getter.          |
-| `content` | `Marko.Body<[Result]>`             | Required body receiving a settled result. |
-| `...`     | `Omit<WatchQueryOptions, "query">` | Remaining Apollo watch-query options.     |
+| Input     | Type                               | Description                                   |
+| --------- | ---------------------------------- | --------------------------------------------- |
+| `client`  | `() => ApolloClient \| undefined`  | Optional override for the initialized client. |
+| `query`   | `() => WatchQueryOptions["query"]` | Required inline document getter.              |
+| `content` | `Marko.Body<[Result]>`             | Required body receiving a settled result.     |
+| `...`     | `Omit<WatchQueryOptions, "query">` | Remaining Apollo watch-query options.         |
 
 The body parameter is
 `Omit<ObservableQuery.Result<MaybeMasked<TData>>, "loading">`. Loading is owned
@@ -135,9 +142,9 @@ The tag:
 7. unsubscribes and stops the observable when its inputs change or it leaves the
    document.
 
-Passing the client explicitly keeps ownership visible and avoids render-global
-state. Server applications should create a request-scoped client rather than
-sharing one cache between users.
+The application still owns the initialized client. Server applications should
+have its getter create a request-scoped client rather than sharing one cache
+between users.
 
 ### `<const-fragment>`
 
@@ -148,7 +155,6 @@ import { createClient } from "./apollo-client.marko";
 import { DOG_FIELDS } from "./dog-fields.js";
 
 <const-fragment/result
-  client=() => createClient()
   fragment=() => DOG_FIELDS
   from={ __typename: "Dog", id: input.id }
 />
@@ -156,14 +162,14 @@ import { DOG_FIELDS } from "./dog-fields.js";
 <else>Some dog fields are missing</else>
 ```
 
-| Input          | Type                                     | Description                              |
-| -------------- | ---------------------------------------- | ---------------------------------------- |
-| `client`       | `() => ApolloClient \| undefined`        | Required target-specific client getter.  |
-| `fragment`     | `() => WatchFragmentOptions["fragment"]` | Required inline fragment getter.         |
-| `from`         | Entity, cache ID, array, or `null`       | Required normalized cache identifier(s). |
-| `fragmentName` | `string`                                 | Selects one of multiple fragments.       |
-| `variables`    | `OperationVariables`                     | Variables used by the fragment.          |
-| `optimistic`   | `boolean`                                | Includes optimistic data; defaults true. |
+| Input          | Type                                     | Description                                   |
+| -------------- | ---------------------------------------- | --------------------------------------------- |
+| `client`       | `() => ApolloClient \| undefined`        | Optional override for the initialized client. |
+| `fragment`     | `() => WatchFragmentOptions["fragment"]` | Required inline fragment getter.              |
+| `from`         | Entity, cache ID, array, or `null`       | Required normalized cache identifier(s).      |
+| `fragmentName` | `string`                                 | Selects one of multiple fragments.            |
+| `variables`    | `OperationVariables`                     | Variables used by the fragment.               |
+| `optimistic`   | `boolean`                                | Includes optimistic data; defaults true.      |
 
 The tag variable is Apollo's reactive `WatchFragmentResult`, containing `data`,
 `dataState`, `complete`, and a `missing` tree for partial data. The tag is a
@@ -194,10 +200,7 @@ Render with a mutation function and its reactive result:
 import { createClient } from "./apollo-client.marko";
 import { ADD_DOG } from "./add-dog.js";
 
-<const-mutation/[addDog, result]
-  client=() => createClient()
-  mutation=() => ADD_DOG
-/>
+<const-mutation/[addDog, result] mutation=() => ADD_DOG/>
 <button
   type="button"
   disabled=result.loading
@@ -214,11 +217,11 @@ import { ADD_DOG } from "./add-dog.js";
 <else-if=result.data>Added ${result.data.addDog.name}</else-if>
 ```
 
-| Input      | Type                              | Description                                 |
-| ---------- | --------------------------------- | ------------------------------------------- |
-| `client`   | `() => ApolloClient \| undefined` | Required target-specific client getter.     |
-| `mutation` | `() => MutateOptions["mutation"]` | Required inline document getter.            |
-| `...`      | Mutation options without document | Default options merged into each execution. |
+| Input      | Type                              | Description                                   |
+| ---------- | --------------------------------- | --------------------------------------------- |
+| `client`   | `() => ApolloClient \| undefined` | Optional override for the initialized client. |
+| `mutation` | `() => MutateOptions["mutation"]` | Required inline document getter.              |
+| `...`      | Mutation options without document | Default options merged into each execution.   |
 
 The tag returns a `[mutate, result]` tuple. Destructure either or both entries
 and choose application-specific names, such as `/[addToCart]` or
@@ -246,7 +249,7 @@ from publishing stale state. When result UI is unnecessary, omit the second
 tuple entry:
 
 ```marko
-<const-mutation/[addDog] client=() => createClient() mutation=() => ADD_DOG/>
+<const-mutation/[addDog] mutation=() => ADD_DOG/>
 ```
 
 ### `<const-subscription>`
@@ -258,7 +261,6 @@ import { createClient } from "./apollo-client.marko";
 import { DOG_UPDATED } from "./dog-updated.js";
 
 <const-subscription/result
-  client=() => createClient()
   subscription=() => DOG_UPDATED
   variables={ name: "Buck" }
 />
@@ -267,11 +269,11 @@ import { DOG_UPDATED } from "./dog-updated.js";
 <else><img src=result.data?.dogUpdated.displayImage></else>
 ```
 
-| Input          | Type                              | Description                     |
-| -------------- | --------------------------------- | ------------------------------- |
-| `client`       | `() => ApolloClient \| undefined` | Required browser client getter. |
-| `subscription` | `() => SubscribeOptions["query"]` | Required document getter.       |
-| `...`          | `Omit<SubscribeOptions, "query">` | Remaining subscription options. |
+| Input          | Type                              | Description                                   |
+| -------------- | --------------------------------- | --------------------------------------------- |
+| `client`       | `() => ApolloClient \| undefined` | Optional override for the initialized client. |
+| `subscription` | `() => SubscribeOptions["query"]` | Required document getter.                     |
+| `...`          | `Omit<SubscribeOptions, "query">` | Remaining subscription options.               |
 
 Subscriptions never start during SSR. The tag initially renders a serializable
 result with `loading: true`. After browser resumption, it calls both getters and
@@ -306,8 +308,9 @@ import {
 
 Apollo Client, observable query, and cache-watch instances, as well as GraphQL
 `DocumentNode` objects, cannot cross Marko's server-resume serialization
-boundary. `<await-query>`, `<const-fragment>`, and `<const-subscription>` invoke their
-client and document getters separately in each runtime where they are needed. When `client()`
+boundary. `<init-apollo-client>` reconstructs the default client independently
+in each runtime; explicit client inputs do the same. Query, fragment, and
+subscription tags also invoke their document getters in each runtime. When the resolved client
 returns an Apollo Client on the server, `<await-query>` awaits its query,
 serializes only the result, then seeds the browser cache before starting
 `watchQuery`.

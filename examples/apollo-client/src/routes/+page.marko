@@ -1,6 +1,8 @@
 import { createClient } from "../apollo-client.marko";
 import { BOOKS_QUERY } from "../books-query";
 
+<init-apollo-client=() => createClient()/>
+
 <div
   class="page"
   style="--theme-accent: #6b42d8; --theme-link: #6b42d8; --theme-surface: #f4f1ff; --theme-detail: #665f73;"
@@ -8,17 +10,17 @@ import { BOOKS_QUERY } from "../books-query";
   <div class="eyebrow">Marko Run + Apollo</div>
   <h1>Books from a local GraphQL route</h1>
   <p class="intro">
-    This page passes a target-specific Apollo Client and parsed query to
-    <code>&lt;await-query&gt;</code> through resumable getters. The same Marko
-    Run application serves Apollo Server at <a href="/gql"><code>/gql</code></a>.
-    Compare it with the <a href="/client-only">client-only query page</a> or the <a href="/fragments">
-      fragment cache page
-    </a>.
+    This page initializes a target-specific Apollo Client once and passes the
+    parsed query to <code>&lt;await-query&gt;</code> through a resumable getter.
+    The same Marko Run application serves Apollo Server at
+    <a href="/gql"><code>/gql</code></a>. Compare it with the <a href="/client-only">
+      client-only query page
+    </a> or the <a href="/fragments">fragment cache page</a>.
   </p>
 
   <section class="result result--tall" aria-live="polite">
     <try>
-      <await-query|result| client=() => createClient() query=() => BOOKS_QUERY>
+      <await-query|result| query=() => BOOKS_QUERY>
         <if=result.error>
           <p role="alert">GraphQL error: ${result.error.message}</p>
         </if>

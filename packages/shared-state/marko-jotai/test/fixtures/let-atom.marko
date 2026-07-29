@@ -5,7 +5,8 @@ export interface Input {
   store: ReturnType<typeof createStore>;
 }
 
-<let-atom/value=() => input.atom store=() => input.store/>
+<init-jotai-store=() => input.store/>
+<let-atom/value=() => input.atom/>
 <output>${value}</output>
 <button onClick() {
   value += 5;

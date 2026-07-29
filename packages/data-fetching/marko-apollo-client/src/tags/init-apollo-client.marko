@@ -1,0 +1,13 @@
+import type { ApolloClient } from "@apollo/client";
+import { setClientContext } from "../context.js";
+
+export interface Input {
+  value: () => ApolloClient | undefined;
+}
+
+<let/client=(
+  setClientContext($global, input.value()) as ApolloClient | undefined
+)>
+<script>client = setClientContext($global, input.value());</script>
+
+<return=client>

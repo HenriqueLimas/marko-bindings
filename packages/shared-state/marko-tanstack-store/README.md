@@ -27,7 +27,8 @@ static const counter = createStore(
   }),
 );
 
-<const-selected/count=(state) => state.count store=() => counter/>
+<init-tanstack-store=() => counter/>
+<const-selected/count=(state: { count: number; label: string }) => state.count/>
 
 <button onClick() {
   counter.actions.increment();
@@ -40,14 +41,15 @@ The expression assigned to `<const-selected>` is its default `value` input. The 
 
 ### Declaring a store
 
-Declare shared stores with Marko's `static` syntax and pass each source through an inline getter. Marko then creates the store independently in the server and browser bundles instead of trying to serialize the instance:
+Declare shared stores with Marko's `static` syntax and initialize the render-wide default through an inline getter. Marko then creates the store independently in the server and browser bundles instead of trying to serialize the instance:
 
 ```marko
 import { createStore } from "marko-tanstack-store";
 
 static const counter = createStore({ count: 0 });
 
-<const-selected/count=(state) => state.count store=() => counter/>
+<init-tanstack-store=() => counter/>
+<const-selected/count=(state: { count: number }) => state.count/>
 
 <button onClick() {
   counter.setState((state) => ({ ...state, count: state.count + 1 }));
@@ -97,6 +99,19 @@ Selectors can return any value:
 
 ## API
 
+### `<init-tanstack-store>`
+
+```marko
+<init-tanstack-store/store=() => store/>
+```
+
+Calls the required `value` getter during server rendering and again in the
+browser, stores the runtime-local readable source as the render-wide default,
+and returns it. Render it before `<const-selected>` tags that omit `store`.
+Explicit `store` inputs override the initialized source. Since an omitted store
+cannot contribute generic inference, annotate a context-backed selector's state
+parameter as shown above.
+
 ### `<let-atom>`
 
 ```marko
@@ -138,7 +153,7 @@ Omit the selector to observe the complete source value:
 | Input     | Type                                                | Description                                               |
 | --------- | --------------------------------------------------- | --------------------------------------------------------- |
 | `value`   | `(state: TState) => TSelected`                      | Optional default input; omitted means identity selection. |
-| `store`   | `() => Readable<TState>`                            | Inline getter returning the store or atom to observe.     |
+| `store`   | `() => Readable<TState> \| undefined`               | Optional override for the initialized readable source.    |
 | `compare` | `(previous: TSelected, next: TSelected) => boolean` | Optional equality function; defaults to `Object.is`.      |
 
 Returns `TSelected` as a reactive, read-only tag variable. The tag:
@@ -176,6 +191,6 @@ No separate `@tanstack/store` installation is required.
 
 ## Server rendering
 
-TanStack Store instances wrap atoms, while atom objects contain methods and reactive-graph state. Neither can cross Marko's server-resume serialization boundary as a usable source. Declare stores and atoms as module-scoped TypeScript exports or with Marko's `static` syntax, then reference them through inline getters so Marko includes equivalent definitions in both bundles.
+TanStack Store instances wrap atoms, while atom objects contain methods and reactive-graph state. Neither can cross Marko's server-resume serialization boundary as a usable source. Declare stores and atoms as module-scoped TypeScript exports or with Marko's `static` syntax, then reference them through initializer or explicit inline getters so Marko includes equivalent definitions in both bundles.
 
-Static definitions are process-wide in each target. A render-owned `<const/store=createStore(...)>` cannot resume because its instance is not serializable; `store=() => store` must refer to a statically reconstructable source. Initial state must therefore be deterministic across the server and browser. Request-scoped state needs a separate first-class recreation and hydration API.
+Static definitions are process-wide in each target. A render-owned `<const/store=createStore(...)>` cannot resume because its instance is not serializable; initializer and explicit store getters must refer to a statically reconstructable source. Initial state must therefore be deterministic across the server and browser. Request-scoped state needs a separate first-class recreation and hydration API.

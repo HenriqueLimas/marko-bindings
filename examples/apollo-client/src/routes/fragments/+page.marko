@@ -1,6 +1,8 @@
 import { createClient } from "../../apollo-client.marko";
 import { BOOK_FRAGMENT, BOOKS_QUERY } from "../../books-query";
 
+<init-apollo-client=() => createClient()/>
+
 <div
   class="page"
   style="--theme-accent: #176b87; --theme-link: #176b87; --theme-surface: #edf8fb; --theme-detail: #526b73;"
@@ -17,7 +19,7 @@ import { BOOK_FRAGMENT, BOOKS_QUERY } from "../../books-query";
 
   <section class="result result--tall" aria-live="polite">
     <try>
-      <await-query|result| client=() => createClient() query=() => BOOKS_QUERY>
+      <await-query|result| query=() => BOOKS_QUERY>
         <if=result.error>
           <p role="alert">GraphQL error: ${result.error.message}</p>
         </if>
@@ -26,7 +28,6 @@ import { BOOK_FRAGMENT, BOOKS_QUERY } from "../../books-query";
             <for|book| of=result.data?.books ?? []>
               <li>
                 <const-fragment/fragmentResult
-                  client=() => createClient()
                   fragment=() => BOOK_FRAGMENT
                   from=book
                 />

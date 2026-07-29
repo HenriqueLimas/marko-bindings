@@ -13,15 +13,19 @@ future bindings should follow.
 - **Rule:** Name a binding for the Marko behavior visible to its caller rather
   than the equivalent integration primitive from another framework.
 
-## Pass dependencies explicitly
+## Initialize render-wide dependency defaults with getters
 
-- **Tried:** An `<apollo-provider>` wrote the client to `$global`, and
-  `<use-apollo-client>` read it. A microtask was needed because provider scripts
-  run after rendering and mounting.
-- **Ended with:** `<await-query>` requires a `client` input.
-- **Rule:** Prefer inputs and tag variables over mutable `$global` state.
-  `$global` may be populated at the render boundary, but tags should not use it
-  as a dependency-injection container.
+- **Tried:** An `<apollo-provider>` accepted a client instance and only wrote it
+  to `$global` in a browser script. The non-serializable input could not resume,
+  and consumers rendered before the script populated the global.
+- **Ended with:** Each context-style binding has an initializer whose inline
+  getter writes a symbol-keyed `$global` value during server rendering and
+  reconstructs it in a browser script. Consumer tags prefer an explicit input
+  but otherwise read that render-wide default.
+- **Rule:** A `$global` dependency default must use a package-namespaced
+  `Symbol.for` key and a target-reconstructable getter. Render the initializer
+  before its consumers, retain explicit inputs as overrides, and do not present
+  the mutable default as lexically scoped context.
 
 ## Put server-fetched content inside its async boundary
 
@@ -142,14 +146,15 @@ future bindings should follow.
   useful SSR.
 - **Tried next:** Wrapping a render-owned store with `store=() => store` still
   captured the instance and made Marko attempt to serialize it.
-- **Ended with:** Jotai atom and explicit store inputs, plus TanStack atom and
-  readable source inputs, use inline getters that reference statically
-  reconstructable definitions, such as module-scoped TypeScript exports or
-  Marko `static` values. Marko creates those definitions independently in each
-  target.
-- **Rule:** Inline getters for non-serializable dependencies must reference
-  statically reconstructable values. A render-local store needs a different
-  first-class API; do not hide that limitation behind serialization workarounds.
+- **Ended with:** Jotai atom and store inputs, plus TanStack atom and readable
+  source inputs, use inline getters that reference statically reconstructable
+  definitions, such as module-scoped TypeScript exports or Marko `static`
+  values. Store getters may be installed once as render-wide defaults. Marko
+  creates those definitions independently in each target.
+- **Rule:** Inline getters for non-serializable dependencies, whether passed to
+  an initializer or a consumer, must reference statically reconstructable
+  values. A render-local store needs a different first-class API; do not hide
+  that limitation behind serialization workarounds.
 
 ## Separate synchronous and asynchronous atom declarations
 

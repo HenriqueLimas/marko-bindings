@@ -1,11 +1,23 @@
 import { getDefaultStore, type WritableAtom } from "jotai/vanilla";
 import { RESET } from "jotai/vanilla/utils";
+import { getStoreContext } from "../context.js";
 
 export interface Input<T> {
   value: () => WritableAtom<unknown, [typeof RESET], T>;
   store?: () => ReturnType<typeof getDefaultStore> | undefined;
 }
 
-<const/reset=() =>
-  (input.store?.() ?? getDefaultStore()).set(input.value(), RESET)>
+static {
+  function resolveStore<T>(input: Input<T>, global: unknown) {
+    const getStore = input.store;
+    const store =
+      typeof getStore === "function"
+        ? getStore()
+        : (getStoreContext(global) as
+            ReturnType<typeof getDefaultStore> | undefined);
+    return store ?? getDefaultStore();
+  }
+}
+
+<const/reset=() => resolveStore(input, $global).set(input.value(), RESET)>
 <return=reset>

@@ -5,6 +5,7 @@ import {
   type OperationVariables,
 } from "@apollo/client";
 import { toErrorLike } from "@apollo/client/errors";
+import { getClientContext } from "../context.js";
 
 export type Mutation<
   TData = unknown,
@@ -40,7 +41,7 @@ export type Input<
   TData = unknown,
   TVariables extends OperationVariables = OperationVariables,
 > = Options<TData, TVariables> & {
-  client: () => ApolloClient | undefined;
+  client?: () => ApolloClient | undefined;
   mutation: Mutation<TData, TVariables>;
 };
 
@@ -71,7 +72,10 @@ static function inputError(name: "client" | "mutation") {
 ): Promise<ApolloClient.MutateResult<MaybeMasked<TData>>> => {
   const currentExecution = ++execution.current;
   const getClient = input.client;
-  const client = typeof getClient === "function" ? getClient() : undefined;
+  const client =
+    typeof getClient === "function"
+      ? getClient()
+      : (getClientContext($global) as ApolloClient | undefined);
   if (!client) {
     const error = inputError("client");
     result = {

@@ -2,9 +2,10 @@ import { render, screen, waitFor } from "@marko/testing-library";
 import { QueryClient } from "marko-tanstack-query";
 import { describe, expect, test, vi } from "vitest";
 
-import ConditionalAwaitQuery from "./fixtures/conditional-await-query.marko";
 import AwaitQuery from "./fixtures/await-query.marko";
 import AwaitSelectedQuery from "./fixtures/await-selected-query.marko";
+import ConditionalAwaitQuery from "./fixtures/conditional-await-query.marko";
+import InitializedAwaitQuery from "./fixtures/initialized-await-query.marko";
 
 interface Greeting {
   greeting: string;
@@ -75,6 +76,22 @@ describe("await-query tag", () => {
       await screen.findByText("Error: <await-query> requires a query input."),
     ).toBeTruthy();
     consoleError.mockRestore();
+  });
+
+  test("uses the initialized client when no client input is passed", async () => {
+    const client = createClient();
+    client.setQueryData(["greeting"], { greeting: "Initialized greeting" });
+
+    await render(InitializedAwaitQuery, {
+      client: () => client,
+      query: () => ({
+        queryKey: ["greeting"] as const,
+        queryFn: async () => ({ greeting: "Fetched greeting" }),
+        staleTime: Infinity,
+      }),
+    });
+
+    expect(await screen.findByText("Initialized greeting")).toBeTruthy();
   });
 
   test("uses the browser client during client-only rendering", async () => {

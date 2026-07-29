@@ -1,6 +1,8 @@
 import { createClientOnly } from "../../apollo-client.marko";
 import { BOOKS_QUERY } from "../../books-query";
 
+<init-apollo-client=() => createClientOnly()/>
+
 <div
   class="page"
   style="--theme-accent: #0a7a68; --theme-link: #087565; --theme-surface: #eaf8f5; --theme-detail: #526b66;"
@@ -8,9 +10,9 @@ import { BOOKS_QUERY } from "../../books-query";
   <div class="eyebrow">Browser Apollo Client</div>
   <h1>Books loaded after resumption</h1>
   <p class="intro">
-    This page passes the same single <code>client</code> input, but its getter
-    returns <code>undefined</code> on the server. After Marko resumes in the
-    browser, it returns the browser Apollo Client and requests
+    This page initializes the same default client, but its getter returns
+    <code>undefined</code> on the server. After Marko resumes in the browser, it
+    returns the browser Apollo Client and requests
     <a href="/gql"><code>/gql</code></a>. Compare it with the <a href="/">
       server-rendered query page
     </a>.
@@ -18,10 +20,7 @@ import { BOOKS_QUERY } from "../../books-query";
 
   <section class="result result--tall" aria-live="polite">
     <try>
-      <await-query|result|
-        client=() => createClientOnly()
-        query=() => BOOKS_QUERY
-      >
+      <await-query|result| query=() => BOOKS_QUERY>
         <if=result.error>
           <p role="alert">GraphQL error: ${result.error.message}</p>
         </if>

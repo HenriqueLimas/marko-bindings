@@ -1,4 +1,5 @@
 import { getDefaultStore, type WritableAtom } from "jotai/vanilla";
+import { getStoreContext } from "../context.js";
 import ObserveAtom from "../internal/observe-atom.marko";
 
 export interface Input<T> {
@@ -6,11 +7,23 @@ export interface Input<T> {
   store?: () => ReturnType<typeof getDefaultStore> | undefined;
 }
 
+static {
+  function resolveStore<T>(input: Input<T>, global: unknown) {
+    const getStore = input.store;
+    const store =
+      typeof getStore === "function"
+        ? getStore()
+        : (getStoreContext(global) as
+            ReturnType<typeof getDefaultStore> | undefined);
+    return store ?? getDefaultStore();
+  }
+}
+
 <ObserveAtom/value value=input.value store=input.store/>
 <return=value as T
   valueChange(next: T) {
     const browserAtom = input.value();
-    const browserStore = input.store?.() ?? getDefaultStore();
+    const browserStore = resolveStore(input, $global);
     browserStore.set(browserAtom, next);
   }
 >

@@ -1,12 +1,20 @@
-import { cartStore, memberAtom, summaryStore } from "./cart-store";
+import {
+  cartStore,
+  type CartState,
+  type CartSummary,
+  memberAtom,
+  summaryStore,
+} from "./cart-store";
 
 static const price = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
 });
 
+<init-tanstack-store=() => cartStore/>
+
 <section class="cart" aria-labelledby="cart-title">
-  <const-selected/cart store=() => cartStore/>
+  <const-selected/cart=(state: CartState) => state/>
   <header class="cart__header">
     <div>
       <span class="label">Current order</span>
@@ -79,7 +87,8 @@ static const price = new Intl.NumberFormat("en-US", {
       <strong>Studio member</strong><small>Apply a 10% member discount</small>
     </span>
   </label>
-  <const-selected/summary store=() => summaryStore/>
+  <init-tanstack-store=() => summaryStore/>
+  <const-selected/summary=(state: CartSummary) => state/>
   <dl class="summary">
     <div>
       <dt>Subtotal</dt>
@@ -99,7 +108,7 @@ static const price = new Intl.NumberFormat("en-US", {
 
   <footer>
     <p>
-      Bindings reconstruct sources through <code>() =&gt; source</code> getters.
+      Each readable source is initialized before the binding that consumes it.
     </p>
   </footer>
 </section>

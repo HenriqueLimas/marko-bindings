@@ -8,8 +8,14 @@ interface CartItem {
   quantity: number;
 }
 
-interface CartState {
+export interface CartState {
   items: CartItem[];
+}
+
+export interface CartSummary {
+  subtotal: number;
+  discount: number;
+  total: number;
 }
 
 export const cartStore = createStore(
@@ -75,5 +81,5 @@ export const summaryStore = createStore(() => {
     subtotal,
     discount,
     total: subtotal - discount,
-  };
+  } satisfies CartSummary;
 });

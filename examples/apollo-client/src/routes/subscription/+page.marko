@@ -1,6 +1,8 @@
 import { createSubscriptionClient } from "../../subscription-client.marko";
 import { TICK_SUBSCRIPTION } from "../../tick-subscription";
 
+<init-apollo-client=() => createSubscriptionClient()/>
+
 <div class="page" style="--theme-accent: #136f63; --theme-link: #136f63;">
   <div class="eyebrow">Marko + Apollo subscription</div>
   <h1>Stream updates after resumption</h1>
@@ -11,10 +13,7 @@ import { TICK_SUBSCRIPTION } from "../../tick-subscription";
   </p>
 
   <section class="result" aria-live="polite">
-    <const-subscription/result
-      client=() => createSubscriptionClient()
-      subscription=() => TICK_SUBSCRIPTION
-    />
+    <const-subscription/result subscription=() => TICK_SUBSCRIPTION/>
     <if=result.loading>
       <p class="status">Waiting for the first event…</p>
     </if>

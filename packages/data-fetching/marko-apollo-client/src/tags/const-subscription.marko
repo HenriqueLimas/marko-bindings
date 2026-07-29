@@ -5,6 +5,7 @@ import {
 } from "@apollo/client";
 import { toErrorLike } from "@apollo/client/errors";
 import type { Subscription as ObservableSubscription } from "rxjs";
+import { getClientContext } from "../context.js";
 
 export type Result<TData = unknown> = ApolloClient.SubscribeResult<
   MaybeMasked<TData>
@@ -21,7 +22,7 @@ export type Input<
   TData = unknown,
   TVariables extends OperationVariables = OperationVariables,
 > = Omit<ApolloClient.SubscribeOptions<TData, TVariables>, "query"> & {
-  client: () => ApolloClient | undefined;
+  client?: () => ApolloClient | undefined;
   subscription: Subscription<TData, TVariables>;
 };
 
@@ -52,7 +53,10 @@ static function inputError(name: "client" | "subscription") {
   };
 
   const getClient = input.client;
-  const client = typeof getClient === "function" ? getClient() : undefined;
+  const client =
+    typeof getClient === "function"
+      ? getClient()
+      : (getClientContext($global) as ApolloClient | undefined);
   if (!client) {
     publishError(inputError("client"));
     return;

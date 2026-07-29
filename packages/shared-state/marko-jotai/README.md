@@ -32,14 +32,15 @@ static const countAtom = atom(0);
 
 The `/count` portion names the returned reactive tag variable. Assigning to `count` writes through to the Jotai atom, and store updates flow back into `count`.
 
-Atom and store inputs are zero-argument getters. Write them inline so Marko can reconstruct their dependencies in both the server and browser bundles. Like Jotai's React hooks, the tags use `getDefaultStore()` when `store` is omitted. An explicit store must also be statically defined so each target creates its own instance:
+Atom and store inputs are zero-argument getters. Write them inline so Marko can reconstruct their dependencies in both the server and browser bundles. Like Jotai's React hooks, the tags use `getDefaultStore()` when no store is initialized or passed. Initialize an explicit store once to make it the render-wide default:
 
 ```marko
 import { createStore } from "marko-jotai";
 
 static const store = createStore();
 
-<let-atom/count=() => countAtom store=() => store/>
+<init-jotai-store=() => store/>
+<let-atom/count=() => countAtom/>
 ```
 
 ### Async atoms
@@ -63,16 +64,28 @@ The resolved body parameter is read-only even when the source atom is writable. 
 
 ## API
 
+### `<init-jotai-store>`
+
+```marko
+<init-jotai-store/store=() => store/>
+```
+
+Calls the required `value` getter during server rendering and again in the
+browser, stores the runtime-local Jotai store as the render-wide default, and
+returns it. Render it before atom tags that should use the store. Explicit
+`store` inputs override the initialized store; without either, tags continue to
+use Jotai's `getDefaultStore()`.
+
 ### `<let-atom>`
 
 ```marko
 <let-atom/value=() => atom/>
 ```
 
-| Input   | Type                                                | Description                                              |
-| ------- | --------------------------------------------------- | -------------------------------------------------------- |
-| `value` | `() => WritableAtom<T, [NoInfer<T>], unknown>`      | Inline getter returning the writable atom.               |
-| `store` | `() => ReturnType<typeof createStore> \| undefined` | Optional inline getter; defaults to `getDefaultStore()`. |
+| Input   | Type                                                | Description                                                   |
+| ------- | --------------------------------------------------- | ------------------------------------------------------------- |
+| `value` | `() => WritableAtom<T, [NoInfer<T>], unknown>`      | Inline getter returning the writable atom.                    |
+| `store` | `() => ReturnType<typeof createStore> \| undefined` | Optional override for the initialized or Jotai default store. |
 
 Returns the atom's current `T` as a reactive, writable tag variable. The tag subscribes with `store.sub()` and unsubscribes when it leaves the document. Use `<await-atom>` instead when the atom value is asynchronous.
 
@@ -84,10 +97,10 @@ Atoms whose write function requires multiple arguments do not map to a single Ma
 <const-atom/value=() => atom/>
 ```
 
-| Input   | Type                                                | Description                                              |
-| ------- | --------------------------------------------------- | -------------------------------------------------------- |
-| `value` | `() => Atom<T>`                                     | Inline getter returning a readable atom.                 |
-| `store` | `() => ReturnType<typeof createStore> \| undefined` | Optional inline getter; defaults to `getDefaultStore()`. |
+| Input   | Type                                                | Description                                                   |
+| ------- | --------------------------------------------------- | ------------------------------------------------------------- |
+| `value` | `() => Atom<T>`                                     | Inline getter returning a readable atom.                      |
+| `store` | `() => ReturnType<typeof createStore> \| undefined` | Optional override for the initialized or Jotai default store. |
 
 Returns the atom's current `T` as a reactive, read-only tag variable. Use `<await-atom>` to resolve asynchronous values inside a Marko async boundary.
 
@@ -99,11 +112,11 @@ Returns the atom's current `T` as a reactive, read-only tag variable. Use `<awai
 </await-atom>
 ```
 
-| Input     | Type                                                | Description                                              |
-| --------- | --------------------------------------------------- | -------------------------------------------------------- |
-| `value`   | `() => Atom<T>`                                     | Inline getter returning a readable or writable atom.     |
-| `store`   | `() => ReturnType<typeof createStore> \| undefined` | Optional inline getter; defaults to `getDefaultStore()`. |
-| `content` | `Marko.Body<[Awaited<T>]>`                          | Required body receiving the resolved atom value.         |
+| Input     | Type                                                | Description                                                   |
+| --------- | --------------------------------------------------- | ------------------------------------------------------------- |
+| `value`   | `() => Atom<T>`                                     | Inline getter returning a readable or writable atom.          |
+| `store`   | `() => ReturnType<typeof createStore> \| undefined` | Optional override for the initialized or Jotai default store. |
+| `content` | `Marko.Body<[Awaited<T>]>`                          | Required body receiving the resolved atom value.              |
 
 Observes the atom, resolves its current value through an internal `<await>`, and renders its body inside that async boundary. Promise changes reactivate the surrounding `<try>` placeholder, and rejections reach its catch block. The tag returns no tag variable.
 
@@ -113,10 +126,10 @@ Observes the atom, resolves its current value through an internal `<await>`, and
 <const-reset-atom/reset=() => atom/>
 ```
 
-| Input   | Type                                                | Description                                              |
-| ------- | --------------------------------------------------- | -------------------------------------------------------- |
-| `value` | `() => WritableAtom<unknown, [typeof RESET], T>`    | Inline getter returning an atom that can reset.          |
-| `store` | `() => ReturnType<typeof createStore> \| undefined` | Optional inline getter; defaults to `getDefaultStore()`. |
+| Input   | Type                                                | Description                                                   |
+| ------- | --------------------------------------------------- | ------------------------------------------------------------- |
+| `value` | `() => WritableAtom<unknown, [typeof RESET], T>`    | Inline getter returning an atom that can reset.               |
+| `store` | `() => ReturnType<typeof createStore> \| undefined` | Optional override for the initialized or Jotai default store. |
 
 Returns a zero-argument function that resets the atom by writing Jotai's `RESET` symbol. It works with utilities such as `atomWithReset` and `atomWithStorage`.
 
@@ -223,4 +236,4 @@ static const countAtom = atomWithStorage("count", 0);
 
 Jotai atoms and stores contain closures that cannot cross Marko's server-resume serialization boundary. Declare atom definitions with Marko's `static` syntax and reference them through inline getters so Marko includes them in both bundles.
 
-The default store and a statically declared explicit store are process-wide in each target. A render-owned `<const/store=createStore()>` cannot resume because its closure is not serializable; `store=() => store` must refer to a statically reconstructable store.
+The Jotai default store and statically declared initialized stores are process-wide in each target. A render-owned `<const/store=createStore()>` cannot resume because its closure is not serializable; initializer and explicit store getters must refer to statically reconstructable stores.

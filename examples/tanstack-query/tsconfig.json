@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["@marko/run"]
+  },
+  "include": [
+    ".marko-run/routes.d.ts",
+    "../../packages/data-fetching/marko-tanstack-query/src",
+    "src"
+  ]
+}

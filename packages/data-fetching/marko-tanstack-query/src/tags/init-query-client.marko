@@ -1,0 +1,11 @@
+import type { QueryClient } from "@tanstack/query-core";
+import { setClientContext } from "../context.js";
+
+export interface Input {
+  value: () => QueryClient | undefined;
+}
+
+<let/client=setClientContext($global, input.value()) as QueryClient | undefined>
+<script>client = setClientContext($global, input.value());</script>
+
+<return=client>

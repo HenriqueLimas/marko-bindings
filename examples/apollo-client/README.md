@@ -27,8 +27,9 @@ Open <http://localhost:3000> for the SSR query page,
 is at <http://localhost:3000/subscription>. Open
 <http://localhost:3000/gql> for Apollo Sandbox.
 
-The query page passes one target-specific client getter and one inline query
-getter to `<await-query>`. GraphQL documents are ordinary TypeScript module
+Each page passes its target-specific client getter once to
+`<init-apollo-client>`, then query, fragment, mutation, and subscription tags use
+that render-wide default. GraphQL documents are ordinary TypeScript module
 constants; only the client factories need `.marko` modules for target-specific
 `server` and `client` declarations. On the server, the client runs in `ssrMode`
 and executes directly against the local Apollo Server. In the browser, the same
@@ -40,17 +41,17 @@ The fragment page composes `<await-query>` and `<const-fragment>`. Parsed query 
 fragment `DocumentNode` values require getters because they cannot cross Marko's
 resume boundary. The fragment's `from` input does not: each book is plain query
 data, so the page passes `from=book` directly and Marko serializes it for
-resumption. Independently created fragment clients do not share the query's
-server cache, so their initial result is partial. In the browser, all getters
-resolve to the memoized client; `<await-query>` seeds its serialized result into
-that cache and each `<const-fragment>` publishes a complete result. This exercises
-the plain `from` value across resumption while keeping client instances and
-parsed documents out of resume state.
+resumption. The initialized client is shared by the page's query and fragment
+tags in each runtime, so the server fragment reads the query-populated cache and
+the resumed browser fragment watches the same browser cache. This exercises the
+plain `from` value across resumption while keeping client instances and parsed
+documents out of resume state.
 
 The client-only page uses `createClientOnly()`, whose server implementation
 returns `undefined`. The server finishes without an async query; after
-resumption, the same `client` input resolves to the browser client, which sends
-the initial request to `/gql` and uses the same placeholder boundary.
+resumption, `<init-apollo-client>` resolves the browser client, and the query
+uses that default to send its initial request to `/gql` through the same
+placeholder boundary.
 
 The mutation page nests `<const-mutation>` inside `<await-query>`. The initial book
 list is server-rendered, while the mutation tag returns its resumable function

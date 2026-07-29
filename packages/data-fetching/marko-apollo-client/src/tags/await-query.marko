@@ -5,6 +5,7 @@ import {
   type ObservableQuery,
   type OperationVariables,
 } from "@apollo/client";
+import { getClientContext } from "../context.js";
 
 export type Result<TData = unknown> = Omit<
   ObservableQuery.Result<MaybeMasked<TData>>,
@@ -20,7 +21,7 @@ export type Input<
   TData = unknown,
   TVariables extends OperationVariables = OperationVariables,
 > = Omit<ApolloClient.WatchQueryOptions<TData, TVariables>, "query"> & {
-  client: () => ApolloClient | undefined;
+  client?: () => ApolloClient | undefined;
   query: Query<TData, TVariables>;
   content: Marko.Body<[Result<TData>]>;
 };
@@ -83,8 +84,9 @@ static {
 
   function loadInitialResult<TData, TVariables extends OperationVariables>(
     input: Input<TData, TVariables>,
+    global: unknown,
   ) {
-    const client = getInitialClient(input);
+    const client = getInitialClient(input, global);
     if (!client) {
       return;
     }
@@ -93,23 +95,30 @@ static {
   }
 }
 
-server function getServerInitialClient(input: {
-  client?: () => ApolloClient | undefined;
-}) {
-  return input.client?.();
+server function getServerInitialClient(
+  input: { client?: () => ApolloClient | undefined },
+  global: unknown,
+) {
+  const getClient = input.client;
+  return typeof getClient === "function"
+    ? getClient()
+    : (getClientContext(global) as ApolloClient | undefined);
 }
 
 client function getNoServerInitialClient() {
   return;
 }
 
-<const/serverResultPromise=loadInitialResult(input)>
+<const/serverResultPromise=loadInitialResult(input, $global)>
 <const/didStartOnServer=!!serverResultPromise>
 <let/clientResultPromise=undefined as Promise<Result<TData>> | undefined>
 <script>
   if (!didStartOnServer) {
     const getClient = input.client;
-    const client = typeof getClient === "function" ? getClient() : undefined;
+    const client =
+      typeof getClient === "function"
+        ? getClient()
+        : (getClientContext($global) as ApolloClient | undefined);
     if (!client) {
       const error = new Error("<await-query> requires a client input.");
       console.error(error.message);
@@ -153,7 +162,10 @@ client function getNoServerInitialClient() {
         query: getQuery,
         ...options
       } = input;
-      const client = typeof getClient === "function" ? getClient() : undefined;
+      const client =
+        typeof getClient === "function"
+          ? getClient()
+          : (getClientContext($global) as ApolloClient | undefined);
       if (!client) {
         console.error("<await-query> requires a client input.");
         return;

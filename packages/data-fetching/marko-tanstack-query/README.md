@@ -51,18 +51,18 @@ export const createClient =
     : createBrowserClient;
 ```
 
-Pass both dependencies through inline getters. The body renders inside Marko's
-async boundary and receives reactive settled query results:
+Initialize the client once, then pass each query through an inline getter. The
+body renders inside Marko's async boundary and receives reactive settled query
+results:
 
 ```marko
 import { createClient } from "./query-client.marko";
 import { dogQuery } from "./queries.js";
 
+<init-query-client=() => createClient()/>
+
 <try>
-  <await-query|result|
-    client=() => createClient()
-    query=() => dogQuery(input.name)
-  >
+  <await-query|result| query=() => dogQuery(input.name)>
     <if=result.error>${result.error.message}</if>
     <else><img src=result.data?.image alt=result.data?.name></else>
   </await-query>
@@ -78,13 +78,25 @@ a client in the browser.
 
 ## API
 
+### `<init-query-client>`
+
+```marko
+<init-query-client/client=() => createClient()/>
+```
+
+Calls the required `value` getter during server rendering and again in the
+browser, stores the runtime-local result as the render-wide default, and returns
+it. Render the initializer before queries that omit `client`. A later
+initializer replaces the default for subsequent queries; an explicit `client`
+input always takes precedence.
+
 ### `<await-query>`
 
-| Input     | Type                                  | Description                               |
-| --------- | ------------------------------------- | ----------------------------------------- |
-| `client`  | `() => QueryClient \| undefined`      | Required target-specific client getter.   |
-| `query`   | `() => QueryObserverOptions`          | Required inline query-options getter.     |
-| `content` | `Marko.Body<[Result<TData, TError>]>` | Required body receiving a settled result. |
+| Input     | Type                                  | Description                                   |
+| --------- | ------------------------------------- | --------------------------------------------- |
+| `client`  | `() => QueryClient \| undefined`      | Optional override for the initialized client. |
+| `query`   | `() => QueryObserverOptions`          | Required inline query-options getter.         |
+| `content` | `Marko.Body<[Result<TData, TError>]>` | Required body receiving a settled result.     |
 
 The query getter accepts the full TanStack `QueryObserverOptions` shape,
 including `queryKey`, `queryFn`, `select`, stale-time, retry, and refetch
@@ -111,7 +123,7 @@ The tag:
 6. unsubscribes the observer and balances `QueryClient.mount()` on cleanup.
 
 Client and query ownership stay with the application. The tag never clears or
-destroys the supplied `QueryClient`.
+destroys the initialized or explicitly supplied `QueryClient`.
 
 ## Upstream exports
 

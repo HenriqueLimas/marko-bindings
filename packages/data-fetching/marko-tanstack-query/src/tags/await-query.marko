@@ -13,6 +13,7 @@ import {
   hydrate,
   shouldThrowError,
 } from "@tanstack/query-core";
+import { getClientContext } from "../context.js";
 
 export type Result<TData = unknown, TError = DefaultError> = DistributiveOmit<
   QueryObserverResult<TData, TError>,
@@ -40,7 +41,7 @@ export interface Input<
   TQueryData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 > {
-  client: () => QueryClient | undefined;
+  client?: () => QueryClient | undefined;
   query: Query<TQueryFnData, TError, TData, TQueryData, TQueryKey>;
   content: Marko.Body<[Result<TData, TError>]>;
 }
@@ -153,8 +154,11 @@ static {
     TData,
     TQueryData,
     TQueryKey extends QueryKey,
-  >(input: Input<TQueryFnData, TError, TData, TQueryData, TQueryKey>) {
-    const client = getInitialClient(input);
+  >(
+    input: Input<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
+    global: unknown,
+  ) {
+    const client = getInitialClient(input, global);
     if (!client) {
       return;
     }
@@ -163,17 +167,21 @@ static {
   }
 }
 
-server function getServerInitialClient(input: {
-  client?: () => QueryClient | undefined;
-}) {
-  return input.client?.();
+server function getServerInitialClient(
+  input: { client?: () => QueryClient | undefined },
+  global: unknown,
+) {
+  const getClient = input.client;
+  return typeof getClient === "function"
+    ? getClient()
+    : (getClientContext(global) as QueryClient | undefined);
 }
 
 client function getNoServerInitialClient() {
   return;
 }
 
-<const/serverResultPromise=loadInitialResult(input)>
+<const/serverResultPromise=loadInitialResult(input, $global)>
 <const/didStartOnServer=!!serverResultPromise>
 <let/clientResultPromise=(
   undefined as Promise<InitialResult<TData, TError>> | undefined
@@ -181,7 +189,10 @@ client function getNoServerInitialClient() {
 <script>
   if (!didStartOnServer) {
     const getClient = input.client;
-    const client = typeof getClient === "function" ? getClient() : undefined;
+    const client =
+      typeof getClient === "function"
+        ? getClient()
+        : (getClientContext($global) as QueryClient | undefined);
     if (!client) {
       const error = new Error("<await-query> requires a client input.");
       console.error(error.message);
@@ -226,7 +237,10 @@ client function getNoServerInitialClient() {
     <let/result=publicResult(settledInitialResult)>
     <script>
       const getClient = input.client;
-      const client = typeof getClient === "function" ? getClient() : undefined;
+      const client =
+        typeof getClient === "function"
+          ? getClient()
+          : (getClientContext($global) as QueryClient | undefined);
       if (!client) {
         console.error("<await-query> requires a client input.");
         return;

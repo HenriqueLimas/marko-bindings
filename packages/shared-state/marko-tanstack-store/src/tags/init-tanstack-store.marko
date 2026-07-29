@@ -1,0 +1,13 @@
+import type { Readable } from "@tanstack/store";
+import { setStoreContext } from "../context.js";
+
+export interface Input<TState> {
+  value: () => Readable<TState> | undefined;
+}
+
+<let/store=(
+  setStoreContext($global, input.value()) as Readable<TState> | undefined
+)>
+<script>store = setStoreContext($global, input.value());</script>
+
+<return=store>

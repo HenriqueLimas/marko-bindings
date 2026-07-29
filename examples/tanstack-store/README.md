@@ -9,10 +9,13 @@ application. It demonstrates:
 - writing to an atom through `<let-atom>`.
 
 The stores and atom are module-scoped exports from `src/cart-store.ts`, so the
-server and browser bundles instantiate them independently. Each binding receives
-an inline getter such as `store=() => cartStore` or `value=() => memberAtom`.
-This keeps TanStack's methods and reactive graph out of serialized resume state
-while preserving SSR.
+server and browser bundles instantiate them independently. The cart installs
+`cartStore` once with `<init-tanstack-store>`; its context-backed selector
+annotates the state type because an omitted store cannot contribute inference.
+A second initializer replaces the default with `summaryStore` immediately before
+the summary binding, and `<let-atom>` receives `memberAtom` directly. This keeps
+TanStack's methods and reactive graph
+out of serialized resume state while preserving SSR.
 
 ```sh
 pnpm --filter @marko-bindings/example-tanstack-store dev

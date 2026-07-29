@@ -1,20 +1,42 @@
 import type { Readable } from "@tanstack/store";
+import { getStoreContext } from "../context.js";
 
 export interface Input<TState, TSelected = NoInfer<TState>> {
   value?: (state: TState) => TSelected;
-  store: () => Readable<TState>;
+  store?: () => Readable<TState> | undefined;
   compare?: (previous: TSelected, next: TSelected) => boolean;
 }
 
-static const defaultSelector = <TState,>(state: TState): TState => state;
+static {
+  const defaultSelector = <TState,>(state: TState): TState => state;
+
+  function resolveStore<TState, TSelected>(
+    input: Input<TState, TSelected>,
+    global: unknown,
+  ) {
+    const getStore = input.store;
+    const store =
+      typeof getStore === "function"
+        ? getStore()
+        : (getStoreContext(global) as Readable<TState> | undefined);
+    if (!store) {
+      const error = new Error(
+        "<const-selected> requires a store input or an initialized TanStack Store.",
+      );
+      console.error(error.message);
+      throw error;
+    }
+    return store;
+  }
+}
 
 <const/selector=(input.value ?? defaultSelector) as (
   state: TState,
 ) => TSelected>
 <const/compare=input.compare ?? Object.is>
-<let/selected=selector(input.store().get())>
+<let/selected=selector(resolveStore(input, $global).get())>
 <script>
-  const browserStore = input.store();
+  const browserStore = resolveStore(input, $global);
   let current = selector(browserStore.get());
   selected = current;
   const subscription = browserStore.subscribe((state) => {

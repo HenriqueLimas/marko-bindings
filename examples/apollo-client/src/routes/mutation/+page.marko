@@ -2,6 +2,8 @@ import { createClient } from "../../apollo-client.marko";
 import { ADD_BOOK } from "../../book-mutation";
 import { BOOKS_QUERY } from "../../books-query";
 
+<init-apollo-client=() => createClient()/>
+
 <div
   class="page"
   style="--theme-accent: #b04a1f; --theme-link: #9b3d18; --theme-surface: #fff3ed; --theme-detail: #665f73;"
@@ -16,16 +18,12 @@ import { BOOKS_QUERY } from "../../books-query";
 
   <section class="result" aria-live="polite">
     <try>
-      <await-query|booksResult|
-        client=() => createClient()
-        query=() => BOOKS_QUERY
-      >
+      <await-query|booksResult| query=() => BOOKS_QUERY>
         <if=booksResult.error>
           <p role="alert">GraphQL query error: ${booksResult.error.message}</p>
         </if>
         <else>
           <const-mutation/[addBook, mutationResult]
-            client=() => createClient()
             mutation=() => ADD_BOOK
             refetchQueries=["Books"]
             awaitRefetchQueries=true

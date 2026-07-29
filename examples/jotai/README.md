@@ -6,11 +6,11 @@ application. It demonstrates:
 - writable task and filter state with `<let-atom>`;
 - read-only filtered tasks and progress with `<const-atom>`;
 - resetting an `atomWithReset` with `<const-reset-atom>`; and
-- one explicit Jotai store shared by every binding on the page.
+- one Jotai store initialized as the render-wide binding default.
 
 The atoms and store are static definitions, so Marko creates them independently
-in its server and browser bundles. Every binding receives simple inline getters
-such as `value=() => progressAtom store=() => store`, allowing the complete
+in its server and browser bundles. `<init-jotai-store>` receives the store getter
+once, while each binding only receives its atom getter, allowing the complete
 planner to be server-rendered and resumed.
 
 ```sh

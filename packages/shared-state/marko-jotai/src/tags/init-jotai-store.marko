@@ -1,0 +1,14 @@
+import { type getDefaultStore } from "jotai/vanilla";
+import { setStoreContext } from "../context.js";
+
+export interface Input {
+  value: () => ReturnType<typeof getDefaultStore> | undefined;
+}
+
+<let/store=(
+  setStoreContext($global, input.value()) as
+    ReturnType<typeof getDefaultStore> | undefined
+)>
+<script>store = setStoreContext($global, input.value());</script>
+
+<return=store>

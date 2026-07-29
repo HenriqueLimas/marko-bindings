@@ -1,6 +1,7 @@
 import { type ApolloClient, type OperationVariables } from "@apollo/client";
 import type { ApolloCache } from "@apollo/client/cache";
 import type { Subscription } from "rxjs";
+import { getClientContext } from "../context.js";
 
 export type Fragment<
   TData = unknown,
@@ -28,7 +29,7 @@ export type Input<
   ApolloClient.WatchFragmentOptions<TData, TVariables>,
   "fragment" | "from"
 > & {
-  client: () => ApolloClient | undefined;
+  client?: () => ApolloClient | undefined;
   fragment: Fragment<TData, TVariables>;
   from: TFrom;
 };
@@ -91,8 +92,8 @@ static {
     TData,
     TVariables extends OperationVariables,
     TFrom extends From<TData>,
-  >(input: Input<TData, TVariables, TFrom>) {
-    const client = getInitialClient(input);
+  >(input: Input<TData, TVariables, TFrom>, global: unknown) {
+    const client = getInitialClient(input, global);
     if (!client || input.from === null) {
       return fallbackResult<TData, TFrom>(input.from);
     }
@@ -101,20 +102,27 @@ static {
   }
 }
 
-server function getServerInitialClient(input: {
-  client?: () => ApolloClient | undefined;
-}) {
-  return input.client?.();
+server function getServerInitialClient(
+  input: { client?: () => ApolloClient | undefined },
+  global: unknown,
+) {
+  const getClient = input.client;
+  return typeof getClient === "function"
+    ? getClient()
+    : (getClientContext(global) as ApolloClient | undefined);
 }
 
 client function getNoServerInitialClient() {
   return;
 }
 
-<let/result=getInitialResult(input)>
+<let/result=getInitialResult(input, $global)>
 <script>
   const getClient = input.client;
-  const client = typeof getClient === "function" ? getClient() : undefined;
+  const client =
+    typeof getClient === "function"
+      ? getClient()
+      : (getClientContext($global) as ApolloClient | undefined);
   if (!client) {
     result = fallbackResult(input.from);
     inputError("client");

@@ -1,0 +1,23 @@
+{
+  "name": "@marko-bindings/example-tanstack-query",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Marko Run example using marko-tanstack-query with a local JSON API",
+  "type": "module",
+  "scripts": {
+    "build": "marko-run build",
+    "dev": "marko-run dev",
+    "preview": "marko-run preview",
+    "typecheck": "mtc"
+  },
+  "dependencies": {
+    "@marko/run": "^0.11.6",
+    "marko": "catalog:",
+    "marko-tanstack-query": "workspace:*"
+  },
+  "devDependencies": {
+    "@marko/language-tools": "catalog:",
+    "@marko/type-check": "catalog:",
+    "typescript": "catalog:"
+  }
+}

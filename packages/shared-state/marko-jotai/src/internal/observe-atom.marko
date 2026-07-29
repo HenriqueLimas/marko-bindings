@@ -1,4 +1,5 @@
 import { type Atom, getDefaultStore } from "jotai/vanilla";
+import { getStoreContext } from "../context.js";
 
 export interface Input<T> {
   value: () => Atom<T>;
@@ -6,10 +7,22 @@ export interface Input<T> {
   content?: Marko.Body<[T]>;
 }
 
-<let/value=(input.store?.() ?? getDefaultStore()).get(input.value())>
+static {
+  function resolveStore<T>(input: Input<T>, global: unknown) {
+    const getStore = input.store;
+    const store =
+      typeof getStore === "function"
+        ? getStore()
+        : (getStoreContext(global) as
+            ReturnType<typeof getDefaultStore> | undefined);
+    return store ?? getDefaultStore();
+  }
+}
+
+<let/value=resolveStore(input, $global).get(input.value())>
 <script>
   const browserAtom = input.value();
-  const browserStore = input.store?.() ?? getDefaultStore();
+  const browserStore = resolveStore(input, $global);
   value = browserStore.get(browserAtom);
   const unsubscribe = browserStore.sub(browserAtom, () => {
     value = browserStore.get(browserAtom);

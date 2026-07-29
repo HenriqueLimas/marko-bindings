@@ -1,0 +1,291 @@
+import { BOOKS_QUERY_KEY, booksQuery } from "../books-query.js";
+import { createClient } from "../query-client.marko";
+
+<init-query-client=() => createClient()/>
+<const/apiUrl=new URL("/api/books", $global.url).href>
+
+<main>
+  <header>
+    <div class="eyebrow">Marko Run × TanStack Query</div>
+    <h1>Server data,<br><em>resumed cache.</em></h1>
+    <p class="intro">
+      One Marko Run application renders this query on the server and serves its
+      JSON from <a href="/api/books"><code>/api/books</code></a>. TanStack's cache
+      resumes in the browser without serializing the query client or fetch function.
+    </p>
+  </header>
+
+  <section class="query-card" aria-live="polite">
+    <div class="card-heading">
+      <div>
+        <span class="label">Local API response</span>
+        <h2>Speculative fiction</h2>
+      </div>
+    </div>
+
+    <try>
+      <await-query|result| query=() => booksQuery(apiUrl)>
+        <if=result.error>
+          <p class="error" role="alert">${result.error.message}</p>
+        </if>
+        <else>
+          <ul>
+            <for|book| of=result.data?.books ?? []>
+              <li>
+                <span class="book-mark" aria-hidden="true"/>
+                <div>
+                  <strong>${book.title}</strong><span>${book.author}</span>
+                </div>
+              </li>
+            </for>
+          </ul>
+
+          <footer>
+            <p>
+              API request <strong>#${result.data?.requestNumber}</strong>
+              <span aria-hidden="true">·</span>
+              <time datetime=result.data?.servedAt>
+                ${
+                  result.data?.servedAt
+                    ? new Date(result.data.servedAt).toLocaleTimeString()
+                    : "Not fetched"
+                }
+              </time>
+            </p>
+            <button
+              type="button"
+              onClick() {
+                void createClient().invalidateQueries({
+                  queryKey: BOOKS_QUERY_KEY,
+                });
+              }
+            >
+              Refresh from API
+            </button>
+          </footer>
+        </else>
+      </await-query>
+
+      <@placeholder>
+        <div class="loading" role="status">
+          <span/><span/><span/>
+          <p>Querying the local API…</p>
+        </div>
+      </@placeholder>
+      <@catch|error|>
+        <p class="error" role="alert">
+          ${error instanceof Error ? error.message : String(error)}
+        </p>
+      </@catch>
+    </try>
+  </section>
+</main>
+
+<style>
+  main {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(32rem, 1.15fr);
+    gap: clamp(2.5rem, 8vw, 8rem);
+    align-items: center;
+    width: min(74rem, calc(100% - 2rem));
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 4rem 0;
+  }
+
+  header {
+    max-width: 31rem;
+  }
+
+  .eyebrow,
+  .label {
+    color: #d86d39;
+    font-size: 0.72rem;
+    font-weight: 850;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin: 1rem 0 1.6rem;
+    color: #153f34;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(3.4rem, 7vw, 6.25rem);
+    font-weight: 500;
+    letter-spacing: -0.06em;
+    line-height: 0.88;
+  }
+
+  h1 em {
+    color: #d86d39;
+    font-weight: 500;
+  }
+
+  .intro {
+    margin: 0;
+    color: #63726d;
+    font-size: 1.04rem;
+    line-height: 1.75;
+  }
+
+  a {
+    color: #a84822;
+    font-weight: 700;
+  }
+
+  .query-card {
+    min-height: 32rem;
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    border: 1px solid #d5e0d8;
+    border-radius: 1.5rem;
+    background: #fffefa;
+    box-shadow: 0 2rem 5rem rgb(21 63 52 / 10%);
+  }
+
+  .card-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: start;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e4e9e5;
+  }
+
+  h2 {
+    margin: 0.35rem 0 0;
+    color: #173f35;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.8rem;
+    font-weight: 500;
+  }
+
+  ul {
+    display: grid;
+    gap: 0.8rem;
+    margin: 1.5rem 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 0.9rem;
+    background: #f0f6f1;
+  }
+
+  .book-mark {
+    width: 0.35rem;
+    height: 2.7rem;
+    border-radius: 1rem;
+    background: #d86d39;
+  }
+
+  li strong,
+  li div span {
+    display: block;
+  }
+
+  li strong {
+    color: #24463d;
+  }
+
+  li div span {
+    margin-top: 0.25rem;
+    color: #728078;
+    font-size: 0.9rem;
+  }
+
+  footer {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e4e9e5;
+  }
+
+  footer p {
+    margin: 0;
+    color: #75817b;
+    font-size: 0.83rem;
+  }
+
+  footer p strong {
+    color: #39584f;
+  }
+
+  button {
+    flex: none;
+    padding: 0.75rem 1rem;
+    border: 0;
+    border-radius: 0.7rem;
+    color: white;
+    background: #d86d39;
+    cursor: pointer;
+    font-weight: 750;
+  }
+
+  button:hover {
+    background: #bc5527;
+  }
+
+  .loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 21rem;
+    color: #718078;
+  }
+
+  .loading span {
+    width: 0.55rem;
+    height: 0.55rem;
+    margin-right: 0.35rem;
+    border-radius: 50%;
+    background: #d86d39;
+  }
+
+  .loading p {
+    margin-left: 0.6rem;
+  }
+
+  .error {
+    padding: 1rem;
+    border-radius: 0.75rem;
+    color: #942d24;
+    background: #fde9e5;
+  }
+
+  @media (max-width: 60rem) {
+    main {
+      grid-template-columns: 1fr;
+      gap: 2.75rem;
+      max-width: 42rem;
+      padding: 3rem 0;
+    }
+
+    header {
+      max-width: 36rem;
+    }
+  }
+
+  @media (max-width: 38rem) {
+    main {
+      width: min(100% - 1rem, 42rem);
+      padding: 1.5rem 0;
+    }
+
+    .query-card {
+      min-height: 30rem;
+      border-radius: 1rem;
+    }
+
+    footer {
+      align-items: stretch;
+      flex-direction: column;
+    }
+  }
+</style>

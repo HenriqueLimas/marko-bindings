@@ -9,8 +9,9 @@ import {
 import type { Observer } from "rxjs";
 import { describe, expect, test, vi } from "vitest";
 
-import ConditionalAwaitQuery from "./fixtures/conditional-await-query.marko";
 import AwaitQuery from "./fixtures/await-query.marko";
+import ConditionalAwaitQuery from "./fixtures/conditional-await-query.marko";
+import InitializedAwaitQuery from "./fixtures/initialized-await-query.marko";
 
 const GREETING_QUERY = gql`
   query Greeting {
@@ -76,6 +77,24 @@ describe("await-query tag", () => {
       await screen.findByText("Error: <await-query> requires a query input."),
     ).toBeTruthy();
     consoleError.mockRestore();
+  });
+
+  test("uses the initialized client when no client input is passed", async () => {
+    const client = new ApolloClient({
+      cache: new InMemoryCache(),
+      link: ApolloLink.empty(),
+    });
+    client.writeQuery({
+      query: GREETING_QUERY,
+      data: { greeting: "Initialized greeting" },
+    });
+
+    await render(InitializedAwaitQuery, {
+      client: () => client,
+      query: () => GREETING_QUERY,
+    });
+
+    expect(await screen.findByText("Initialized greeting")).toBeTruthy();
   });
 
   test("uses the browser client during client-only rendering", async () => {
