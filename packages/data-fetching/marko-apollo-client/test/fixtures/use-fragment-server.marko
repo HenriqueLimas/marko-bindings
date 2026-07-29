@@ -1,0 +1,13 @@
+import { DOG_FRAGMENT } from "./dog-fragment.js";
+import { createFragmentClient } from "./fragment-client.marko";
+
+<use-fragment|result|
+  client=() => createFragmentClient()
+  fragment=() => DOG_FRAGMENT
+  from="Dog:1"
+>
+  <output>
+    <span>${result.data.name ?? "Unknown dog"}</span>
+    <span>${result.complete ? "Complete" : "Partial"}</span>
+  </output>
+</use-fragment>

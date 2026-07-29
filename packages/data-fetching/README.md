@@ -8,5 +8,5 @@ owning tags leave the document.
 
 ## Packages
 
-- [`marko-apollo-client`](marko-apollo-client) — Apollo Client queries with a
-  render-scoped provider and reactive query results.
+- [`marko-apollo-client`](marko-apollo-client) — explicit Apollo Client getters
+  with reactive query, fragment, mutation, and subscription tags.

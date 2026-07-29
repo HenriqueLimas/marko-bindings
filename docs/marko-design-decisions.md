@@ -109,6 +109,22 @@ future bindings should follow.
   SSR, then start after resumption and unsubscribe on input changes or cleanup.
   Never block SSR on a Promise that only browser work can settle.
 
+## Make cache bindings synchronous and network-free
+
+- **Compared:** Apollo's React `useFragment` hook and Vue 5 `useFragment`
+  composable both normalize entity objects with `cache.identify`, read
+  `watchFragment().getCurrentResult()` synchronously, and subscribe only for
+  later cache updates.
+- **Ended with:** `<use-fragment>` follows the same cache contract through a
+  parameterized Marko body. Its parsed fragment uses a getter, while the plain
+  `from` identifier stays a direct, serializable input. It reads an available
+  server cache without suspending, serializes only the plain snapshot,
+  reconstructs the browser watch from client and document getters, and
+  unsubscribes on replacement.
+- **Rule:** A cache-only binding should render its current snapshot immediately,
+  never imply network loading, and scope its reconstructed browser watch to the
+  tag lifecycle.
+
 ## Reconstruct non-serializable shared-state dependencies
 
 - **Tried:** A server-rendered Marko Run page passed Jotai atoms and a store

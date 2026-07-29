@@ -4,6 +4,7 @@ This example uses the `marko-apollo-client` binding in a Marko Run application.
 The pages use an Apollo Server exposed by the same application at `/gql`:
 
 - `/` loads the query with a request-scoped server client.
+- `/fragments` queries books and binds each result to a reactive cache fragment.
 - `/client-only` returns no client on the server and loads through the browser
   client after resumption.
 - `/mutation` queries during SSR, executes a mutation from a resumed browser
@@ -19,21 +20,32 @@ colors.
 pnpm --filter @marko-bindings/example-apollo-client dev
 ```
 
-Open <http://localhost:3000> for the SSR page,
+Open <http://localhost:3000> for the SSR query page,
+<http://localhost:3000/fragments> for the fragment cache page,
 <http://localhost:3000/client-only> for the client-only page, or
 <http://localhost:3000/mutation> for the mutation page. The subscription example
 is at <http://localhost:3000/subscription>. Open
 <http://localhost:3000/gql> for Apollo Sandbox.
 
-The page passes one target-specific client getter and one inline query getter to
-`<use-query>`. GraphQL documents are ordinary TypeScript module constants; only
-the client factories need `.marko` modules for target-specific `server` and
-`client` declarations. On the server, the client getter creates an `ssrMode`
-Apollo Client and executes directly against the local Apollo Server. In the browser,
-the same getter returns a separate memoized client that receives the serialized
-query result before `watchQuery` starts. Neither client instance nor the parsed
-GraphQL document crosses Marko's resume boundary. The query body receives only
-settled results; its surrounding Marko `<@placeholder>` owns the loading UI.
+The query page passes one target-specific client getter and one inline query
+getter to `<use-query>`. GraphQL documents are ordinary TypeScript module
+constants; only the client factories need `.marko` modules for target-specific
+`server` and `client` declarations. On the server, the client runs in `ssrMode`
+and executes directly against the local Apollo Server. In the browser, the same
+getter returns a separate memoized client that receives the serialized query
+result before `watchQuery` starts. The query body receives only settled results;
+its surrounding Marko `<@placeholder>` owns the loading UI.
+
+The fragment page composes `<use-query>` and `<use-fragment>`. Parsed query and
+fragment `DocumentNode` values require getters because they cannot cross Marko's
+resume boundary. The fragment's `from` input does not: each book is plain query
+data, so the page passes `from=book` directly and Marko serializes it for
+resumption. Independently created fragment clients do not share the query's
+server cache, so their initial result is partial. In the browser, all getters
+resolve to the memoized client; `<use-query>` seeds its serialized result into
+that cache and each `<use-fragment>` publishes a complete result. This exercises
+the plain `from` value across resumption while keeping client instances and
+parsed documents out of resume state.
 
 The client-only page uses `createClientOnly()`, whose server implementation
 returns `undefined`. The server finishes without an async query; after

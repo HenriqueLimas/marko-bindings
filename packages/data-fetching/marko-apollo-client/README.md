@@ -31,9 +31,9 @@ export function createClient() {
 }
 ```
 
-Export each parsed GraphQL operation document from a regular TypeScript module.
-The inline tag input keeps the document available independently in the server
-and browser runtimes:
+Export each parsed GraphQL operation or fragment document from a regular
+TypeScript module. The inline tag input keeps the document available
+independently in the server and browser runtimes:
 
 ```ts
 import { gql, type TypedDocumentNode } from "marko-apollo-client";
@@ -138,6 +138,55 @@ The tag:
 Passing the client explicitly keeps ownership visible and avoids render-global
 state. Server applications should create a request-scoped client rather than
 sharing one cache between users.
+
+### `<use-fragment>`
+
+Render a reactive view of one normalized entity in the Apollo cache:
+
+```marko
+import { createClient } from "./apollo-client.marko";
+import { DOG_FIELDS } from "./dog-fields.js";
+
+<use-fragment|result|
+  client=() => createClient()
+  fragment=() => DOG_FIELDS
+  from={ __typename: "Dog", id: input.id }
+>
+  <if=result.complete>${result.data.name}</if>
+  <else>Some dog fields are missing</else>
+</use-fragment>
+```
+
+| Input          | Type                                     | Description                              |
+| -------------- | ---------------------------------------- | ---------------------------------------- |
+| `client`       | `() => ApolloClient \| undefined`        | Required target-specific client getter.  |
+| `fragment`     | `() => WatchFragmentOptions["fragment"]` | Required inline fragment getter.         |
+| `from`         | Entity, cache ID, array, or `null`       | Required normalized cache identifier(s). |
+| `content`      | `Marko.Body<[Result]>`                   | Required body receiving the result.      |
+| `fragmentName` | `string`                                 | Selects one of multiple fragments.       |
+| `variables`    | `OperationVariables`                     | Variables used by the fragment.          |
+| `optimistic`   | `boolean`                                | Includes optimistic data; defaults true. |
+
+The body receives Apollo's reactive `WatchFragmentResult`, containing `data`,
+`dataState`, `complete`, and a `missing` tree for partial data. The tag is a
+lightweight cache binding: it never sends a network request. Use `<use-query>`
+or another cache write to populate the entity.
+
+Object identifiers are normalized with `client.cache.identify`, matching
+Apollo's React hook and Vue 5 composable. Pass `from` directly rather than
+wrapping it in a getter: cache IDs, references, entity key objects, `null`, and
+arrays of those values are plain serializable state. Arrays preserve `null`
+entries. A top-level `from=null` renders the stable partial result
+`{ data: {}, dataState: "partial", complete: false }` without creating a cache
+watch.
+
+When a server client is available, the tag renders its current cache snapshot
+during SSR. If `client()` returns `undefined` on the server, it renders the same
+serializable partial fallback and reads the browser cache after resumption. It
+then subscribes with `ApolloClient.watchFragment`, replaces the watch when
+inputs change, and unsubscribes when removed. As with the other tags, both the
+client and parsed fragment use getters so neither non-serializable value enters
+Marko's resume state.
 
 ### `<use-mutation>`
 
@@ -255,10 +304,10 @@ import {
 
 ## Server rendering
 
-Apollo Client and `ObservableQuery` instances, as well as GraphQL
+Apollo Client, observable query, and cache-watch instances, as well as GraphQL
 `DocumentNode` objects, cannot cross Marko's server-resume serialization
-boundary. `<use-query>` and `<use-subscription>` invoke their client and document
-getters separately in each runtime where they are needed. When `client()`
+boundary. `<use-query>`, `<use-fragment>`, and `<use-subscription>` invoke their
+client and document getters separately in each runtime where they are needed. When `client()`
 returns an Apollo Client on the server, `<use-query>` awaits its query,
 serializes only the result, then seeds the browser cache before starting
 `watchQuery`.
@@ -280,6 +329,12 @@ Because the server query starts when the tag renders, nested query tags can
 create request waterfalls. Prefer starting data known at the route boundary in
 the Marko Run handler; use this SSR path when the query is owned by the rendered
 tag.
+
+`<use-fragment>` synchronously reads a server client's cache when one is
+available and serializes only its plain result. It reconstructs the cache watch
+in the browser; it does not serialize the watch or automatically transfer the
+rest of a standalone server cache. A surrounding `<use-query>` seeds its query
+result into the browser cache, which publishes through the fragment watch.
 
 `<use-subscription>` renders `{ loading: true, data: undefined }` during SSR but
 starts its stream only in the browser. A pending server Promise would keep the

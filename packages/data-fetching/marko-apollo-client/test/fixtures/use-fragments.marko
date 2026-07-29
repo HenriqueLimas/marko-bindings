@@ -1,0 +1,19 @@
+import { type ApolloClient, type TypedDocumentNode } from "marko-apollo-client";
+
+import type { DogFragment } from "./use-fragment.marko";
+
+export interface Input {
+  client: () => ApolloClient | undefined;
+  fragment: () => TypedDocumentNode<DogFragment>;
+  from: Array<string | null>;
+}
+
+<use-fragment|result|
+  client=input.client
+  fragment=input.fragment
+  from=input.from
+>
+  <output>
+    ${result.data.map((dog) => dog?.name ?? "Missing").join(", ")}
+  </output>
+</use-fragment>
