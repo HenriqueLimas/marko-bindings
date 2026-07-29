@@ -6,6 +6,6 @@ export interface Input {
 }
 
 <if=input.show>
-  <use-selector/selected=(state) => state.count store=input.store/>
+  <use-selector/selected=(state) => state.count store=() => input.store/>
   <output>${selected}</output>
 </if>

@@ -27,7 +27,7 @@ static const counter = createStore(
   }),
 );
 
-<use-selector/count=(state) => state.count store=counter/>
+<use-selector/count=(state) => state.count store=() => counter/>
 
 <button onClick() {
   counter.actions.increment();
@@ -38,15 +38,16 @@ static const counter = createStore(
 
 The expression assigned to `<use-selector>` is its default `value` input. The `/count` portion names the returned reactive tag variable.
 
-### Creating a store in markup
+### Declaring a store
 
-Call `createStore` from a Marko `<const>` when the store belongs to a tag rather than a JavaScript module:
+Declare shared stores with Marko's `static` syntax and pass each source through an inline getter. Marko then creates the store independently in the server and browser bundles instead of trying to serialize the instance:
 
 ```marko
 import { createStore } from "marko-tanstack-store";
 
-<const/counter=createStore({ count: 0 })>
-<use-selector/count=(state) => state.count store=counter/>
+static const counter = createStore({ count: 0 });
+
+<use-selector/count=(state) => state.count store=() => counter/>
 
 <button onClick() {
   counter.setState((state) => ({ ...state, count: state.count + 1 }));
@@ -55,17 +56,20 @@ import { createStore } from "marko-tanstack-store";
 </button>
 ```
 
+Stores can instead be module-scoped exports from a regular TypeScript file. Import the store into the template and reference it from the same inline getter; each target bundles and instantiates the module independently.
+
 Calling the JavaScript API directly preserves all of TanStack's overloads and inferred return types for mutable, action, and readonly derived stores.
 
-### Creating and using an atom in markup
+### Creating and using an atom
 
-Call `createAtom` from a Marko `<const>` and use `<use-atom>` to expose it as one writable tag variable. `<use-atom>` uses Marko's `value`/`valueChange` binding instead of a `[state, setState]` tuple:
+Declare an atom statically and use `<use-atom>` to expose it as one writable tag variable. Its default `value` input is an inline getter. `<use-atom>` uses Marko's `value`/`valueChange` binding instead of a `[state, setState]` tuple:
 
 ```marko
 import { createAtom } from "marko-tanstack-store";
 
-<const/atom=createAtom(0)>
-<use-atom/count=atom/>
+static const countAtom = createAtom(0);
+
+<use-atom/count=() => countAtom/>
 
 <button onClick() {
   count += 5;
@@ -74,7 +78,7 @@ import { createAtom } from "marko-tanstack-store";
 </button>
 ```
 
-Assigning to `count` calls `atom.set()`; updates made directly through the atom also flow back into `count`. Use `<use-selector/value=(state) => state store=computedAtom/>` to observe readonly or computed atoms.
+Assigning to `count` calls `countAtom.set()`; updates made directly through the atom also flow back into `count`. Use `<use-selector/value=(state) => state store=() => computedAtom/>` to observe readonly or computed atoms.
 
 ### Selecting values
 
@@ -82,7 +86,7 @@ Selectors can return any value:
 
 ```marko
 <use-selector/incomplete=(state) => state.todos.filter((todo) => !todo.complete)
-  store=todoStore
+  store=() => todoStore
 />
 
 <for|todo| of=incomplete>
@@ -95,18 +99,18 @@ Selectors can return any value:
 ### `<use-atom>`
 
 ```marko
-<use-atom/value=atom/>
+<use-atom/value=() => atom/>
 ```
 
 | Input     | Type                                | Description                                          |
 | --------- | ----------------------------------- | ---------------------------------------------------- |
-| `value`   | `Atom<T>`                           | Default input containing the atom to observe.        |
+| `value`   | `() => Atom<T>`                     | Default input getter returning the atom to observe.  |
 | `compare` | `(previous: T, next: T) => boolean` | Optional equality function; defaults to `Object.is`. |
 
 Returns the atom's current `T` as a reactive, writable tag variable. Custom comparison controls which atom values are published without disabling writes. Assignments are forwarded to `atom.set()` through Marko's `valueChange` convention:
 
 ```marko
-<use-atom/count=atom/>
+<use-atom/count=() => atom/>
 <button onClick() {
   count += 5;
 }>
@@ -121,19 +125,19 @@ Use `<use-selector>` for readonly and computed atoms.
 Select part of a source:
 
 ```marko
-<use-selector/selected=(state) => state.someValue store=store/>
+<use-selector/selected=(state) => state.someValue store=() => store/>
 ```
 
 Omit the selector to observe the complete source value:
 
 ```marko
-<use-selector/state store=store/>
+<use-selector/state store=() => store/>
 ```
 
 | Input     | Type                                                | Description                                               |
 | --------- | --------------------------------------------------- | --------------------------------------------------------- |
 | `value`   | `(state: TState) => TSelected`                      | Optional default input; omitted means identity selection. |
-| `store`   | `Readable<TState>`                                  | TanStack store or atom to observe.                        |
+| `store`   | `() => Readable<TState>`                            | Inline getter returning the store or atom to observe.     |
 | `compare` | `(previous: TSelected, next: TSelected) => boolean` | Optional equality function; defaults to `Object.is`.      |
 
 Returns `TSelected` as a reactive, read-only tag variable. The tag:
@@ -150,7 +154,7 @@ Use the re-exported `shallow` comparator for object or array selections:
 ```marko
 import { shallow } from "marko-tanstack-store";
 
-<use-selector/user=(state) => state.user store=store compare=shallow/>
+<use-selector/user=(state) => state.user store=() => store compare=shallow/>
 ```
 
 ### JavaScript exports
@@ -171,4 +175,6 @@ No separate `@tanstack/store` installation is required.
 
 ## Server rendering
 
-TanStack Store and atom instances contain closures and cannot currently cross a Marko server-resume serialization boundary. Use `createStore`, `createAtom`, `<use-atom>`, and `<use-selector>` with client-rendered state. A future server binding will need an explicit strategy for recreating request-scoped stores in the browser rather than serializing Store instances directly.
+TanStack Store instances wrap atoms, while atom objects contain methods and reactive-graph state. Neither can cross Marko's server-resume serialization boundary as a usable source. Declare stores and atoms as module-scoped TypeScript exports or with Marko's `static` syntax, then reference them through inline getters so Marko includes equivalent definitions in both bundles.
+
+Static definitions are process-wide in each target. A render-owned `<const/store=createStore(...)>` cannot resume because its instance is not serializable; `store=() => store` must refer to a statically reconstructable source. Initial state must therefore be deterministic across the server and browser. Request-scoped state needs a separate first-class recreation and hydration API.

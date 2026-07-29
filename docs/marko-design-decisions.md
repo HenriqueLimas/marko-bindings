@@ -127,15 +127,18 @@ future bindings should follow.
 
 ## Reconstruct non-serializable shared-state dependencies
 
-- **Tried:** A server-rendered Marko Run page passed Jotai atoms and a store
-  directly to `<use-atom>` and `<use-atom-value>`. Their closures disappeared
-  from resume state, so browser subscriptions had no dependencies. Starting the
-  whole planner after resume worked but discarded useful SSR.
+- **Tried:** Server-rendered Marko Run pages passed Jotai atoms and a store, and
+  TanStack stores and atoms, directly to their bindings. The instances' methods
+  and closures disappeared from resume state, so browser subscriptions had no
+  usable dependencies. Starting the whole view after resume worked but discarded
+  useful SSR.
 - **Tried next:** Wrapping a render-owned store with `store=() => store` still
   captured the instance and made Marko attempt to serialize it.
-- **Ended with:** Atom and explicit store inputs use inline getters that reference
-  static definitions, such as `value=() => progressAtom store=() => store`.
-  Marko creates those definitions independently in each target.
+- **Ended with:** Jotai atom and explicit store inputs, plus TanStack atom and
+  readable source inputs, use inline getters that reference statically
+  reconstructable definitions, such as module-scoped TypeScript exports or
+  Marko `static` values. Marko creates those definitions independently in each
+  target.
 - **Rule:** Inline getters for non-serializable dependencies must reference
   statically reconstructable values. A render-local store needs a different
   first-class API; do not hide that limitation behind serialization workarounds.

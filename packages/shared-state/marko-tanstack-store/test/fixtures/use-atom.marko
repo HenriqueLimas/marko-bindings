@@ -5,7 +5,7 @@ export interface Input {
   compare?: (previous: number, next: number) => boolean;
 }
 
-<use-atom/value=input.atom compare=input.compare/>
+<use-atom/value=() => input.atom compare=input.compare/>
 <output>${value}</output>
 <button onClick() {
   value += 5;

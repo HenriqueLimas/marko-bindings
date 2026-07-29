@@ -6,5 +6,8 @@ export interface Input {
   compare?: (previous: number, next: number) => boolean;
 }
 
-<use-selector/selected=input.selector store=input.store compare=input.compare/>
+<use-selector/selected=input.selector
+  store=() => input.store
+  compare=input.compare
+/>
 <output>${selected}</output>

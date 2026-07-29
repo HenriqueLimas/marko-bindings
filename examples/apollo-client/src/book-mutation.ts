@@ -1,6 +1,6 @@
 import { gql, type TypedDocumentNode } from "marko-apollo-client";
 
-import type { Book } from "./books-query.js";
+import type { Book } from "./books-query";
 
 export interface AddBookMutation {
   addBook: Book;

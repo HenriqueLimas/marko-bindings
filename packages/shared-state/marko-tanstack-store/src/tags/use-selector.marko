@@ -2,7 +2,7 @@ import type { Readable } from "@tanstack/store";
 
 export interface Input<TState, TSelected = NoInfer<TState>> {
   value?: (state: TState) => TSelected;
-  store: Readable<TState>;
+  store: () => Readable<TState>;
   compare?: (previous: TSelected, next: TSelected) => boolean;
 }
 
@@ -11,13 +11,13 @@ static const defaultSelector = <TState,>(state: TState): TState => state;
 <const/selector=(input.value ?? defaultSelector) as (
   state: TState,
 ) => TSelected>
-<const/store=input.store>
 <const/compare=input.compare ?? Object.is>
-<let/selected=selector(store.get())>
+<let/selected=selector(input.store().get())>
 <script>
-  let current = selector(store.get());
+  const browserStore = input.store();
+  let current = selector(browserStore.get());
   selected = current;
-  const subscription = store.subscribe((state) => {
+  const subscription = browserStore.subscribe((state) => {
     const next = selector(state);
     if (!compare(current, next)) {
       selected = current = next;

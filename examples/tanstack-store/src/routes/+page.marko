@@ -1,0 +1,77 @@
+import Cart from "../cart.marko";
+
+<main>
+  <section class="intro">
+    <div class="eyebrow">Marko Run × TanStack Store</div>
+    <h1>Small store.<br><em>Full cart.</em></h1>
+    <p>
+      Mutable, derived, and atomic state resume as one reactive Marko view.
+      TanStack owns the graph; tag variables keep the template in sync.
+    </p>
+  </section>
+
+  <Cart/>
+</main>
+
+<style>
+  main {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(30rem, 1.2fr);
+    gap: clamp(2rem, 7vw, 7rem);
+    align-items: center;
+    width: min(72rem, calc(100% - 2rem));
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 4rem 0;
+  }
+
+  .intro {
+    max-width: 29rem;
+  }
+
+  .eyebrow {
+    color: #bd5425;
+    font-size: 0.72rem;
+    font-weight: 850;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin: 1rem 0 1.5rem;
+    color: #17362e;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(3.2rem, 7vw, 6rem);
+    font-weight: 500;
+    letter-spacing: -0.055em;
+    line-height: 0.9;
+  }
+
+  h1 em {
+    color: #bd5425;
+    font-weight: 500;
+  }
+
+  .intro p {
+    margin: 0;
+    color: #68736e;
+    font-size: 1.05rem;
+    line-height: 1.75;
+  }
+
+  @media (max-width: 56rem) {
+    main {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+      max-width: 40rem;
+      padding: 3rem 0;
+    }
+  }
+
+  @media (max-width: 38rem) {
+    main {
+      width: min(100% - 1rem, 40rem);
+      padding: 1.5rem 0;
+    }
+  }
+</style>

@@ -6,3 +6,5 @@ Runnable examples belong in a single workspace package under `examples/<name>`. 
   `marko-apollo-client` with an Apollo Server route at `/gql`.
 - [`jotai`](jotai/README.md) — Marko Run task planner demonstrating writable,
   derived, filtered, and resettable state with `marko-jotai`.
+- [`tanstack-store`](tanstack-store/README.md) — Marko Run cart demonstrating
+  resumable stores, derived state, actions, and writable atoms.

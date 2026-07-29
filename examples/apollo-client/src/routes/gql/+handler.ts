@@ -1,6 +1,6 @@
 import { HeaderMap } from "@apollo/server";
 
-import { server, serverStarted } from "../../graphql-server.js";
+import { server, serverStarted } from "../../graphql-server";
 
 const handleGraphQLRequest: MarkoRun.Handler = async ({ request, url }) => {
   const headers = new HeaderMap();

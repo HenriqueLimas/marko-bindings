@@ -18,7 +18,7 @@ afterEach(cleanup);
 const selectCount = (state: { count: number }) => state.count;
 
 describe("use-selector tag", () => {
-  test("selects from a store created in a const tag", async () => {
+  test("selects from a statically declared store", async () => {
     await render(ConstStore);
 
     expect(screen.getByText("2")).toBeTruthy();

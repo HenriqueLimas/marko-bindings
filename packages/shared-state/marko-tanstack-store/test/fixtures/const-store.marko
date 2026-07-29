@@ -1,7 +1,8 @@
 import { createStore } from "marko-tanstack-store";
 
-<const/counter=createStore({ count: 2 })>
-<use-selector/count=(state) => state.count store=counter/>
+static const counter = createStore({ count: 2 });
+
+<use-selector/count=(state) => state.count store=() => counter/>
 
 <output>${count}</output>
 <button onClick() {
