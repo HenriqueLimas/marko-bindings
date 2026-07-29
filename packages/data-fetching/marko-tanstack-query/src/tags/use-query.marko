@@ -1,0 +1,269 @@
+import {
+  type DefaultError,
+  type DehydratedState,
+  type DistributiveOmit,
+  type FetchQueryOptions,
+  type QueryClient,
+  type QueryKey,
+  QueryObserver,
+  type QueryObserverOptions,
+  type QueryObserverResult,
+  defaultShouldDehydrateQuery,
+  dehydrate,
+  hydrate,
+  shouldThrowError,
+} from "@tanstack/query-core";
+
+export type Result<TData = unknown, TError = DefaultError> = DistributiveOmit<
+  QueryObserverResult<TData, TError>,
+  "promise" | "refetch"
+>;
+
+export type Query<
+  TQueryFnData = unknown,
+  TError = DefaultError,
+  TData = TQueryFnData,
+  TQueryData = TQueryFnData,
+  TQueryKey extends QueryKey = QueryKey,
+> = () => QueryObserverOptions<
+  TQueryFnData,
+  TError,
+  TData,
+  TQueryData,
+  TQueryKey
+>;
+
+export interface Input<
+  TQueryFnData = unknown,
+  TError = DefaultError,
+  TData = TQueryFnData,
+  TQueryData = TQueryFnData,
+  TQueryKey extends QueryKey = QueryKey,
+> {
+  client: () => QueryClient | undefined;
+  query: Query<TQueryFnData, TError, TData, TQueryData, TQueryKey>;
+  content: Marko.Body<[Result<TData, TError>]>;
+}
+
+static {
+  type InitialResult<TData, TError> = Result<TData, TError> & {
+    _dehydrated: DehydratedState;
+  };
+
+  const settledResult = <TData, TError>(
+    result: QueryObserverResult<TData, TError>,
+  ) => {
+    const { promise: _promise, refetch: _refetch, ...settled } = result;
+    return settled as Result<TData, TError>;
+  };
+
+  const publicResult = <TData, TError>(
+    initialResult: InitialResult<TData, TError>,
+  ) => {
+    const { _dehydrated, ...result } = initialResult;
+    return result as Result<TData, TError>;
+  };
+
+  function getQueryOptions<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryData,
+    TQueryKey extends QueryKey,
+  >(input: Input<TQueryFnData, TError, TData, TQueryData, TQueryKey>) {
+    if (typeof input.query !== "function") {
+      const error = new Error("<use-query> requires a query input.");
+      console.error(error.message);
+      throw error;
+    }
+
+    return input.query();
+  }
+
+  async function executeInitialQuery<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryData,
+    TQueryKey extends QueryKey,
+  >(
+    input: Input<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
+    client: QueryClient,
+  ): Promise<InitialResult<TData, TError>> {
+    const options = getQueryOptions(input);
+    let observer = new QueryObserver(client, options);
+    const queryHash = observer.getCurrentQuery().queryHash;
+
+    if (observer.getCurrentResult().isEnabled) {
+      try {
+        await client.fetchQuery(
+          options as FetchQueryOptions<
+            TQueryFnData,
+            TError,
+            TQueryData,
+            TQueryKey
+          >,
+        );
+      } catch (error) {
+        observer.destroy();
+        observer = new QueryObserver(client, options);
+        const failedResult = observer.getCurrentResult();
+        const shouldThrow =
+          options.suspense ||
+          shouldThrowError(options.throwOnError, [
+            error as TError,
+            observer.getCurrentQuery(),
+          ]);
+        observer.destroy();
+
+        if (shouldThrow) {
+          throw error;
+        }
+
+        return {
+          ...settledResult(failedResult),
+          _dehydrated: { mutations: [], queries: [] },
+        };
+      }
+    }
+
+    observer.destroy();
+    observer = new QueryObserver(client, options);
+    const result = settledResult(observer.getCurrentResult());
+    observer.destroy();
+
+    return {
+      ...result,
+      _dehydrated: dehydrate(client, {
+        shouldDehydrateMutation: () => false,
+        shouldDehydrateQuery: (query) =>
+          query.queryHash === queryHash && defaultShouldDehydrateQuery(query),
+      }),
+    };
+  }
+
+  const getInitialClient =
+    typeof getServerInitialClient === "undefined"
+      ? getNoServerInitialClient
+      : getServerInitialClient;
+
+  function loadInitialResult<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryData,
+    TQueryKey extends QueryKey,
+  >(input: Input<TQueryFnData, TError, TData, TQueryData, TQueryKey>) {
+    const client = getInitialClient(input);
+    if (!client) {
+      return;
+    }
+
+    return executeInitialQuery(input, client);
+  }
+}
+
+server function getServerInitialClient(input: {
+  client?: () => QueryClient | undefined;
+}) {
+  return input.client?.();
+}
+
+client function getNoServerInitialClient() {
+  return;
+}
+
+<const/serverResultPromise=loadInitialResult(input)>
+<const/didStartOnServer=!!serverResultPromise>
+<let/clientResultPromise=(
+  undefined as Promise<InitialResult<TData, TError>> | undefined
+)>
+<script>
+  if (!didStartOnServer) {
+    const getClient = input.client;
+    const client = typeof getClient === "function" ? getClient() : undefined;
+    if (!client) {
+      const error = new Error("<use-query> requires a client input.");
+      console.error(error.message);
+      const rejectedResult = new Promise<InitialResult<TData, TError>>(
+        (_, reject) => {
+          setTimeout(reject, 0, error);
+        },
+      );
+      void rejectedResult.catch(() => {});
+      clientResultPromise = rejectedResult;
+      return;
+    }
+    if (typeof input.query !== "function") {
+      const error = new Error("<use-query> requires a query input.");
+      console.error(error.message);
+      const rejectedResult = new Promise<InitialResult<TData, TError>>(
+        (_, reject) => {
+          setTimeout(reject, 0, error);
+        },
+      );
+      void rejectedResult.catch(() => {});
+      clientResultPromise = rejectedResult;
+      return;
+    }
+
+    const pendingResult = new Promise<InitialResult<TData, TError>>(
+      (resolve, reject) => {
+        setTimeout(() => {
+          void executeInitialQuery(input, client).then(resolve, reject);
+        });
+      },
+    );
+    void pendingResult.catch(() => {});
+    clientResultPromise = pendingResult;
+  }
+</script>
+
+<const/initialResultPromise=serverResultPromise ?? clientResultPromise>
+<if=initialResultPromise>
+  <await|initialResult|=initialResultPromise>
+    <const/settledInitialResult=initialResult as InitialResult<TData, TError>>
+    <let/result=publicResult(settledInitialResult)>
+    <script>
+      const getClient = input.client;
+      const client = typeof getClient === "function" ? getClient() : undefined;
+      if (!client) {
+        console.error("<use-query> requires a client input.");
+        return;
+      }
+      if (typeof input.query !== "function") {
+        console.error("<use-query> requires a query input.");
+        return;
+      }
+
+      const options = input.query();
+      hydrate(client, settledInitialResult._dehydrated);
+      const observer = new QueryObserver(
+        client,
+        didStartOnServer ? options : { ...options, refetchOnMount: false },
+      );
+      client.mount();
+
+      const currentResult = observer.getCurrentResult();
+      if (
+        !currentResult.isFetching &&
+        (!currentResult.isPending || !currentResult.isEnabled)
+      ) {
+        result = settledResult(currentResult);
+      }
+
+      const unsubscribe = observer.subscribe((next) => {
+        if (!next.isFetching) {
+          result = settledResult(next);
+        }
+      });
+
+      $signal.onabort = () => {
+        unsubscribe();
+        client.unmount();
+      };
+    </script>
+
+    <${input.content}(result)/>
+  </await>
+</if>

@@ -10,3 +10,5 @@ owning tags leave the document.
 
 - [`marko-apollo-client`](marko-apollo-client) — explicit Apollo Client getters
   with reactive query, fragment, mutation, and subscription tags.
+- [`marko-tanstack-query`](marko-tanstack-query) — resumable TanStack Query
+  options with SSR hydration and reactive settled results.

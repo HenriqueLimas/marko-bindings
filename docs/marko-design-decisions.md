@@ -143,6 +143,21 @@ future bindings should follow.
   statically reconstructable values. A render-local store needs a different
   first-class API; do not hide that limitation behind serialization workarounds.
 
+## Hydrate cache state separately from observer views
+
+- **Constraint:** TanStack Query's `select` can make observer data differ from
+  the raw value stored in the query cache, and custom key hashing can make
+  writing that selected value back by `queryKey` target the wrong cache entry.
+- **Ended with:** `<use-query>` serializes its function-free settled observer
+  result alongside TanStack's dehydrated state for the exact server query. It
+  hydrates that state before creating the browser observer. A browser-only
+  initial fetch disables the observer's first mount refetch because that fetch
+  has just completed; resumed server queries retain TanStack's stale-on-mount
+  behavior.
+- **Rule:** When a library distinguishes cached data from its projected view,
+  transfer its native dehydrated cache state instead of seeding the cache from
+  rendered result data.
+
 ## Adding a decision
 
 ```md
