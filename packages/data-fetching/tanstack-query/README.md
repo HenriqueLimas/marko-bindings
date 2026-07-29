@@ -125,6 +125,68 @@ The tag:
 Client and query ownership stay with the application. The tag never clears or
 destroys the initialized or explicitly supplied `QueryClient`.
 
+### `<const-mutation>`
+
+Define mutation options in a regular TypeScript module, then pass them through
+an inline getter:
+
+```ts
+export const addDogMutation = (apiUrl: string) => ({
+  mutationKey: ["add-dog"],
+  mutationFn: async (name: string) => {
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      body: JSON.stringify({ name }),
+    });
+    return response.json() as Promise<{ id: string; name: string }>;
+  },
+});
+```
+
+```marko
+<const-mutation/[addDog, result] mutation=() => addDogMutation(input.apiUrl)/>
+<button
+  type="button"
+  disabled=result.isPending
+  onClick() {
+    void addDog("Buck").catch(() => {});
+  }
+>
+  Add dog
+</button>
+
+<if=result.isError>${result.error.message}</if>
+<else-if=result.isSuccess>Added ${result.data.name}</else-if>
+```
+
+| Input      | Type                                        | Description                                   |
+| ---------- | ------------------------------------------- | --------------------------------------------- |
+| `client`   | `() => QueryClient \| undefined`            | Optional override for the initialized client. |
+| `mutation` | `() => MutationObserverOptions<TData, ...>` | Required inline mutation-options getter.      |
+
+The tag returns a `[mutate, result]` tuple. The first entry has TanStack's
+`MutateFunction` signature: it accepts variables and optional per-execution
+callbacks, then returns the mutation Promise. Rejections remain rejections, so
+handlers that render `result.error` should handle the Promise as shown above.
+The second entry is TanStack's reactive `MutationObserverResult` without its
+upstream `mutate` and `reset` methods; the binding adds its own resumable
+`reset()` function. It includes `status`, `data`, `error`, `variables`,
+`isIdle`, `isPending`, `isError`, `isSuccess`, retry state, and mutation
+context.
+
+The tag renders an idle result immediately and never executes a mutation during
+SSR. It resolves the client and mutation-options getters only when `mutate` is
+called, then delegates execution, callbacks, retries, and latest-call state to
+a `MutationObserver`. It replaces that observer when a later call resolves a
+new client, and releases it while balancing the client's mount when the tag
+leaves the document. Neither the initialized nor explicitly supplied client is
+cleared or destroyed. Omit the
+second tuple entry when result UI is unnecessary:
+
+```marko
+<const-mutation/[addDog] mutation=() => addDogMutation(input.apiUrl)/>
+```
+
 ## Upstream exports
 
 The package re-exports the complete `@tanstack/query-core` entrypoint:

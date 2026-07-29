@@ -1,14 +1,16 @@
 # TanStack Query with Marko Run
 
-This example uses `@marko-bindings/tanstack-query` in one Marko Run application. The page
-at `/` server-renders a query whose fetch function calls the application's own
-JSON endpoint at `/api/books`.
+This example uses `@marko-bindings/tanstack-query` in one Marko Run application.
+The page at `/` server-renders a query whose fetch function calls the
+application's own JSON endpoint at `/api/books`. The `/mutation` route combines
+that query with an event-driven mutation.
 
 ```sh
 pnpm --filter @marko-bindings/example-tanstack-query dev
 ```
 
-Open <http://localhost:3000> for the query page or
+Open <http://localhost:3000> for the query page,
+<http://localhost:3000/mutation> for the mutation page, or
 <http://localhost:3000/api/books> for the JSON response.
 
 The application demonstrates the binding's resumable dependency pattern:
@@ -16,15 +18,19 @@ The application demonstrates the binding's resumable dependency pattern:
 - `query-client.marko` creates a request-scoped server `QueryClient` and a
   memoized browser client.
 - `books-query.ts` defines the query key, fetch function, and observer options in
-  a regular TypeScript module.
-- The page installs the client getter once with `<init-query-client>`, turns the
+  a regular TypeScript module; `book-mutation.ts` does the same for mutation
+  options and invalidates the book query after a successful write.
+- Each page installs the client getter once with `<init-query-client>`, turns the
   current request URL into a serializable absolute API URL, and passes only the
   query options getter to `<await-query>`.
 - `<await-query>` awaits the API call during server rendering, dehydrates only the
   matching TanStack cache entry, and reconstructs its observer after resumption.
-- The refresh button invalidates the same memoized browser client. The settled list
-  remains visible during the background request and updates when the local API
-  responds.
+- The refresh button invalidates the same memoized browser client. The settled
+  list remains visible during the background request and updates when the local
+  API responds.
+- The mutation page uses `<const-mutation>` to POST a new book, publish reactive
+  mutation state, invalidate the list, and show the refetched query result.
 
-The endpoint increments `requestNumber` on every call so a refresh makes the
-reactive cache update visible without relying on an external service.
+The endpoint increments `requestNumber` on every query and keeps added books in
+memory, making query and mutation updates visible without relying on an
+external service.

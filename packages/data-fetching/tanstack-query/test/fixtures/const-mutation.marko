@@ -1,0 +1,49 @@
+import type {
+  MutateOptions,
+  MutationObserverOptions,
+  QueryClient,
+} from "@marko-bindings/tanstack-query";
+
+export interface GreetingVariables {
+  greeting: string;
+}
+
+export interface Input {
+  client?: () => QueryClient | undefined;
+  mutation: () => MutationObserverOptions<
+    string,
+    Error,
+    GreetingVariables,
+    unknown
+  >;
+  mutateOptions?: MutateOptions<string, Error, GreetingVariables, unknown>;
+  show?: boolean;
+}
+
+<if=input.show !== false>
+  <const-mutation/[mutate, result] client=input.client mutation=input.mutation/>
+  <button
+    type="button"
+    onClick() {
+      void mutate({ greeting: "Hello, Marko" }, input.mutateOptions).catch(
+        () => {},
+      );
+    }
+  >
+    Mutate
+  </button>
+  <button
+    type="button"
+    onClick() {
+      result.reset();
+    }
+  >
+    Reset
+  </button>
+  <output>
+    <if=result.isPending>Loading...</if>
+    <else-if=result.isError>${String(result.error)}</else-if>
+    <else-if=result.isSuccess>${result.data}</else-if>
+    <else>Idle</else>
+  </output>
+</if>

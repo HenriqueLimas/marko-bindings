@@ -10,5 +10,5 @@ and dispose observers when their owning tags leave the document.
 
 - [`@marko-bindings/apollo-client`](apollo-client) — initialized or explicit Apollo
   Client getters with reactive query, fragment, mutation, and subscription tags.
-- [`@marko-bindings/tanstack-query`](tanstack-query) — resumable TanStack Query
-  options with SSR hydration and reactive settled results.
+- [`@marko-bindings/tanstack-query`](tanstack-query) — resumable TanStack query
+  options with SSR hydration plus event-driven mutations and reactive results.

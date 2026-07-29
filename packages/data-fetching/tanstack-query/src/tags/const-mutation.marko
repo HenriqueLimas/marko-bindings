@@ -1,0 +1,205 @@
+import {
+  type DefaultError,
+  type DistributiveOmit,
+  type MutateFunction,
+  type MutateOptions,
+  MutationObserver,
+  type MutationObserverOptions,
+  type MutationObserverResult,
+  type QueryClient,
+} from "@tanstack/query-core";
+import { getClientContext } from "../context.js";
+
+export type Mutation<
+  TData = unknown,
+  TError = DefaultError,
+  TVariables = void,
+  TOnMutateResult = unknown,
+> = () => MutationObserverOptions<TData, TError, TVariables, TOnMutateResult>;
+
+export type Mutate<
+  TData = unknown,
+  TError = DefaultError,
+  TVariables = void,
+  TOnMutateResult = unknown,
+> = MutateFunction<TData, TError, TVariables, TOnMutateResult>;
+
+export type Result<
+  TData = unknown,
+  TError = DefaultError,
+  TVariables = void,
+  TOnMutateResult = unknown,
+> = DistributiveOmit<
+  MutationObserverResult<TData, TError, TVariables, TOnMutateResult>,
+  "mutate" | "reset"
+> & { reset: () => void };
+
+export interface Input<
+  TData = unknown,
+  TError = DefaultError,
+  TVariables = void,
+  TOnMutateResult = unknown,
+> {
+  client?: () => QueryClient | undefined;
+  mutation: Mutation<TData, TError, TVariables, TOnMutateResult>;
+}
+
+static {
+  type ResultState<TData, TError, TVariables, TOnMutateResult> =
+    DistributiveOmit<
+      MutationObserverResult<TData, TError, TVariables, TOnMutateResult>,
+      "mutate" | "reset"
+    >;
+
+  const idleResult = <TData, TError, TVariables, TOnMutateResult>() =>
+    ({
+      context: undefined,
+      data: undefined,
+      error: null,
+      failureCount: 0,
+      failureReason: null,
+      isError: false,
+      isIdle: true,
+      isPaused: false,
+      isPending: false,
+      isSuccess: false,
+      status: "idle",
+      submittedAt: 0,
+      variables: undefined,
+    }) as ResultState<TData, TError, TVariables, TOnMutateResult>;
+
+  const errorResult = <TData, TError, TVariables, TOnMutateResult>(
+    error: Error,
+  ) =>
+    ({
+      ...idleResult<TData, TError, TVariables, TOnMutateResult>(),
+      error,
+      isError: true,
+      isIdle: false,
+      status: "error",
+    }) as ResultState<TData, TError, TVariables, TOnMutateResult>;
+
+  const publicResult = <TData, TError, TVariables, TOnMutateResult>(
+    observerResult: MutationObserverResult<
+      TData,
+      TError,
+      TVariables,
+      TOnMutateResult
+    >,
+  ) => {
+    const { mutate: _mutate, reset: _reset, ...result } = observerResult;
+    return result as ResultState<TData, TError, TVariables, TOnMutateResult>;
+  };
+
+  function inputError(name: "client" | "mutation") {
+    const error = new Error(`<const-mutation> requires a ${name} input.`);
+    console.error(error.message);
+    return error;
+  }
+
+  function releaseActive(
+    active:
+      | {
+          client: QueryClient;
+          released: boolean;
+          unsubscribe: () => void;
+        }
+      | undefined,
+  ) {
+    if (active && !active.released) {
+      active.released = true;
+      active.unsubscribe();
+      active.client.unmount();
+    }
+  }
+}
+
+<let/active=(
+  undefined as
+    | {
+        client: QueryClient;
+        observer: MutationObserver<TData, TError, TVariables, TOnMutateResult>;
+        released: boolean;
+        unsubscribe: () => void;
+      }
+    | undefined
+)>
+<let/result=idleResult() as ResultState<
+  TData,
+  TError,
+  TVariables,
+  TOnMutateResult
+>>
+<const/releaseObserver=() => {
+  const previous = active;
+  active = undefined;
+  releaseActive(previous);
+}>
+<const/reset=() => {
+  if (active) {
+    active.observer.reset();
+  } else {
+    result = idleResult() as ResultState<
+      TData,
+      TError,
+      TVariables,
+      TOnMutateResult
+    >;
+  }
+}>
+<const/mutate=async (
+  variables: TVariables,
+  options?: MutateOptions<TData, TError, TVariables, TOnMutateResult>,
+): Promise<TData> => {
+  const getClient = input.client;
+  const client =
+    typeof getClient === "function"
+      ? getClient()
+      : (getClientContext($global) as QueryClient | undefined);
+  if (!client) {
+    releaseObserver();
+    const error = inputError("client");
+    result = errorResult(error) as ResultState<
+      TData,
+      TError,
+      TVariables,
+      TOnMutateResult
+    >;
+    throw error;
+  }
+
+  const getMutation = input.mutation;
+  if (typeof getMutation !== "function") {
+    releaseObserver();
+    const error = inputError("mutation");
+    result = errorResult(error) as ResultState<
+      TData,
+      TError,
+      TVariables,
+      TOnMutateResult
+    >;
+    throw error;
+  }
+
+  let observer = active?.observer;
+  const mutationOptions = getMutation();
+  if (!observer || active?.client !== client) {
+    releaseObserver();
+    observer = new MutationObserver(client, mutationOptions);
+    client.mount();
+    const unsubscribe = observer.subscribe((next) => {
+      result = publicResult(next);
+    });
+    active = { client, observer, released: false, unsubscribe };
+  } else {
+    observer.setOptions(mutationOptions);
+  }
+
+  return observer.mutate(variables, options);
+}>
+<script>
+  const resource = active;
+  $signal.onabort = () => releaseActive(resource);
+</script>
+
+<return=[mutate, { ...result, reset }] as const>

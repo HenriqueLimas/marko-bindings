@@ -103,8 +103,10 @@ future bindings should follow.
 
 - **Ended with:** `<const-mutation>` renders immediately and returns a
   destructurable `[mutate, result]` tuple. It never starts a mutation during SSR.
-  `mutate` resolves the client and mutation document only when called, and the
-  reactive result intentionally omits the non-serializable client instance.
+  `mutate` resolves non-serializable clients, documents, and option functions
+  only when called. Apollo publishes plain state directly; TanStack lazily owns
+  a `MutationObserver`, but strips its methods from reactive state and releases
+  the observer when the tag leaves the document.
 - **Rule:** Do not suspend rendering for work that begins from a browser event.
   Keep the trigger inside the tag's resumable scope, publish plain result state,
   and ignore late results after reset, replacement, or cleanup.

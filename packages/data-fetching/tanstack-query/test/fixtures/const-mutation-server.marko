@@ -1,0 +1,9 @@
+<const-mutation/[_mutate, result]
+  client=() => {
+    throw new Error("The client getter must not run during SSR.");
+  }
+  mutation=() => {
+    throw new Error("The mutation getter must not run during SSR.");
+  }
+/>
+<output>${result.status}</output>
