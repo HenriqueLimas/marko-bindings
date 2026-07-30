@@ -1,0 +1,26 @@
+import type {
+  MutationObserverOptions,
+  QueryClient,
+} from "@marko-bindings/tanstack-query";
+
+import type { GreetingVariables } from "./const-mutation.marko";
+
+export interface Input {
+  client: () => QueryClient | undefined;
+  mutation: () => MutationObserverOptions<
+    string,
+    Error,
+    GreetingVariables,
+    unknown
+  >;
+}
+
+<const-mutation/[mutate] client=input.client mutation=input.mutation/>
+<button
+  type="button"
+  onClick() {
+    void mutate({ greeting: "Hello without result" });
+  }
+>
+  Mutate without result
+</button>

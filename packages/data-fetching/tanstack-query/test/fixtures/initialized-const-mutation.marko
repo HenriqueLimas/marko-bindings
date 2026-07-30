@@ -1,0 +1,28 @@
+import type {
+  MutationObserverOptions,
+  QueryClient,
+} from "@marko-bindings/tanstack-query";
+
+import type { GreetingVariables } from "./const-mutation.marko";
+
+export interface Input {
+  client: () => QueryClient | undefined;
+  mutation: () => MutationObserverOptions<
+    string,
+    Error,
+    GreetingVariables,
+    unknown
+  >;
+}
+
+<init-query-client=input.client/>
+<const-mutation/[mutate, result] mutation=input.mutation/>
+<button
+  type="button"
+  onClick() {
+    void mutate({ greeting: "Initialized greeting" });
+  }
+>
+  Mutate initialized
+</button>
+<output>${result.data ?? "Idle"}</output>

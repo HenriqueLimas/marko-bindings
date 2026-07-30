@@ -1,38 +1,67 @@
-import { BOOKS_QUERY_KEY, booksQuery } from "../books-query.js";
-import { createClient } from "../query-client.marko";
+import { addBookMutation } from "../../book-mutation.js";
+import { booksQuery } from "../../books-query.js";
+import { createClient } from "../../query-client.marko";
 
 <init-query-client=() => createClient()/>
 <const/apiUrl=new URL("/api/books", $global.url).href>
 
 <main>
   <header>
-    <div class="eyebrow">Marko Run × TanStack Query</div>
-    <h1>Server data,<br><em>resumed cache.</em></h1>
+    <div class="eyebrow">Marko × TanStack mutations</div>
+    <h1>Mutate, invalidate,<br><em>stay reactive.</em></h1>
     <p class="intro">
-      One Marko Run application renders this query on the server and serves its
-      JSON from <a href="/api/books"><code>/api/books</code></a>. TanStack's cache
-      resumes in the browser without serializing the query client or fetch function.
-      Continue to the <a href="/mutation">mutation example</a> to add and refetch
-      a book.
+      The initial list is queried during server rendering. After resumption,
+      <code>&lt;const-mutation&gt;</code> adds a book and invalidates the same
+      TanStack cache entry.
     </p>
+    <a class="back" href="/">← Return to the query example</a>
   </header>
 
-  <section class="query-card" aria-live="polite">
-    <div class="card-heading">
-      <div>
-        <span class="label">Local API response</span>
-        <h2>Speculative fiction</h2>
-      </div>
-    </div>
-
+  <section class="mutation-card" aria-live="polite">
     <try>
-      <await-query|result| query=() => booksQuery(apiUrl)>
-        <if=result.error>
-          <p class="error" role="alert">${result.error.message}</p>
+      <await-query|booksResult| query=() => booksQuery(apiUrl)>
+        <if=booksResult.error>
+          <p class="error" role="alert">${booksResult.error.message}</p>
         </if>
         <else>
+          <const-mutation/[addBook, mutationResult] mutation=() =>
+            addBookMutation(apiUrl)/>
+
+          <div class="card-heading">
+            <div>
+              <span class="label">Mutation result</span>
+              <h2>Add Kindred</h2>
+            </div>
+            <button
+              type="button"
+              disabled=mutationResult.isPending
+              onClick() {
+                void addBook({
+                  title: "Kindred",
+                  author: "Octavia E. Butler",
+                }).catch(() => {});
+              }
+            >
+              ${mutationResult.isPending ? "Adding…" : "Add book"}
+            </button>
+          </div>
+
+          <p class=["status", mutationResult.isError && "error"]>
+            <if=mutationResult.isPending>
+              Adding the book and refetching the list…
+            </if>
+            <else-if=mutationResult.isError>
+              ${mutationResult.error.message}
+            </else-if>
+            <else-if=mutationResult.isSuccess>
+              Added ${mutationResult.data.book.title}; the list below came from the
+              invalidated query.
+            </else-if>
+            <else>The mutation has not run yet.</else>
+          </p>
+
           <ul>
-            <for|book| of=result.data?.books ?? []>
+            <for|book| of=booksResult.data?.books ?? []>
               <li>
                 <span class="book-mark" aria-hidden="true"/>
                 <div>
@@ -41,38 +70,11 @@ import { createClient } from "../query-client.marko";
               </li>
             </for>
           </ul>
-
-          <footer>
-            <p>
-              API request <strong>#${result.data?.requestNumber}</strong>
-              <span aria-hidden="true">·</span>
-              <time datetime=result.data?.servedAt>
-                ${
-                  result.data?.servedAt
-                    ? new Date(result.data.servedAt).toLocaleTimeString()
-                    : "Not fetched"
-                }
-              </time>
-            </p>
-            <button
-              type="button"
-              onClick() {
-                void createClient().invalidateQueries({
-                  queryKey: BOOKS_QUERY_KEY,
-                });
-              }
-            >
-              Refresh from API
-            </button>
-          </footer>
         </else>
       </await-query>
 
       <@placeholder>
-        <div class="loading" role="status">
-          <span/><span/><span/>
-          <p>Querying the local API…</p>
-        </div>
+        <div class="loading" role="status">Loading books…</div>
       </@placeholder>
       <@catch|error|>
         <p class="error" role="alert">
@@ -124,18 +126,18 @@ import { createClient } from "../query-client.marko";
   }
 
   .intro {
-    margin: 0;
+    margin: 0 0 1.5rem;
     color: #63726d;
     font-size: 1.04rem;
     line-height: 1.75;
   }
 
-  a {
+  .back {
     color: #a84822;
-    font-weight: 700;
+    font-weight: 750;
   }
 
-  .query-card {
+  .mutation-card {
     min-height: 32rem;
     padding: clamp(1.5rem, 4vw, 2.5rem);
     border: 1px solid #d5e0d8;
@@ -146,9 +148,9 @@ import { createClient } from "../query-client.marko";
 
   .card-heading {
     display: flex;
-    justify-content: space-between;
     gap: 1rem;
-    align-items: start;
+    align-items: center;
+    justify-content: space-between;
     padding-bottom: 1.5rem;
     border-bottom: 1px solid #e4e9e5;
   }
@@ -161,10 +163,44 @@ import { createClient } from "../query-client.marko";
     font-weight: 500;
   }
 
+  button {
+    flex: none;
+    padding: 0.75rem 1rem;
+    border: 0;
+    border-radius: 0.7rem;
+    color: white;
+    background: #d86d39;
+    cursor: pointer;
+    font-weight: 750;
+  }
+
+  button:hover:not(:disabled) {
+    background: #bc5527;
+  }
+
+  button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+  }
+
+  .status {
+    min-height: 3.5rem;
+    margin: 1.25rem 0;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    color: #52665f;
+    background: #f0f6f1;
+  }
+
+  .error {
+    color: #942d24;
+    background: #fde9e5;
+  }
+
   ul {
     display: grid;
     gap: 0.8rem;
-    margin: 1.5rem 0;
+    margin: 0;
     padding: 0;
     list-style: none;
   }
@@ -200,65 +236,11 @@ import { createClient } from "../query-client.marko";
     font-size: 0.9rem;
   }
 
-  footer {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 1.5rem;
-    border-top: 1px solid #e4e9e5;
-  }
-
-  footer p {
-    margin: 0;
-    color: #75817b;
-    font-size: 0.83rem;
-  }
-
-  footer p strong {
-    color: #39584f;
-  }
-
-  button {
-    flex: none;
-    padding: 0.75rem 1rem;
-    border: 0;
-    border-radius: 0.7rem;
-    color: white;
-    background: #d86d39;
-    cursor: pointer;
-    font-weight: 750;
-  }
-
-  button:hover {
-    background: #bc5527;
-  }
-
   .loading {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: grid;
     min-height: 21rem;
+    place-items: center;
     color: #718078;
-  }
-
-  .loading span {
-    width: 0.55rem;
-    height: 0.55rem;
-    margin-right: 0.35rem;
-    border-radius: 50%;
-    background: #d86d39;
-  }
-
-  .loading p {
-    margin-left: 0.6rem;
-  }
-
-  .error {
-    padding: 1rem;
-    border-radius: 0.75rem;
-    color: #942d24;
-    background: #fde9e5;
   }
 
   @media (max-width: 60rem) {
@@ -280,12 +262,12 @@ import { createClient } from "../query-client.marko";
       padding: 1.5rem 0;
     }
 
-    .query-card {
+    .mutation-card {
       min-height: 30rem;
       border-radius: 1rem;
     }
 
-    footer {
+    .card-heading {
       align-items: stretch;
       flex-direction: column;
     }

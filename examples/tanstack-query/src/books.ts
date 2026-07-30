@@ -10,6 +10,15 @@ export interface BooksResponse {
   servedAt: string;
 }
 
+export interface AddBookInput {
+  title: string;
+  author: string;
+}
+
+export interface AddBookResponse {
+  book: Book;
+}
+
 const books: Book[] = [
   {
     id: "the-left-hand-of-darkness",
@@ -29,6 +38,18 @@ const books: Book[] = [
 ];
 
 let requestNumber = 0;
+let nextBookId = books.length + 1;
+
+export function addBook(input: AddBookInput): AddBookResponse {
+  const book = {
+    id: `book-${nextBookId++}`,
+    title: input.title,
+    author: input.author,
+  };
+  books.push(book);
+
+  return { book: { ...book } };
+}
 
 export function listBooks(): BooksResponse {
   requestNumber += 1;
