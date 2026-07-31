@@ -1,0 +1,6 @@
+import { createQueryClient } from "./query-client.marko";
+import { pendingGreetingQuery } from "./server-query.js";
+
+<init-query-client=() => createQueryClient()/>
+<const-query/result query=() => pendingGreetingQuery()/>
+<output>${result.status}:${result.fetchStatus}</output>

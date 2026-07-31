@@ -1,0 +1,312 @@
+import { BOOKS_QUERY_KEY, booksQuery } from "../../books-query.js";
+import { createClient } from "../../query-client.marko";
+import { getClientContext } from "@marko-bindings/tanstack-query";
+
+<init-query-client=() => getClientContext($global) ?? createClient()/>
+<const/apiUrl=new URL("/api/books?delay=500", $global.url).href>
+
+<main>
+  <header>
+    <div class="eyebrow">Marko Run × query events</div>
+    <h1>Stream once,<br><em>react throughout.</em></h1>
+    <p class="intro">
+      The route handler starts an unawaited TanStack prefetch. Marko serializes
+      its pending Promise, and <code>&lt;const-query&gt;</code> publishes each
+      observer state without owning an async content boundary.
+    </p>
+    <a class="back" href="/">← Return to the await-query example</a>
+  </header>
+
+  <section class="query-card" aria-live="polite">
+    <const-query/result query=() => booksQuery(apiUrl)/>
+    <div class="card-heading">
+      <div>
+        <span class="label">Live QueryObserver state</span>
+        <h2>Speculative fiction</h2>
+      </div>
+      <div class="states">
+        <span>${result.status}</span>
+        <span class=result.isFetching && "fetching">${result.fetchStatus}</span>
+      </div>
+    </div>
+
+    <if=result.isPending>
+      <div class="loading" role="status">
+        <span/><span/><span/>
+        <p>The server request is streaming…</p>
+      </div>
+    </if>
+    <else-if=result.isError>
+      <p class="error" role="alert">${result.error.message}</p>
+    </else-if>
+    <else>
+      <if=result.isFetching>
+        <p class="refreshing" role="status">
+          Refreshing while the settled list remains visible…
+        </p>
+      </if>
+
+      <ul>
+        <for|book| of=result.data?.books ?? []>
+          <li>
+            <span class="book-mark" aria-hidden="true"/>
+            <div><strong>${book.title}</strong><span>${book.author}</span></div>
+          </li>
+        </for>
+      </ul>
+
+      <footer>
+        <p>
+          API request <strong>#${result.data?.requestNumber}</strong>
+          <span aria-hidden="true">·</span>${result.isFetching ? "fetching" : "settled"}
+        </p>
+        <button
+          type="button"
+          onClick() {
+            void createClient().invalidateQueries({
+              queryKey: BOOKS_QUERY_KEY,
+            });
+          }
+        >
+          Refresh from API
+        </button>
+      </footer>
+    </else>
+  </section>
+</main>
+
+<style>
+  main {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(32rem, 1.15fr);
+    gap: clamp(2.5rem, 8vw, 8rem);
+    align-items: center;
+    width: min(74rem, calc(100% - 2rem));
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 4rem 0;
+  }
+
+  header {
+    max-width: 31rem;
+  }
+
+  .eyebrow,
+  .label {
+    color: #d86d39;
+    font-size: 0.72rem;
+    font-weight: 850;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin: 1rem 0 1.6rem;
+    color: #153f34;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(3.4rem, 7vw, 6.25rem);
+    font-weight: 500;
+    letter-spacing: -0.06em;
+    line-height: 0.88;
+  }
+
+  h1 em {
+    color: #d86d39;
+    font-weight: 500;
+  }
+
+  .intro {
+    margin: 0 0 1.25rem;
+    color: #63726d;
+    font-size: 1.04rem;
+    line-height: 1.75;
+  }
+
+  .back {
+    color: #a84822;
+    font-weight: 750;
+  }
+
+  code {
+    white-space: nowrap;
+  }
+
+  .query-card {
+    min-height: 32rem;
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    border: 1px solid #d5e0d8;
+    border-radius: 1.5rem;
+    background: #fffefa;
+    box-shadow: 0 2rem 5rem rgb(21 63 52 / 10%);
+  }
+
+  .card-heading,
+  footer {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-heading {
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e4e9e5;
+  }
+
+  h2 {
+    margin: 0.35rem 0 0;
+    color: #173f35;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.8rem;
+    font-weight: 500;
+  }
+
+  .states {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .states span {
+    padding: 0.35rem 0.55rem;
+    border-radius: 999px;
+    color: #39584f;
+    background: #e6efe9;
+    font-family: ui-monospace, monospace;
+    font-size: 0.72rem;
+  }
+
+  .states .fetching {
+    color: #8e3d1d;
+    background: #f9e5d9;
+  }
+
+  .loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 21rem;
+    color: #718078;
+  }
+
+  .loading span {
+    width: 0.55rem;
+    height: 0.55rem;
+    margin-right: 0.35rem;
+    border-radius: 50%;
+    background: #d86d39;
+  }
+
+  .loading p {
+    margin-left: 0.6rem;
+  }
+
+  .refreshing {
+    margin: 1rem 0 0;
+    color: #a84822;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  ul {
+    display: grid;
+    gap: 0.8rem;
+    margin: 1.5rem 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 0.9rem;
+    background: #f0f6f1;
+  }
+
+  .book-mark {
+    width: 0.35rem;
+    height: 2.7rem;
+    border-radius: 1rem;
+    background: #d86d39;
+  }
+
+  li strong,
+  li div span {
+    display: block;
+  }
+
+  li strong {
+    color: #24463d;
+  }
+
+  li div span {
+    margin-top: 0.25rem;
+    color: #728078;
+    font-size: 0.9rem;
+  }
+
+  footer {
+    padding-top: 1.5rem;
+    border-top: 1px solid #e4e9e5;
+  }
+
+  footer p {
+    margin: 0;
+    color: #75817b;
+    font-size: 0.83rem;
+  }
+
+  footer p strong {
+    color: #39584f;
+  }
+
+  button {
+    flex: none;
+    padding: 0.75rem 1rem;
+    border: 0;
+    border-radius: 0.7rem;
+    color: white;
+    background: #d86d39;
+    cursor: pointer;
+    font-weight: 750;
+  }
+
+  button:hover {
+    background: #bc5527;
+  }
+
+  .error {
+    padding: 1rem;
+    border-radius: 0.75rem;
+    color: #942d24;
+    background: #fde9e5;
+  }
+
+  @media (max-width: 60rem) {
+    main {
+      grid-template-columns: 1fr;
+      gap: 2.75rem;
+      max-width: 42rem;
+      padding: 3rem 0;
+    }
+  }
+
+  @media (max-width: 38rem) {
+    main {
+      width: min(100% - 1rem, 42rem);
+      padding: 1.5rem 0;
+    }
+
+    .query-card {
+      min-height: 30rem;
+      border-radius: 1rem;
+    }
+
+    .card-heading,
+    footer {
+      align-items: stretch;
+      flex-direction: column;
+    }
+  }
+</style>

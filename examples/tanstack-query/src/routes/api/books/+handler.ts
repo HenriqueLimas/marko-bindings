@@ -1,10 +1,18 @@
 import { addBook, type AddBookInput, listBooks } from "../../../books.js";
 
-export const GET: MarkoRun.GET = Run.GET(() =>
-  Response.json(listBooks(), {
+export const GET = Run.GET(async ({ url }) => {
+  const requestedDelay = Number(url.searchParams.get("delay"));
+  const delay = Number.isFinite(requestedDelay)
+    ? Math.min(Math.max(requestedDelay, 0), 2_000)
+    : 0;
+  if (delay) {
+    await new Promise((resolve) => setTimeout(resolve, delay));
+  }
+
+  return Response.json(listBooks(), {
     headers: { "cache-control": "no-store" },
-  }),
-);
+  });
+});
 
 export const POST: MarkoRun.Handler = async ({ request }) => {
   let body: unknown;

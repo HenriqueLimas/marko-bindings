@@ -7,6 +7,11 @@ import type { BooksResponse } from "./books.js";
 
 export const BOOKS_QUERY_KEY = ["books"] as const;
 
+type Fetch = (
+  resource: string | URL | Request,
+  init?: RequestInit,
+) => Promise<Response>;
+
 type BooksQueryOptions = QueryObserverOptions<
   BooksResponse,
   Error,
@@ -15,13 +20,16 @@ type BooksQueryOptions = QueryObserverOptions<
   typeof BOOKS_QUERY_KEY
 >;
 
-export function booksQuery(apiUrl: string): BooksQueryOptions {
+export function booksQuery(
+  apiUrl: string,
+  fetcher: Fetch = globalThis.fetch,
+): BooksQueryOptions {
   return {
     queryKey: BOOKS_QUERY_KEY,
     queryFn: async ({
       signal,
     }: QueryFunctionContext<typeof BOOKS_QUERY_KEY>) => {
-      const response = await fetch(apiUrl, {
+      const response = await fetcher(apiUrl, {
         headers: { accept: "application/json" },
         signal,
       });

@@ -103,9 +103,10 @@ including `queryKey`, `queryFn`, `select`, stale-time, retry, and refetch
 configuration. Keep query definitions in regular TypeScript modules and invoke
 them from an inline getter so Marko never needs to serialize their functions.
 
-`Result` is TanStack's `QueryObserverResult` without `promise` and `refetch`,
-which cannot cross Marko's server-resume boundary. Use the explicit client for
-imperative operations such as `invalidateQueries` and `refetchQueries`.
+`Result` is TanStack's `QueryObserverResult` without its observer-owned
+`promise` and `refetch` members. The tag transfers cache data through TanStack's
+native dehydration format instead; use the explicit client for imperative
+operations such as `invalidateQueries` and `refetchQueries`.
 Initial loading belongs to the surrounding `<try>`/`<@placeholder>` boundary.
 Background fetches keep the last settled body visible and publish the next
 result when fetching settles. Query errors are published as results by default;
@@ -124,6 +125,72 @@ The tag:
 
 Client and query ownership stay with the application. The tag never clears or
 destroys the initialized or explicitly supplied `QueryClient`.
+
+### `<const-query>`
+
+```marko
+<const-query/result query=() => dogQuery(input.name)/>
+
+<if=result.isPending>Loading…</if>
+<else-if=result.isError>${result.error.message}</else-if>
+<else><img src=result.data?.image alt=result.data?.name></else>
+```
+
+| Input    | Type                             | Description                                   |
+| -------- | -------------------------------- | --------------------------------------------- |
+| `client` | `() => QueryClient \| undefined` | Optional override for the initialized client. |
+| `query`  | `() => QueryObserverOptions`     | Required inline query-options getter.         |
+
+The tag returns a reactive, read-only query result and renders immediately. It
+publishes every `QueryObserver` state, including initial pending, fetching,
+success, error, and background-refetch events. Like `<await-query>`, it removes
+the observer-owned `promise` and `refetch` members from the public result.
+
+When a server client is available, the tag starts or joins the enabled query
+without awaiting it. Its exact cache entry is dehydrated when successful or
+pending. Marko serializes a pending TanStack query Promise, and browser
+hydration installs it as the query's `initialPromise` before subscribing the
+observer. The browser therefore joins server-started initial work instead of
+repeating it. Without a server client, SSR returns a synchronous pending view
+and the browser subscription starts the query after resumption.
+
+Because the tag variable is consumed by its parent, settled server data does
+not replace already-rendered pending HTML. Use `<await-query>` when the server
+must render settled content inside an async boundary. Use `<const-query>` when
+loading and fetching states belong in ordinary conditional markup.
+
+The browser observer is unsubscribed and the client's mount is balanced when
+inputs change or the tag leaves the document. The binding does not clear or
+destroy the application-owned client.
+
+### Marko Run prefetching
+
+The package exports `getClientContext()` and `setClientContext()` so a Marko Run
+handler can install the same request-scoped client read by query tags:
+
+```ts
+import { QueryClient, setClientContext } from "@marko-bindings/tanstack-query";
+
+export const GET = Run.GET((context, next) => {
+  const client = new QueryClient();
+  setClientContext(context, client);
+  void client.prefetchQuery(dogQuery("Buck"));
+  return next();
+});
+```
+
+The unawaited prefetch creates a pending cache entry synchronously.
+`<const-query>` transfers its Promise as described above. Await the prefetch
+before `next()` instead when all data must settle before page rendering. An
+initializer used by the page should preserve the handler client on the server
+and reconstruct the browser client:
+
+```marko
+<init-query-client=() => getClientContext($global) ?? createClient()/>
+```
+
+Store the non-serializable client directly on the symbol-keyed context, not in
+`context.data`.
 
 ### `<const-mutation>`
 
@@ -197,6 +264,8 @@ import {
   QueryClient,
   QueryObserver,
   dehydrate,
+  getClientContext,
   hydrate,
+  setClientContext,
 } from "@marko-bindings/tanstack-query";
 ```

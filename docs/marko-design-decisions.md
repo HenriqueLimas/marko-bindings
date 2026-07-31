@@ -69,9 +69,10 @@ future bindings should follow.
   and parsed-query inputs remain intentionally unsupported.
 - **Rule:** Export target-agnostic GraphQL documents from regular TypeScript
   modules and reference them through inline getters. Reserve Marko modules for
-  target-specific dependencies such as client factories. Server work must be
-  explicitly awaited and only plain results may cross the resume boundary;
-  `ssrMode` does not start queries.
+  target-specific dependencies such as client factories. Never serialize
+  clients, observers, or query documents; transfer plain settled results or a
+  library-native dehydrated Promise representation. `ssrMode` does not start
+  queries.
 
 ## Complete SSR before browser-only async work
 
@@ -183,6 +184,20 @@ future bindings should follow.
 - **Rule:** When a library distinguishes cached data from its projected view,
   transfer its native dehydrated cache state instead of seeding the cache from
   rendered result data.
+
+## Stream pending queries through native dehydration
+
+- **Compared:** Awaiting every server prefetch before rendering, starting only
+  after browser resumption, and React Query's pending-query dehydration.
+- **Ended with:** TanStack `<const-query>` starts or joins an enabled server
+  query, dehydrates its exact cache entry when successful or pending, and lets
+  Marko serialize the pending query Promise. Browser hydration installs that
+  Promise before `QueryObserver` subscription, avoiding a duplicate request
+  while exposing every observer event through a read-only tag variable.
+- **Rule:** When both Marko and a library support Promise serialization, transfer
+  the library's native pending state rather than inventing a second protocol.
+  This resumes data and events, not parent markup; use an async body-owning tag
+  when settled HTML must be server-rendered.
 
 ## Adding a decision
 

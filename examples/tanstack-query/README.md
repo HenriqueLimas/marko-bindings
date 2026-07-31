@@ -2,14 +2,16 @@
 
 This example uses `@marko-bindings/tanstack-query` in one Marko Run application.
 The page at `/` server-renders a query whose fetch function calls the
-application's own JSON endpoint at `/api/books`. The `/mutation` route combines
-that query with an event-driven mutation.
+application's own JSON endpoint at `/api/books`. The `/const-query` route starts
+an unawaited prefetch in a handler and exposes every query event, while the
+`/mutation` route combines the settled query with an event-driven mutation.
 
 ```sh
 pnpm --filter @marko-bindings/example-tanstack-query dev
 ```
 
-Open <http://localhost:3000> for the query page,
+Open <http://localhost:3000> for the awaited query page,
+<http://localhost:3000/const-query> for the streaming query-event page,
 <http://localhost:3000/mutation> for the mutation page, or
 <http://localhost:3000/api/books> for the JSON response.
 
@@ -25,9 +27,13 @@ The application demonstrates the binding's resumable dependency pattern:
   query options getter to `<await-query>`.
 - `<await-query>` awaits the API call during server rendering, dehydrates only the
   matching TanStack cache entry, and reconstructs its observer after resumption.
-- The refresh button invalidates the same memoized browser client. The settled
-  list remains visible during the background request and updates when the local
-  API responds.
+- The `/const-query` handler stores a request-scoped client with
+  `setClientContext()`, starts `prefetchQuery()` without awaiting it, and renders
+  through `next()`. `<const-query>` streams the pending Promise and publishes
+  pending, fetching, settled, and background-refetch observer states.
+- Refresh buttons invalidate the same memoized browser client. The settled list
+  remains visible during background requests and updates when the local API
+  responds.
 - The mutation page uses `<const-mutation>` to POST a new book, publish reactive
   mutation state, invalidate the list, and show the refetched query result.
 

@@ -1,0 +1,228 @@
+import {
+  type DefaultError,
+  type DehydratedState,
+  type DistributiveOmit,
+  type FetchQueryOptions,
+  QueryClient,
+  type QueryKey,
+  QueryObserver,
+  type QueryObserverOptions,
+  type QueryObserverResult,
+  defaultShouldDehydrateQuery,
+  dehydrate,
+  hydrate,
+} from "@tanstack/query-core";
+import { getClientContext } from "../context.js";
+
+export type Result<TData = unknown, TError = DefaultError> = DistributiveOmit<
+  QueryObserverResult<TData, TError>,
+  "promise" | "refetch"
+>;
+
+export type Query<
+  TQueryFnData = unknown,
+  TError = DefaultError,
+  TData = TQueryFnData,
+  TQueryData = TQueryFnData,
+  TQueryKey extends QueryKey = QueryKey,
+> = () => QueryObserverOptions<
+  TQueryFnData,
+  TError,
+  TData,
+  TQueryData,
+  TQueryKey
+>;
+
+export interface Input<
+  TQueryFnData = unknown,
+  TError = DefaultError,
+  TData = TQueryFnData,
+  TQueryData = TQueryFnData,
+  TQueryKey extends QueryKey = QueryKey,
+> {
+  client?: () => QueryClient | undefined;
+  query: Query<TQueryFnData, TError, TData, TQueryData, TQueryKey>;
+}
+
+static {
+  type InitialState<TData, TError> = {
+    result: Result<TData, TError>;
+    dehydrated: DehydratedState;
+  };
+
+  const emptyDehydratedState = (): DehydratedState => ({
+    mutations: [],
+    queries: [],
+  });
+
+  const publicResult = <TData, TError>(
+    observerResult: QueryObserverResult<TData, TError>,
+  ) => {
+    const { promise: _promise, refetch: _refetch, ...result } = observerResult;
+    return result as Result<TData, TError>;
+  };
+
+  function getQueryOptions<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryData,
+    TQueryKey extends QueryKey,
+  >(input: Input<TQueryFnData, TError, TData, TQueryData, TQueryKey>) {
+    if (typeof input.query !== "function") {
+      throw new Error("<const-query> requires a query input.");
+    }
+
+    return input.query();
+  }
+
+  function readResult<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryData,
+    TQueryKey extends QueryKey,
+  >(
+    client: QueryClient,
+    options: QueryObserverOptions<
+      TQueryFnData,
+      TError,
+      TData,
+      TQueryData,
+      TQueryKey
+    >,
+  ) {
+    const observer = new QueryObserver(client, options);
+    const result = publicResult(observer.getCurrentResult());
+    observer.destroy();
+    return result;
+  }
+
+  function pendingResult<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryData,
+    TQueryKey extends QueryKey,
+  >(
+    options: QueryObserverOptions<
+      TQueryFnData,
+      TError,
+      TData,
+      TQueryData,
+      TQueryKey
+    >,
+  ) {
+    return readResult(new QueryClient(), options);
+  }
+
+  const getInitialClient =
+    typeof getServerInitialClient === "undefined"
+      ? getNoServerInitialClient
+      : getServerInitialClient;
+
+  function getInitialState<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryData,
+    TQueryKey extends QueryKey,
+  >(
+    input: Input<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
+    global: unknown,
+  ): InitialState<TData, TError> {
+    const options = getQueryOptions(input);
+    const client = getInitialClient(input, global);
+    return client
+      ? (startServerQuery(client, options) as InitialState<TData, TError>)
+      : {
+          result: pendingResult(options),
+          dehydrated: emptyDehydratedState(),
+        };
+  }
+}
+
+server function startServerQuery(
+  client: QueryClient,
+  inputOptions: unknown,
+): InitialState<unknown, unknown> {
+  const options = inputOptions as QueryObserverOptions<
+    unknown,
+    unknown,
+    unknown,
+    unknown,
+    QueryKey
+  >;
+  const observer = new QueryObserver(client, options);
+  const currentResult = observer.getCurrentResult();
+  const queryHash = observer.getCurrentQuery().queryHash;
+
+  if (currentResult.isEnabled) {
+    void client.prefetchQuery(
+      options as FetchQueryOptions<unknown, unknown, unknown, QueryKey>,
+    );
+  }
+
+  observer.updateResult();
+  const result = publicResult(observer.getCurrentResult());
+  observer.destroy();
+
+  const configuredShouldDehydrateQuery =
+    client.getDefaultOptions().dehydrate?.shouldDehydrateQuery ??
+    defaultShouldDehydrateQuery;
+
+  return {
+    result,
+    dehydrated: dehydrate(client, {
+      shouldDehydrateMutation: () => false,
+      shouldDehydrateQuery: (query) =>
+        query.queryHash === queryHash &&
+        (query.state.status === "pending" ||
+          configuredShouldDehydrateQuery(query)),
+    }),
+  };
+}
+
+server function getServerInitialClient(
+  input: { client?: () => QueryClient | undefined },
+  global: unknown,
+) {
+  const getClient = input.client;
+  return typeof getClient === "function"
+    ? getClient()
+    : (getClientContext(global) as QueryClient | undefined);
+}
+
+client function getNoServerInitialClient() {
+  return;
+}
+
+<const/initialState=getInitialState(input, $global)>
+<let/result=initialState.result>
+<script>
+  const getClient = input.client;
+  const client =
+    typeof getClient === "function"
+      ? getClient()
+      : (getClientContext($global) as QueryClient | undefined);
+  if (!client) {
+    throw new Error("<const-query> requires a client input.");
+  }
+
+  const options = getQueryOptions(input);
+  hydrate(client, initialState.dehydrated);
+
+  const observer = new QueryObserver(client, options);
+  client.mount();
+  result = publicResult(observer.getCurrentResult());
+  const unsubscribe = observer.subscribe((next) => {
+    result = publicResult(next);
+  });
+
+  $signal.onabort = () => {
+    unsubscribe();
+    client.unmount();
+  };
+</script>
+
+<return=result>
