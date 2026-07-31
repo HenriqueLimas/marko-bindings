@@ -11,5 +11,8 @@ Runnable examples belong in a single workspace package under `examples/<name>`. 
   submission.
 - [`tanstack-query`](tanstack-query/README.md) — Marko Run application using
   `@marko-bindings/tanstack-query` with a local JSON API route.
+- [`tanstack-router`](tanstack-router/README.md) — Direct Vite SSR application
+  demonstrating manual routes, loader hydration, TanStack Query cache hydration,
+  and browser navigation without Marko Run.
 - [`tanstack-store`](tanstack-store/README.md) — Marko Run cart demonstrating
   resumable stores, derived state, actions, and writable atoms.

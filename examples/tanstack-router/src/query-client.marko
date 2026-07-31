@@ -1,0 +1,18 @@
+import { QueryClient } from "@marko-bindings/tanstack-query";
+
+client let browserClient: QueryClient | undefined;
+
+server function createServerClient() {
+  return new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+}
+
+client function createBrowserClient() {
+  return (browserClient ??= new QueryClient());
+}
+
+export const createClient =
+  typeof createServerClient !== "undefined"
+    ? createServerClient
+    : createBrowserClient;

@@ -1,0 +1,22 @@
+import type { AnyRoute } from "@tanstack/router-core";
+import {
+  createFacadeHandle,
+  createMarkoRouteTree,
+  getFacadeValue,
+  type RouteFacade,
+  type RouteTreeFacade,
+} from "../runtime.js";
+
+export interface Input {
+  root: RouteFacade;
+  children: RouteFacade[];
+}
+
+<const/handle=createFacadeHandle()>
+<const/createRouteTree=() =>
+  createMarkoRouteTree(
+    input.root.api(),
+    input.children.map((child) => child.api()),
+  )>
+<const/getRouteTree=() => getFacadeValue(handle, createRouteTree) as AnyRoute>
+<return={ api: getRouteTree } as RouteTreeFacade>

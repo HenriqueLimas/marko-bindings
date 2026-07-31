@@ -218,6 +218,43 @@ future bindings should follow.
   index so values, declarations, and shifted metadata use the same identity. Let
   each rendered child own its lifecycle.
 
+## Load direct Vite SSR documents as linked server entries
+
+- **Tried:** Loading `router.marko?marko-server-entry` directly through the
+  installed `@marko/vite`. That version only recognizes its virtual
+  `router.server-entry.marko` filename, so Vite passed uncompiled Marko source to
+  import analysis.
+- **Ended with:** The custom Vite server keeps the explicit query-form contract,
+  while a small pre-resolve plugin maps it to `@marko/vite`'s linked server-entry
+  module. The rendered document then includes Vite's browser entry and can
+  resume without Marko Run.
+- **Rule:** A custom Vite SSR server must load a linked Marko server entry, not a
+  plain server template. Keep any version-specific virtual-module naming in the
+  Vite config rather than the HTTP server.
+
+## Reconstruct route graphs behind serializable facades
+
+- **Tried:** Returning TanStack `Route` and `RouterCore` instances directly from
+  declaration tags and replacing them in browser scripts. Marko still needed to
+  serialize the server tag variables for downstream declarations and rejected
+  the instances' prototypes and functions.
+- **Ended with:** Route, route-tree, and router tags return plain facades whose
+  `api()` closures capture only a serializable handle and reconstruct the full
+  target-local graph lazily. A target-local `WeakMap` associates that handle
+  with each constructed instance. Direct `parent` facades resolve to TanStack's
+  target-local `getParentRoute` callback, while route component bodies are
+  reconstructed in `route.options.component`.
+- **Tried next:** Separate match and outlet tags imported one another. Their
+  recursive module cycle rendered on the server but lost closure values during
+  client rendering.
+- **Ended with:** One match-renderer tag owns a local recursive body. Each match
+  passes an outlet body bound to the next active match index.
+- **Rule:** When declaration tag variables form a graph of imperative instances,
+  do not return the instances or capture them in resumable closures. Return a
+  serializable identity plus registered facade actions, keep target-local
+  instances in private weak storage, and keep recursive rendering inside one
+  module rather than mutually importing custom tags.
+
 ## Adding a decision
 
 ```md

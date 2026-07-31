@@ -1,0 +1,33 @@
+import {
+  initializeDefaultRouter,
+  prepareRouter,
+  type RouterFacade,
+} from "../runtime.js";
+
+export interface Input {
+  router: RouterFacade;
+}
+
+<const/router=initializeDefaultRouter($global, input.router)>
+<const/preparedRouter=prepareRouter(router.api())>
+<let/revision=0>
+<lifecycle
+  onMount() {
+    const current = router.api();
+    const matches = current.stores.matchesId.subscribe(() => {
+      revision++;
+    });
+    const unsubscribeHistory = current.history.subscribe(current.load);
+    return { matches, unsubscribeHistory };
+  }
+  onDestroy() {
+    this.matches.unsubscribe();
+    this.unsubscribeHistory();
+  }
+>
+<await|prepared|=preparedRouter>
+  <router-matches router=router revision=revision/>
+  <if=prepared.script>
+    <html-script>${prepared.script};</html-script>
+  </if>
+</await>

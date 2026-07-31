@@ -2,6 +2,9 @@
 
 TanStack Query bindings for Marko 6.
 
+A runnable [direct Vite SSR example](../../../examples/tanstack-router/README.md)
+combines these bindings with TanStack Router without Marko Run.
+
 The package owns `@tanstack/query-core` and re-exports its complete public API,
 so applications only need to install `@marko-bindings/tanstack-query`; `marko` remains a
 peer dependency.
