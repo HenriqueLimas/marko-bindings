@@ -1,0 +1,265 @@
+import {
+  FieldApi,
+  FormApi,
+  type AnyFormOptions,
+  type DeepKeys,
+  type DeepValue,
+  type FieldAsyncValidateOrFn,
+  type FieldOptions,
+  type FieldValidateOrFn,
+  type Updater,
+} from "@tanstack/form-core";
+
+export interface FormBinding<TFormData> {
+  readonly _data: TFormData;
+  api(): unknown;
+  _options(): unknown;
+}
+
+export interface Input<
+  TParentData,
+  TName extends DeepKeys<TParentData>,
+  TData extends DeepValue<TParentData, TName>,
+  TOnMount extends undefined | FieldValidateOrFn<TParentData, TName, TData>,
+  TOnChange extends undefined | FieldValidateOrFn<TParentData, TName, TData>,
+  TOnChangeAsync extends
+    undefined | FieldAsyncValidateOrFn<TParentData, TName, TData>,
+  TOnBlur extends undefined | FieldValidateOrFn<TParentData, TName, TData>,
+  TOnBlurAsync extends
+    undefined | FieldAsyncValidateOrFn<TParentData, TName, TData>,
+  TOnSubmit extends undefined | FieldValidateOrFn<TParentData, TName, TData>,
+  TOnSubmitAsync extends
+    undefined | FieldAsyncValidateOrFn<TParentData, TName, TData>,
+  TOnDynamic extends undefined | FieldValidateOrFn<TParentData, TName, TData>,
+  TOnDynamicAsync extends
+    undefined | FieldAsyncValidateOrFn<TParentData, TName, TData>,
+> extends FieldOptions<
+  TParentData,
+  TName,
+  TData,
+  TOnMount,
+  TOnChange,
+  TOnChangeAsync,
+  TOnBlur,
+  TOnBlurAsync,
+  TOnSubmit,
+  TOnSubmitAsync,
+  TOnDynamic,
+  TOnDynamicAsync
+> {
+  form: FormBinding<TParentData>;
+}
+
+static {
+  type BoundFieldApi<
+    TParentData,
+    TName extends DeepKeys<TParentData>,
+    TData extends DeepValue<TParentData, TName>,
+    TOnMount extends undefined | FieldValidateOrFn<TParentData, TName, TData>,
+    TOnChange extends undefined | FieldValidateOrFn<TParentData, TName, TData>,
+    TOnChangeAsync extends
+      undefined | FieldAsyncValidateOrFn<TParentData, TName, TData>,
+    TOnBlur extends undefined | FieldValidateOrFn<TParentData, TName, TData>,
+    TOnBlurAsync extends
+      undefined | FieldAsyncValidateOrFn<TParentData, TName, TData>,
+    TOnSubmit extends undefined | FieldValidateOrFn<TParentData, TName, TData>,
+    TOnSubmitAsync extends
+      undefined | FieldAsyncValidateOrFn<TParentData, TName, TData>,
+    TOnDynamic extends undefined | FieldValidateOrFn<TParentData, TName, TData>,
+    TOnDynamicAsync extends
+      undefined | FieldAsyncValidateOrFn<TParentData, TName, TData>,
+  > = FieldApi<
+    TParentData,
+    TName,
+    TData,
+    TOnMount,
+    TOnChange,
+    TOnChangeAsync,
+    TOnBlur,
+    TOnBlurAsync,
+    TOnSubmit,
+    TOnSubmitAsync,
+    TOnDynamic,
+    TOnDynamicAsync,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any
+  >;
+
+  function getInitialState<
+    TParentData,
+    TName extends DeepKeys<TParentData>,
+    TData extends DeepValue<TParentData, TName>,
+    TOnMount extends undefined | FieldValidateOrFn<TParentData, TName, TData>,
+    TOnChange extends undefined | FieldValidateOrFn<TParentData, TName, TData>,
+    TOnChangeAsync extends
+      undefined | FieldAsyncValidateOrFn<TParentData, TName, TData>,
+    TOnBlur extends undefined | FieldValidateOrFn<TParentData, TName, TData>,
+    TOnBlurAsync extends
+      undefined | FieldAsyncValidateOrFn<TParentData, TName, TData>,
+    TOnSubmit extends undefined | FieldValidateOrFn<TParentData, TName, TData>,
+    TOnSubmitAsync extends
+      undefined | FieldAsyncValidateOrFn<TParentData, TName, TData>,
+    TOnDynamic extends undefined | FieldValidateOrFn<TParentData, TName, TData>,
+    TOnDynamicAsync extends
+      undefined | FieldAsyncValidateOrFn<TParentData, TName, TData>,
+  >(
+    formOptions: AnyFormOptions,
+    fieldOptions: FieldOptions<
+      TParentData,
+      TName,
+      TData,
+      TOnMount,
+      TOnChange,
+      TOnChangeAsync,
+      TOnBlur,
+      TOnBlurAsync,
+      TOnSubmit,
+      TOnSubmitAsync,
+      TOnDynamic,
+      TOnDynamicAsync
+    >,
+  ): BoundFieldApi<
+    TParentData,
+    TName,
+    TData,
+    TOnMount,
+    TOnChange,
+    TOnChangeAsync,
+    TOnBlur,
+    TOnBlurAsync,
+    TOnSubmit,
+    TOnSubmitAsync,
+    TOnDynamic,
+    TOnDynamicAsync
+  >["state"] {
+    const form = new FormApi(formOptions);
+    return new FieldApi({ ...fieldOptions, form } as never)
+      .state as BoundFieldApi<
+      TParentData,
+      TName,
+      TData,
+      TOnMount,
+      TOnChange,
+      TOnChangeAsync,
+      TOnBlur,
+      TOnBlurAsync,
+      TOnSubmit,
+      TOnSubmitAsync,
+      TOnDynamic,
+      TOnDynamicAsync
+    >["state"];
+  }
+}
+
+<const/getFormApi=input.form.api as () => FormApi<
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any
+>>
+<const/getFormOptions=input.form._options as () => AnyFormOptions>
+<const/name=input.name>
+<const/fieldOptions={
+  name,
+  defaultValue: input.defaultValue,
+  asyncDebounceMs: input.asyncDebounceMs,
+  asyncAlways: input.asyncAlways,
+  defaultMeta: input.defaultMeta,
+  disableErrorFlat: input.disableErrorFlat,
+  validators: input.validators,
+  listeners: input.listeners,
+} as FieldOptions<
+  TParentData,
+  TName,
+  TData,
+  TOnMount,
+  TOnChange,
+  TOnChangeAsync,
+  TOnBlur,
+  TOnBlurAsync,
+  TOnSubmit,
+  TOnSubmitAsync,
+  TOnDynamic,
+  TOnDynamicAsync
+>>
+<let/api=(
+  undefined as
+    | BoundFieldApi<
+        TParentData,
+        TName,
+        TData,
+        TOnMount,
+        TOnChange,
+        TOnChangeAsync,
+        TOnBlur,
+        TOnBlurAsync,
+        TOnSubmit,
+        TOnSubmitAsync,
+        TOnDynamic,
+        TOnDynamicAsync
+      >
+    | undefined
+)>
+<let/state=getInitialState(getFormOptions(), fieldOptions)>
+<const/getApi=() => {
+  const form = getFormApi();
+  if (!api || api.form !== form || api.name !== fieldOptions.name) {
+    api = new FieldApi({ ...fieldOptions, form } as never) as typeof api;
+  }
+  return api!;
+}>
+<const/handleChange=(value: Updater<TData>) => getApi().handleChange(value)>
+<const/handleBlur=() => getApi().handleBlur()>
+<lifecycle
+  onMount() {
+    const current = getApi();
+    const subscription = current.store.subscribe(() => {
+      state = current.state;
+    });
+    const unmount = current.mount();
+    return { current, subscription, unmount };
+  }
+  onUpdate() {
+    const current = getApi();
+    if (current !== this.current) {
+      this.subscription.unsubscribe();
+      this.unmount();
+      this.current = current;
+      this.subscription = current.store.subscribe(() => {
+        state = current.state;
+      });
+      this.unmount = current.mount();
+      state = current.state;
+    }
+    current.update({ ...fieldOptions, form: getFormApi() });
+  }
+  onDestroy() {
+    this.subscription.unsubscribe();
+    this.unmount();
+  }
+>
+
+<return={
+  name,
+  state,
+  handleChange,
+  handleBlur,
+  api: getApi,
+}>

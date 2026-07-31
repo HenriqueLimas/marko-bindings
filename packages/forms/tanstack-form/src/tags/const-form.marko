@@ -1,0 +1,144 @@
+import {
+  FormApi,
+  type FormAsyncValidateOrFn,
+  type FormOptions,
+  type FormValidateOrFn,
+} from "@tanstack/form-core";
+
+export interface Input<
+  TFormData,
+  TOnMount extends undefined | FormValidateOrFn<TFormData>,
+  TOnChange extends undefined | FormValidateOrFn<TFormData>,
+  TOnChangeAsync extends undefined | FormAsyncValidateOrFn<TFormData>,
+  TOnBlur extends undefined | FormValidateOrFn<TFormData>,
+  TOnBlurAsync extends undefined | FormAsyncValidateOrFn<TFormData>,
+  TOnSubmit extends undefined | FormValidateOrFn<TFormData>,
+  TOnSubmitAsync extends undefined | FormAsyncValidateOrFn<TFormData>,
+  TOnDynamic extends undefined | FormValidateOrFn<TFormData>,
+  TOnDynamicAsync extends undefined | FormAsyncValidateOrFn<TFormData>,
+  TOnServer extends undefined | FormAsyncValidateOrFn<TFormData>,
+  TSubmitMeta = never,
+> extends FormOptions<
+  TFormData,
+  TOnMount,
+  TOnChange,
+  TOnChangeAsync,
+  TOnBlur,
+  TOnBlurAsync,
+  TOnSubmit,
+  TOnSubmitAsync,
+  TOnDynamic,
+  TOnDynamicAsync,
+  TOnServer,
+  TSubmitMeta
+> {}
+
+static {
+  function getInitialState<
+    TFormData,
+    TOnMount extends undefined | FormValidateOrFn<TFormData>,
+    TOnChange extends undefined | FormValidateOrFn<TFormData>,
+    TOnChangeAsync extends undefined | FormAsyncValidateOrFn<TFormData>,
+    TOnBlur extends undefined | FormValidateOrFn<TFormData>,
+    TOnBlurAsync extends undefined | FormAsyncValidateOrFn<TFormData>,
+    TOnSubmit extends undefined | FormValidateOrFn<TFormData>,
+    TOnSubmitAsync extends undefined | FormAsyncValidateOrFn<TFormData>,
+    TOnDynamic extends undefined | FormValidateOrFn<TFormData>,
+    TOnDynamicAsync extends undefined | FormAsyncValidateOrFn<TFormData>,
+    TOnServer extends undefined | FormAsyncValidateOrFn<TFormData>,
+    TSubmitMeta,
+  >(
+    options: FormOptions<
+      TFormData,
+      TOnMount,
+      TOnChange,
+      TOnChangeAsync,
+      TOnBlur,
+      TOnBlurAsync,
+      TOnSubmit,
+      TOnSubmitAsync,
+      TOnDynamic,
+      TOnDynamicAsync,
+      TOnServer,
+      TSubmitMeta
+    >,
+  ) {
+    return new FormApi(options).state;
+  }
+}
+
+<id/generatedFormId>
+<const/formId=input.formId ?? generatedFormId>
+<const/options={ ...input, formId }>
+<let/api=(
+  undefined as
+    | FormApi<
+        TFormData,
+        TOnMount,
+        TOnChange,
+        TOnChangeAsync,
+        TOnBlur,
+        TOnBlurAsync,
+        TOnSubmit,
+        TOnSubmitAsync,
+        TOnDynamic,
+        TOnDynamicAsync,
+        TOnServer,
+        TSubmitMeta
+      >
+    | undefined
+)>
+<let/state=getInitialState(options)>
+<const/getApi=() => {
+  if (!api || api.formId !== formId) {
+    api = new FormApi(options);
+  }
+  return api!;
+}>
+<const/getOptions=() => options>
+<const/handleSubmit=(submitMeta?: TSubmitMeta) =>
+  submitMeta === undefined
+    ? getApi().handleSubmit()
+    : getApi().handleSubmit(submitMeta)>
+<const/reset=(
+  values?: TFormData,
+  resetOptions?: { keepDefaultValues?: boolean },
+) => getApi().reset(values, resetOptions)>
+<lifecycle
+  onMount() {
+    const current = getApi();
+    const subscription = current.store.subscribe(() => {
+      state = current.state;
+    });
+    const unmount = current.mount();
+    return { current, subscription, unmount };
+  }
+  onUpdate() {
+    const current = getApi();
+    if (current !== this.current) {
+      this.subscription.unsubscribe();
+      this.unmount();
+      this.current = current;
+      this.subscription = current.store.subscribe(() => {
+        state = current.state;
+      });
+      this.unmount = current.mount();
+      state = current.state;
+    }
+    current.update(options);
+  }
+  onDestroy() {
+    this.subscription.unsubscribe();
+    this.unmount();
+  }
+>
+
+<return={
+  formId,
+  state,
+  handleSubmit,
+  reset,
+  api: getApi,
+  _options: getOptions,
+  _data: undefined as unknown as TFormData,
+}>

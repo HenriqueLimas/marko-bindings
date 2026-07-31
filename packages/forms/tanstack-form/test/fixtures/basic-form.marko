@@ -1,0 +1,58 @@
+export interface Input {
+  onSubmit: (value: { firstName: string }) => void | Promise<void>;
+  onFieldMount?: () => void;
+  onFieldUnmount?: () => void;
+  showField?: boolean;
+}
+
+<const-form/form
+  defaultValues={ firstName: "" }
+  onSubmit=({ value }) => input.onSubmit(value)
+/>
+
+<form onSubmit(event) {
+  event.preventDefault();
+  void form.handleSubmit();
+}>
+  <if=input.showField !== false>
+    <const-field/firstName
+      form=form
+      name="firstName"
+      validators={
+        onBlur: ({ value }) =>
+          value.length < 3 ? "First name is too short" : undefined,
+      }
+      listeners={
+        onMount: input.onFieldMount,
+        onUnmount: input.onFieldUnmount,
+      }
+    />
+
+    <label for=firstName.name>First name</label>
+    <input
+      id=firstName.name
+      name=firstName.name
+      value=firstName.state.value
+      valueChange=firstName.handleChange
+      onBlur=firstName.handleBlur
+    >
+
+    <output data-testid="field-value">${firstName.state.value}</output>
+    <if=firstName.state.meta.isTouched>
+      <for|error| of=firstName.state.meta.errors>
+        <p>${error}</p>
+      </for>
+    </if>
+  </if>
+
+  <output data-testid="form-value">${form.state.values.firstName}</output>
+  <button type="submit" disabled=!form.state.canSubmit>Submit</button>
+  <button
+    type="button"
+    onClick() {
+      form.reset();
+    }
+  >
+    Reset
+  </button>
+</form>

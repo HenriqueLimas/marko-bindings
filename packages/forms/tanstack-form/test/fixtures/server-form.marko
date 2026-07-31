@@ -1,0 +1,21 @@
+import { required } from "./validators.marko";
+
+<const-form/form defaultValues={ firstName: "Ada" }/>
+<const-field/firstName
+  form=form
+  name="firstName"
+  validators={ onBlur: required }
+/>
+
+<form onSubmit(event) {
+  event.preventDefault();
+  void form.handleSubmit();
+}>
+  <input
+    name=firstName.name
+    value=firstName.state.value
+    valueChange=firstName.handleChange
+    onBlur=firstName.handleBlur
+  >
+  <output>${firstName.state.value}</output>
+</form>

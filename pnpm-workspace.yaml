@@ -14,10 +14,10 @@ catalog:
   "@tanstack/store": ^0.11.0
   "@types/node": ^26.1.1
   jsdom: ^29.1.1
-  marko: ^6.3.20
+  marko: ^6.3.31
   typescript: ^6.0.3
   vite: ^8.1.5
   vitest: ^4.1.10
 
 minimumReleaseAgeExclude:
-  - marko@6.3.20
+  - marko@6.3.31
