@@ -96,6 +96,7 @@ static {
   return api!;
 }>
 <const/getOptions=() => options>
+<const/getState=() => state>
 <const/handleSubmit=(submitMeta?: TSubmitMeta) =>
   submitMeta === undefined
     ? getApi().handleSubmit()
@@ -140,5 +141,6 @@ static {
   reset,
   api: getApi,
   _options: getOptions,
+  _state: getState,
   _data: undefined as unknown as TFormData,
 }>

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@marko/testing-library";
 import { describe, expect, test, vi } from "vitest";
 
+import ArrayForm from "./fixtures/array-form.marko";
 import BasicForm from "./fixtures/basic-form.marko";
 
 describe("const-form and const-field tags", () => {
@@ -110,6 +111,50 @@ describe("const-form and const-field tags", () => {
     });
 
     expect(onFieldUnmount).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("textbox")).toBeNull();
+  });
+
+  test("exposes typed array actions and keeps indexed fields aligned", async () => {
+    await render(ArrayForm);
+
+    const values = () => screen.getByTestId("values").textContent;
+    const click = async (name: string, expected: string) => {
+      await fireEvent.click(screen.getByRole("button", { name }));
+      await waitFor(() => expect(values()).toBe(expected));
+    };
+
+    expect(values()).toBe("Ada,Grace");
+    await click("Push", "Ada,Grace,Linus");
+
+    await fireEvent.blur(screen.getByRole("textbox", { name: "Person 2" }));
+    await waitFor(() =>
+      expect(screen.getByTestId("meta-1").textContent).toBe("touched"),
+    );
+
+    await click("Insert", "Ada,Barbara,Grace,Linus");
+    await waitFor(() => {
+      expect(screen.getByTestId("meta-2").textContent).toBe("touched");
+      expect(
+        screen
+          .getAllByRole("textbox")
+          .map((input) => (input as HTMLInputElement).value),
+      ).toEqual(["Ada", "Barbara", "Grace", "Linus"]);
+    });
+
+    await click("Replace", "Alan,Barbara,Grace,Linus");
+    await click("Swap", "Barbara,Alan,Grace,Linus");
+    await click("Move", "Barbara,Linus,Alan,Grace");
+    await click("Remove", "Barbara,Linus,Grace");
+
+    const secondPerson = screen.getByRole("textbox", { name: "Person 2" });
+    expect((secondPerson as HTMLInputElement).value).toBe("Linus");
+    await fireEvent.input(secondPerson, { target: { value: "Margaret" } });
+    await waitFor(() => expect(values()).toBe("Barbara,Margaret,Grace"));
+    expect(screen.getByTestId("array-values").textContent).toBe(
+      "Barbara,Linus,Grace",
+    );
+
+    await click("Clear", "");
     expect(screen.queryByRole("textbox")).toBeNull();
   });
 });

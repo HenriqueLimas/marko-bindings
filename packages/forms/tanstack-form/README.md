@@ -73,6 +73,51 @@ the corresponding checked binding:
 Fields support TanStack's deep names and can be declared conditionally. Removing
 `<const-field>` unmounts its `FieldApi` and cancels its field-owned work.
 
+## Field arrays
+
+An array is a regular field whose facade also exposes TanStack's typed structural
+actions. Declare indexed child fields in the markup so each item owns its field
+lifecycle:
+
+```marko
+<const-form/form defaultValues={ people: [] as Array<{ name: string }> }/>
+<const-field/people form=form name="people" mode="array"/>
+
+<for|_person, index| of=people.state.value by=(_person, index) => String(index)>
+  <const-field/name form=form name=`people[${index}].name`/>
+  <input value:=name.state.value>
+  <button
+    type="button"
+    onClick() {
+      people.removeValue(index);
+    }
+  >
+    Remove
+  </button>
+</for>
+
+<button
+  type="button"
+  onClick() {
+    people.pushValue({ name: "" });
+  }
+>
+  Add person
+</button>
+```
+
+The facade provides `pushValue`, `insertValue`, `replaceValue`, `removeValue`,
+`swapValues`, `moveValue`, and `clearValues`. These actions preserve TanStack's
+indexed field metadata and validation behavior. They accept the same optional
+update metadata argument as the core methods.
+
+`mode="array"` is a subscription optimization, not an array declaration. It
+updates the outer field for structural changes and its own metadata while child
+fields react independently to nested value changes. Render editable nested
+properties through indexed `<const-field>` declarations as shown above. Reconcile
+the `<for>` by index because TanStack shifts values and field metadata against
+those indexed paths during structural actions.
+
 ## Core escape hatch
 
 `form.api()` and `field.api()` return their reconstructed TanStack core API

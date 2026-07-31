@@ -2,11 +2,13 @@ import {
   FieldApi,
   FormApi,
   type AnyFormOptions,
+  type AnyFormState,
   type DeepKeys,
   type DeepValue,
   type FieldAsyncValidateOrFn,
   type FieldOptions,
   type FieldValidateOrFn,
+  type UpdateMetaOptions,
   type Updater,
 } from "@tanstack/form-core";
 
@@ -14,6 +16,7 @@ export interface FormBinding<TFormData> {
   readonly _data: TFormData;
   api(): unknown;
   _options(): unknown;
+  _state(): unknown;
 }
 
 export interface Input<
@@ -48,6 +51,7 @@ export interface Input<
   TOnDynamicAsync
 > {
   form: FormBinding<TParentData>;
+  mode?: "value" | "array";
 }
 
 static {
@@ -113,6 +117,7 @@ static {
       undefined | FieldAsyncValidateOrFn<TParentData, TName, TData>,
   >(
     formOptions: AnyFormOptions,
+    formState: AnyFormState,
     fieldOptions: FieldOptions<
       TParentData,
       TName,
@@ -141,7 +146,11 @@ static {
     TOnDynamic,
     TOnDynamicAsync
   >["state"] {
-    const form = new FormApi(formOptions);
+    const form = new FormApi({
+      ...formOptions,
+      defaultState: formState,
+      defaultValues: formState.values,
+    });
     return new FieldApi({ ...fieldOptions, form } as never)
       .state as BoundFieldApi<
       TParentData,
@@ -175,7 +184,9 @@ static {
   any
 >>
 <const/getFormOptions=input.form._options as () => AnyFormOptions>
+<const/getFormState=input.form._state as () => AnyFormState>
 <const/name=input.name>
+<const/mode=input.mode ?? "value">
 <const/fieldOptions={
   name,
   defaultValue: input.defaultValue,
@@ -217,7 +228,7 @@ static {
       >
     | undefined
 )>
-<let/state=getInitialState(getFormOptions(), fieldOptions)>
+<let/state=getInitialState(getFormOptions(), getFormState(), fieldOptions)>
 <const/getApi=() => {
   const form = getFormApi();
   if (!api || api.form !== form || api.name !== fieldOptions.name) {
@@ -227,26 +238,78 @@ static {
 }>
 <const/handleChange=(value: Updater<TData>) => getApi().handleChange(value)>
 <const/handleBlur=() => getApi().handleBlur()>
+<const/pushValue=(
+  value: TData extends any[] ? TData[number] : never,
+  options?: UpdateMetaOptions,
+) => getApi().pushValue(value, options)>
+<const/insertValue=(
+  index: number,
+  value: TData extends any[] ? TData[number] : never,
+  options?: UpdateMetaOptions,
+) => getApi().insertValue(index, value, options)>
+<const/replaceValue=(
+  index: number,
+  value: TData extends any[] ? TData[number] : never,
+  options?: UpdateMetaOptions,
+) => getApi().replaceValue(index, value, options)>
+<const/removeValue=(index: number, options?: UpdateMetaOptions) =>
+  getApi().removeValue(index, options)>
+<const/swapValues=(
+  firstIndex: number,
+  secondIndex: number,
+  options?: UpdateMetaOptions,
+) => getApi().swapValues(firstIndex, secondIndex, options)>
+<const/moveValue=(
+  fromIndex: number,
+  toIndex: number,
+  options?: UpdateMetaOptions,
+) => getApi().moveValue(fromIndex, toIndex, options)>
+<const/clearValues=(options?: UpdateMetaOptions) =>
+  getApi().clearValues(options)>
+<const/publishState=(
+  current: NonNullable<typeof api>,
+  currentMode: "value" | "array",
+) => {
+  const next = current.state;
+  const previous = state;
+
+  if (
+    currentMode !== "array" ||
+    next.meta._arrayVersion !== previous.meta._arrayVersion ||
+    next.meta.isTouched !== previous.meta.isTouched ||
+    next.meta.isBlurred !== previous.meta.isBlurred ||
+    next.meta.isDirty !== previous.meta.isDirty ||
+    next.meta.errorMap !== previous.meta.errorMap ||
+    next.meta.errorSourceMap !== previous.meta.errorSourceMap ||
+    next.meta.isValidating !== previous.meta.isValidating
+  ) {
+    state = next;
+  }
+}>
 <lifecycle
   onMount() {
     const current = getApi();
     const subscription = current.store.subscribe(() => {
-      state = current.state;
+      publishState(current, this.currentMode);
     });
     const unmount = current.mount();
-    return { current, subscription, unmount };
+    state = current.state;
+    return { current, currentMode: mode, subscription, unmount };
   }
   onUpdate() {
     const current = getApi();
+    this.currentMode = mode;
     if (current !== this.current) {
       this.subscription.unsubscribe();
       this.unmount();
       this.current = current;
       this.subscription = current.store.subscribe(() => {
-        state = current.state;
+        publishState(current, this.currentMode);
       });
       this.unmount = current.mount();
       state = current.state;
+    } else {
+      publishState(current, mode);
     }
     current.update({ ...fieldOptions, form: getFormApi() });
   }
@@ -266,5 +329,12 @@ static {
   },
   handleChange,
   handleBlur,
+  pushValue,
+  insertValue,
+  replaceValue,
+  removeValue,
+  swapValues,
+  moveValue,
+  clearValues,
   api: getApi,
 }>

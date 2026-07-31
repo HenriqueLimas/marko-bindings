@@ -7,7 +7,8 @@ Runnable examples belong in a single workspace package under `examples/<name>`. 
 - [`jotai`](jotai/README.md) — Marko Run task planner demonstrating writable,
   derived, filtered, and resettable state with `@marko-bindings/jotai`.
 - [`tanstack-form`](tanstack-form/README.md) — Marko Run workshop registration
-  demonstrating controlled fields, validation, conditional fields, and submission.
+  demonstrating controlled fields, validation, conditional and array fields, and
+  submission.
 - [`tanstack-query`](tanstack-query/README.md) — Marko Run application using
   `@marko-bindings/tanstack-query` with a local JSON API route.
 - [`tanstack-store`](tanstack-store/README.md) — Marko Run cart demonstrating

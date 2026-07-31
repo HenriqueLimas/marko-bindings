@@ -200,6 +200,24 @@ future bindings should follow.
   reconstruct controllers per target, give each field a declarative lifecycle
   boundary, and project controlled values through Marko change handlers.
 
+## Keep array structure and indexed fields declarative
+
+- **Compared:** TanStack's framework adapters use the ordinary field declaration
+  for arrays, expose structural actions on that field, and treat `mode="array"`
+  as a subscription optimization rather than a distinct field type.
+- **Tried:** Initializing an indexed field from the form's original options left
+  newly inserted fields with stale values. Initializing it from the live form API
+  instead made Marko serialize the non-serializable controller during SSR.
+- **Ended with:** `<const-field>` exposes typed array actions on its plain facade.
+  Indexed child fields seed temporary initial state from the form facade's plain
+  current state, remain separate declarations inside Marko's `<for>` reconciled
+  by index, and use array mode to publish structural and array-field metadata
+  changes without republishing every nested child edit.
+- **Rule:** Model arrays as field values rather than a separate tag API. Route
+  structural changes through the library's actions and reconcile child markup by
+  index so values, declarations, and shifted metadata use the same identity. Let
+  each rendered child own its lifecycle.
+
 ## Adding a decision
 
 ```md

@@ -1,0 +1,91 @@
+<const-form/form defaultValues={
+  people: [
+    { name: "Ada", age: 36 },
+    { name: "Grace", age: 85 },
+  ],
+}/>
+<const-field/people form=form name="people" mode="array"/>
+
+<div data-testid="people">
+  <for|_person, index|
+    of=people.state.value
+    by=(_person, index) => String(index)
+  >
+    <const-field/name form=form name=`people[${index}].name`/>
+    <label>
+      Person ${index + 1}
+      <input
+        aria-label=`Person ${index + 1}`
+        value:=name.state.value
+        onBlur=name.handleBlur
+      >
+    </label>
+    <output data-testid=`meta-${index}`>
+      ${name.state.meta.isTouched ? "touched" : "untouched"}
+    </output>
+  </for>
+</div>
+
+<output data-testid="values">
+  ${form.state.values.people.map(({ name }) => name).join(",")}
+</output>
+<output data-testid="array-values">
+  ${people.state.value.map(({ name }) => name).join(",")}
+</output>
+
+<button
+  type="button"
+  onClick() {
+    people.pushValue({ name: "Linus", age: 55 });
+  }
+>
+  Push
+</button>
+<button
+  type="button"
+  onClick() {
+    people.insertValue(1, { name: "Barbara", age: 65 });
+  }
+>
+  Insert
+</button>
+<button
+  type="button"
+  onClick() {
+    people.replaceValue(0, { name: "Alan", age: 41 });
+  }
+>
+  Replace
+</button>
+<button
+  type="button"
+  onClick() {
+    people.swapValues(0, 1);
+  }
+>
+  Swap
+</button>
+<button
+  type="button"
+  onClick() {
+    people.moveValue(3, 1);
+  }
+>
+  Move
+</button>
+<button
+  type="button"
+  onClick() {
+    people.removeValue(2);
+  }
+>
+  Remove
+</button>
+<button
+  type="button"
+  onClick() {
+    people.clearValues();
+  }
+>
+  Clear
+</button>

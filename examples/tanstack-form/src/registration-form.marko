@@ -6,6 +6,7 @@ static interface Registration {
   session: "morning" | "afternoon";
   bringingGuest: boolean;
   guestName: string;
+  questions: Array<{ text: string }>;
   updates: boolean;
 }
 
@@ -17,6 +18,7 @@ static interface Registration {
     session: "morning",
     bringingGuest: false,
     guestName: "",
+    questions: [{ text: "" }],
     updates: true,
   } as Registration
   onSubmit=async ({ value }) => {
@@ -24,6 +26,7 @@ static interface Registration {
     submission = {
       ...value,
       attendee: { ...value.attendee },
+      questions: value.questions.map((question) => ({ ...question })),
     };
   }
 />
@@ -209,6 +212,79 @@ static interface Registration {
         </div>
       </div>
     </if>
+
+    <const-field/questions form=form name="questions" mode="array"/>
+    <section class="questions" aria-labelledby="questions-title">
+      <div class="questions-heading">
+        <div>
+          <strong id="questions-title">Questions for the speakers</strong>
+          <small>
+            Array fields keep every indexed input and its metadata aligned.
+          </small>
+        </div>
+        <button
+          class="add-question"
+          type="button"
+          onClick() {
+            questions.pushValue({ text: "" });
+          }
+        >
+          Add question
+        </button>
+      </div>
+
+      <div class="question-list">
+        <for|_question, index|
+          of=questions.state.value
+          by=(_question, index) => String(index)
+        >
+          <const-field/question form=form name=`questions[${index}].text`/>
+          <div class="question-row">
+            <input
+              aria-label=`Question ${index + 1}`
+              placeholder=`Question ${index + 1}`
+              value:=question.state.value
+            >
+            <div class="question-actions">
+              <button
+                type="button"
+                aria-label=`Move question ${index + 1} up`
+                disabled=index === 0
+                onClick() {
+                  questions.moveValue(index, index - 1);
+                }
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                aria-label=`Move question ${index + 1} down`
+                disabled=index === questions.state.value.length - 1
+                onClick() {
+                  questions.moveValue(index, index + 1);
+                }
+              >
+                ↓
+              </button>
+              <button
+                type="button"
+                aria-label=`Remove question ${index + 1}`
+                onClick() {
+                  questions.removeValue(index);
+                }
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        </for>
+        <if=!questions.state.value.length>
+          <p class="empty-questions">
+            No questions yet. Add one when inspiration strikes.
+          </p>
+        </if>
+      </div>
+    </section>
 
     <div class="actions">
       <button
@@ -410,6 +486,95 @@ static interface Registration {
     padding: 1rem;
     border-radius: 0.8rem;
     background: #f7f1e8;
+  }
+
+  .questions {
+    display: grid;
+    gap: 0.8rem;
+    padding: 1rem;
+    border: 1px solid #dce2dc;
+    border-radius: 0.8rem;
+    background: #f8faf6;
+  }
+
+  .questions-heading,
+  .question-row,
+  .question-actions {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+  }
+
+  .questions-heading {
+    justify-content: space-between;
+  }
+
+  .questions-heading strong,
+  .questions-heading small {
+    display: block;
+  }
+
+  .questions-heading strong {
+    color: #334c45;
+    font-size: 0.82rem;
+  }
+
+  .questions-heading small {
+    margin-top: 0.2rem;
+    color: #79847f;
+    font-size: 0.72rem;
+    line-height: 1.4;
+  }
+
+  .question-list {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .question-row input {
+    flex: 1;
+    min-width: 0;
+    min-height: 2.6rem;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid #cfd7d1;
+    border-radius: 0.6rem;
+    color: #253c36;
+    background: #fff;
+  }
+
+  .question-actions {
+    flex: none;
+    gap: 0.25rem;
+  }
+
+  .question-actions button,
+  .add-question {
+    min-height: 2.25rem;
+    padding: 0.4rem 0.65rem;
+    color: #3d5750;
+    background: #e9eee9;
+    font-size: 0.75rem;
+  }
+
+  .question-actions button {
+    min-width: 2.25rem;
+    padding-right: 0.4rem;
+    padding-left: 0.4rem;
+  }
+
+  .question-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
+  .empty-questions {
+    margin: 0;
+    padding: 0.7rem;
+    border-radius: 0.6rem;
+    color: #79847f;
+    background: #eef2ed;
+    font-size: 0.75rem;
+    text-align: center;
   }
 
   .actions {
