@@ -1,0 +1,23 @@
+{
+  "name": "@marko-bindings/example-tanstack-form",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Marko Run registration form demonstrating resumable TanStack Form state",
+  "type": "module",
+  "scripts": {
+    "build": "marko-run build",
+    "dev": "marko-run dev",
+    "preview": "marko-run preview",
+    "typecheck": "mtc"
+  },
+  "dependencies": {
+    "@marko-bindings/tanstack-form": "workspace:*",
+    "@marko/run": "^0.11.6",
+    "marko": "catalog:"
+  },
+  "devDependencies": {
+    "@marko/language-tools": "catalog:",
+    "@marko/type-check": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -1,0 +1,111 @@
+import RegistrationForm from "../registration-form.marko";
+
+<main>
+  <section class="intro">
+    <div class="eyebrow">Marko Run × TanStack Form</div>
+    <h1>Declare fields.<br><em>Resume the form.</em></h1>
+    <p>
+      TanStack owns validation and submission while Marko's tag variables keep
+      every native control reactive. Conditional markup owns conditional field
+      lifecycles—without serializing a form controller.
+    </p>
+    <ul>
+      <li><code>&lt;const-form&gt;</code> owns form state and actions</li>
+      <li><code>&lt;const-field&gt;</code> owns registration and validation</li>
+      <li><code>:=</code> writes native input changes through to TanStack</li>
+    </ul>
+  </section>
+
+  <RegistrationForm/>
+</main>
+
+<style>
+  main {
+    display: grid;
+    grid-template-columns: minmax(0, 0.75fr) minmax(34rem, 1.25fr);
+    gap: clamp(2.5rem, 7vw, 7rem);
+    align-items: center;
+    width: min(76rem, calc(100% - 2rem));
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 4rem 0;
+  }
+
+  .intro {
+    max-width: 30rem;
+  }
+
+  .eyebrow {
+    color: #c55334;
+    font-size: 0.72rem;
+    font-weight: 850;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin: 1rem 0 1.6rem;
+    color: #183d35;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(3.3rem, 7vw, 6.1rem);
+    font-weight: 500;
+    letter-spacing: -0.06em;
+    line-height: 0.89;
+  }
+
+  h1 em {
+    color: #c55334;
+    font-weight: 500;
+  }
+
+  p {
+    margin: 0;
+    color: #67736f;
+    font-size: 1.04rem;
+    line-height: 1.75;
+  }
+
+  ul {
+    display: grid;
+    gap: 0.7rem;
+    margin: 2rem 0 0;
+    padding: 0;
+    color: #586660;
+    font-size: 0.92rem;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+  }
+
+  li::before {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: #c55334;
+    content: "";
+  }
+
+  @media (max-width: 62rem) {
+    main {
+      grid-template-columns: 1fr;
+      gap: 2.75rem;
+      max-width: 44rem;
+      padding: 3rem 0;
+    }
+
+    .intro {
+      max-width: 38rem;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    main {
+      width: min(100% - 1rem, 44rem);
+      padding: 1.5rem 0;
+    }
+  }
+</style>

@@ -1,0 +1,515 @@
+static interface Registration {
+  attendee: {
+    name: string;
+    email: string;
+  };
+  session: "morning" | "afternoon";
+  bringingGuest: boolean;
+  guestName: string;
+  updates: boolean;
+}
+
+<let/submission=undefined as Registration | undefined>
+
+<const-form/form
+  defaultValues={
+    attendee: { name: "", email: "" },
+    session: "morning",
+    bringingGuest: false,
+    guestName: "",
+    updates: true,
+  } as Registration
+  onSubmit=async ({ value }) => {
+    await new Promise<void>((resolve) => setTimeout(resolve, 700));
+    submission = {
+      ...value,
+      attendee: { ...value.attendee },
+    };
+  }
+/>
+
+<section class="form-card" aria-labelledby="registration-title">
+  <header>
+    <div>
+      <span class="step">Workshop 06 · Registration</span>
+      <h2 id="registration-title">Save your seat</h2>
+    </div>
+    <span class="availability">12 seats left</span>
+  </header>
+
+  <form onSubmit(event) {
+    event.preventDefault();
+    void form.handleSubmit();
+  }>
+    <div class="field-grid">
+      <const-field/attendeeName
+        form=form
+        name="attendee.name"
+        validators={
+          onBlur: ({ value }) =>
+            value.trim().length >= 2
+              ? undefined
+              : "Enter at least two characters",
+          onSubmit: ({ value }) =>
+            value.trim().length >= 2
+              ? undefined
+              : "Enter at least two characters",
+        }
+      />
+      <div class="field">
+        <label for=attendeeName.name>Attendee name</label>
+        <input
+          id=attendeeName.name
+          name=attendeeName.name
+          autocomplete="name"
+          placeholder="Ada Lovelace"
+          value:=attendeeName.state.value
+          onBlur=attendeeName.handleBlur
+          aria-invalid=!attendeeName.state.meta.isValid ? "true" : "false"
+          aria-describedby=`${attendeeName.name}-errors`
+        >
+        <div
+          class="field-note"
+          id=`${attendeeName.name}-errors`
+          aria-live="polite"
+        >
+          <if=attendeeName.state.meta.isTouched>
+            <for|error| of=attendeeName.state.meta.errors>
+              <span class="error">${error}</span>
+            </for>
+          </if>
+        </div>
+      </div>
+
+      <const-field/attendeeEmail
+        form=form
+        name="attendee.email"
+        asyncDebounceMs=350
+        validators={
+          onBlur: ({ value }) =>
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+              ? undefined
+              : "Enter a valid email address",
+          onBlurAsync: async ({ value }) => {
+            await new Promise<void>((resolve) => setTimeout(resolve, 600));
+            return value.toLowerCase() === "ada@example.com"
+              ? "That demo address is already registered"
+              : undefined;
+          },
+          onSubmit: ({ value }) =>
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+              ? undefined
+              : "Enter a valid email address",
+          onSubmitAsync: async ({ value }) => {
+            await new Promise<void>((resolve) => setTimeout(resolve, 600));
+            return value.toLowerCase() === "ada@example.com"
+              ? "That demo address is already registered"
+              : undefined;
+          },
+        }
+      />
+      <div class="field">
+        <label for=attendeeEmail.name>Email address</label>
+        <input
+          id=attendeeEmail.name
+          name=attendeeEmail.name
+          type="email"
+          autocomplete="email"
+          placeholder="you@example.com"
+          value:=attendeeEmail.state.value
+          onBlur=attendeeEmail.handleBlur
+          aria-invalid=!attendeeEmail.state.meta.isValid ? "true" : "false"
+          aria-describedby=`${attendeeEmail.name}-errors`
+        >
+        <div
+          class="field-note"
+          id=`${attendeeEmail.name}-errors`
+          aria-live="polite"
+        >
+          <if=attendeeEmail.state.meta.isValidating>
+            <span class="validating">Checking availability…</span>
+          </if>
+          <else-if=attendeeEmail.state.meta.isTouched>
+            <for|error| of=attendeeEmail.state.meta.errors>
+              <span class="error">${error}</span>
+            </for>
+          </else-if>
+        </div>
+      </div>
+    </div>
+
+    <const-field/session form=form name="session"/>
+    <div class="field session-field">
+      <label for=session.name>Preferred session</label>
+      <select
+        id=session.name
+        name=session.name
+        value=session.state.value
+        onChange(_event, element) {
+          session.handleChange(element.value as Registration["session"]);
+        }
+      >
+        <option value="morning">Morning · 09:30</option>
+        <option value="afternoon">Afternoon · 14:00</option>
+      </select>
+    </div>
+
+    <const-field/bringingGuest form=form name="bringingGuest"/>
+    <const-field/updates form=form name="updates"/>
+    <div class="choices">
+      <label class="choice">
+        <input type="checkbox" checked:=bringingGuest.state.value>
+        <span>
+          <strong>Bring a guest</strong>
+          <small>We'll reserve the next seat too.</small>
+        </span>
+      </label>
+      <label class="choice">
+        <input type="checkbox" checked:=updates.state.value>
+        <span>
+          <strong>Workshop updates</strong>
+          <small>Receive schedule and speaker news.</small>
+        </span>
+      </label>
+    </div>
+
+    <if=bringingGuest.state.value>
+      <const-field/guestName
+        form=form
+        name="guestName"
+        validators={
+          onBlur: ({ value }) =>
+            value.trim() ? undefined : "Enter your guest's name",
+          onSubmit: ({ value }) =>
+            value.trim() ? undefined : "Enter your guest's name",
+        }
+      />
+      <div class="field guest-field">
+        <label for=guestName.name>Guest name</label>
+        <input
+          id=guestName.name
+          name=guestName.name
+          autocomplete="name"
+          placeholder="Guest name"
+          value:=guestName.state.value
+          onBlur=guestName.handleBlur
+          aria-invalid=!guestName.state.meta.isValid ? "true" : "false"
+          aria-describedby=`${guestName.name}-errors`
+        >
+        <div
+          class="field-note"
+          id=`${guestName.name}-errors`
+          aria-live="polite"
+        >
+          <if=guestName.state.meta.isTouched>
+            <for|error| of=guestName.state.meta.errors>
+              <span class="error">${error}</span>
+            </for>
+          </if>
+        </div>
+      </div>
+    </if>
+
+    <div class="actions">
+      <button
+        class="submit"
+        type="submit"
+        disabled=!form.state.canSubmit || form.state.isSubmitting
+      >
+        ${
+          form.state.isSubmitting
+            ? "Saving your seat…"
+            : "Complete registration"
+        }
+      </button>
+      <button
+        class="reset"
+        type="button"
+        onClick() {
+          form.reset();
+          submission = undefined;
+        }
+      >
+        Reset
+      </button>
+    </div>
+  </form>
+
+  <div class="state-panel">
+    <div>
+      <span class="state-label">Live form values</span>
+      <pre>${JSON.stringify(form.state.values, null, 2)}</pre>
+    </div>
+    <div class="submission" aria-live="polite">
+      <if=submission>
+        <strong>Seat saved for ${submission.attendee.name}.</strong>
+        <span>
+          ${
+            submission.bringingGuest
+              ? `Guest: ${submission.guestName}`
+              : "One attendee"
+          }
+          · ${submission.session} session
+        </span>
+      </if>
+      <else>
+        <strong>Ready when you are.</strong>
+        <span>A submitted snapshot will appear here.</span>
+      </else>
+    </div>
+  </div>
+</section>
+
+<style>
+  .form-card {
+    overflow: hidden;
+    border: 1px solid #d9ded8;
+    border-radius: 1.5rem;
+    background: #fffefa;
+    box-shadow: 0 2rem 5rem rgb(24 61 53 / 11%);
+  }
+
+  header {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.6rem 1.8rem;
+    border-bottom: 1px solid #e5e8e3;
+  }
+
+  .step,
+  .state-label {
+    color: #c55334;
+    font-size: 0.68rem;
+    font-weight: 850;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    margin: 0.35rem 0 0;
+    color: #183d35;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2rem;
+    font-weight: 500;
+  }
+
+  .availability {
+    flex: none;
+    padding: 0.45rem 0.7rem;
+    border-radius: 99rem;
+    color: #326153;
+    background: #e5f1eb;
+    font-size: 0.78rem;
+    font-weight: 750;
+  }
+
+  form {
+    display: grid;
+    gap: 1.25rem;
+    padding: 1.8rem;
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .field {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .field label {
+    color: #334c45;
+    font-size: 0.82rem;
+    font-weight: 750;
+  }
+
+  .field input,
+  .field select {
+    width: 100%;
+    min-height: 2.85rem;
+    padding: 0.72rem 0.8rem;
+    border: 1px solid #cfd7d1;
+    border-radius: 0.65rem;
+    color: #253c36;
+    background: #fff;
+  }
+
+  .field input::placeholder {
+    color: #9aa59f;
+  }
+
+  .field input[aria-invalid="true"] {
+    border-color: #c95843;
+  }
+
+  .field-note {
+    min-height: 1rem;
+    color: #69756f;
+    font-size: 0.72rem;
+  }
+
+  .field-note span {
+    display: block;
+  }
+
+  .error {
+    color: #a63f30;
+  }
+
+  .validating {
+    color: #7a6b42;
+  }
+
+  .choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .choice {
+    display: flex;
+    gap: 0.7rem;
+    align-items: flex-start;
+    padding: 0.85rem;
+    border: 1px solid #dce2dc;
+    border-radius: 0.7rem;
+    background: #f8faf6;
+    cursor: pointer;
+  }
+
+  .choice input {
+    width: 1rem;
+    height: 1rem;
+    margin: 0.15rem 0 0;
+    accent-color: #c55334;
+  }
+
+  .choice strong,
+  .choice small {
+    display: block;
+  }
+
+  .choice strong {
+    color: #334c45;
+    font-size: 0.82rem;
+  }
+
+  .choice small {
+    margin-top: 0.2rem;
+    color: #79847f;
+    font-size: 0.72rem;
+    line-height: 1.4;
+  }
+
+  .guest-field {
+    padding: 1rem;
+    border-radius: 0.8rem;
+    background: #f7f1e8;
+  }
+
+  .actions {
+    display: flex;
+    gap: 0.7rem;
+  }
+
+  button {
+    min-height: 2.8rem;
+    padding: 0.7rem 1rem;
+    border: 0;
+    border-radius: 0.65rem;
+    font-weight: 780;
+  }
+
+  .submit {
+    flex: 1;
+    color: white;
+    background: #c55334;
+  }
+
+  .submit:hover:not(:disabled) {
+    background: #a9422a;
+  }
+
+  .submit:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .reset {
+    color: #3d5750;
+    background: #e9eee9;
+  }
+
+  .state-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding: 1.25rem 1.8rem 1.5rem;
+    border-top: 1px solid #e2e7e2;
+    background: #f3f6f1;
+  }
+
+  pre {
+    overflow: auto;
+    max-height: 8rem;
+    margin: 0.5rem 0 0;
+    color: #55655f;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.67rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+  }
+
+  .submission {
+    align-self: center;
+    padding: 0.9rem;
+    border-radius: 0.7rem;
+    color: #33574d;
+    background: #e4efe9;
+  }
+
+  .submission strong,
+  .submission span {
+    display: block;
+  }
+
+  .submission strong {
+    font-size: 0.84rem;
+  }
+
+  .submission span {
+    margin-top: 0.3rem;
+    color: #668077;
+    font-size: 0.72rem;
+    line-height: 1.45;
+  }
+
+  @media (max-width: 40rem) {
+    .form-card {
+      border-radius: 1rem;
+    }
+
+    header,
+    form,
+    .state-panel {
+      padding-right: 1rem;
+      padding-left: 1rem;
+    }
+
+    .field-grid,
+    .choices,
+    .state-panel {
+      grid-template-columns: 1fr;
+    }
+
+    .actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+  }
+</style>
