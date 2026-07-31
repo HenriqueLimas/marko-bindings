@@ -191,12 +191,14 @@ future bindings should follow.
 - **Ended with:** `<const-form>` and `<const-field>` each return a reactive plain
   facade while `<lifecycle>` mounts, updates, and destroys a target-local core
   instance. Fields are declarations so conditional and repeated fields own their
-  registration and cleanup. Native inputs use Marko `valueChange` or
-  `checkedChange` handlers to remain controlled.
+  registration and cleanup. The field facade augments its plain state snapshot
+  with a nested `valueChange` handler, making `field.state.value` a writable
+  Marko binding for `value:=` and `checked:=` while retaining `handleChange` as
+  an escape hatch.
 - **Rule:** Do not serialize imperative form controllers or hide field creation
   in a function call. Serialize plain snapshots and resumable actions,
-  reconstruct controllers per target, and give each field a declarative
-  lifecycle boundary.
+  reconstruct controllers per target, give each field a declarative lifecycle
+  boundary, and project controlled values through Marko change handlers.
 
 ## Adding a decision
 

@@ -13,8 +13,7 @@ import { required } from "./validators.marko";
 }>
   <input
     name=firstName.name
-    value=firstName.state.value
-    valueChange=firstName.handleChange
+    value:=firstName.state.value
     onBlur=firstName.handleBlur
   >
   <output>${firstName.state.value}</output>

@@ -18,6 +18,22 @@ describe("const-form and const-field tags", () => {
     });
   });
 
+  test("retains handleChange as an imperative escape hatch", async () => {
+    await render(BasicForm, { onSubmit: vi.fn() });
+
+    await fireEvent.click(
+      screen.getByRole("button", { name: "Set with handleChange" }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId("field-value").textContent).toBe("Grace"),
+    );
+    expect(
+      (screen.getByRole("textbox", { name: "First name" }) as HTMLInputElement)
+        .value,
+    ).toBe("Grace");
+  });
+
   test("validates on blur and updates submit readiness", async () => {
     await render(BasicForm, { onSubmit: vi.fn() });
 

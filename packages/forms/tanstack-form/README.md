@@ -39,8 +39,7 @@ returns its reactive state and input handlers. Neither tag renders DOM.
   <input
     id=firstName.name
     name=firstName.name
-    value=firstName.state.value
-    valueChange=firstName.handleChange
+    value:=firstName.state.value
     onBlur=firstName.handleBlur
   >
 
@@ -62,16 +61,13 @@ returns its reactive state and input handlers. Neither tag renders DOM.
 </form>
 ```
 
-Use Marko's `valueChange` handler with `value` to keep native inputs controlled.
-For checkboxes, translate the checked value explicitly:
+`field.state.value` is a writable Marko binding. The `:=` shorthand keeps the
+native input controlled and delegates changes to TanStack's `handleChange`.
+`field.handleChange` remains available for imperative updates. Checkboxes use
+the corresponding checked binding:
 
 ```marko
-<input
-  type="checkbox"
-  checked=accepted.state.value
-  checkedChange=accepted.handleChange
-  onBlur=accepted.handleBlur
->
+<input type="checkbox" checked:=accepted.state.value onBlur=accepted.handleBlur>
 ```
 
 Fields support TanStack's deep names and can be declared conditionally. Removing

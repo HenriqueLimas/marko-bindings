@@ -32,12 +32,19 @@ export interface Input {
     <input
       id=firstName.name
       name=firstName.name
-      value=firstName.state.value
-      valueChange=firstName.handleChange
+      value:=firstName.state.value
       onBlur=firstName.handleBlur
     >
 
     <output data-testid="field-value">${firstName.state.value}</output>
+    <button
+      type="button"
+      onClick() {
+        firstName.handleChange("Grace");
+      }
+    >
+      Set with handleChange
+    </button>
     <if=firstName.state.meta.isTouched>
       <for|error| of=firstName.state.meta.errors>
         <p>${error}</p>

@@ -258,7 +258,12 @@ static {
 
 <return={
   name,
-  state,
+  state: {
+    ...state,
+    valueChange(value: Updater<TData>) {
+      handleChange(value);
+    },
+  },
   handleChange,
   handleBlur,
   api: getApi,
