@@ -184,6 +184,20 @@ future bindings should follow.
   transfer its native dehydrated cache state instead of seeding the cache from
   rendered result data.
 
+## Reconstruct form controllers behind lifecycle-owned facades
+
+- **Tried:** Returning TanStack `FormApi` and `FieldApi` instances directly, or
+  creating fields through a `form.fields()` method or eager record.
+- **Ended with:** `<const-form>` and `<const-field>` each return a reactive plain
+  facade while `<lifecycle>` mounts, updates, and destroys a target-local core
+  instance. Fields are declarations so conditional and repeated fields own their
+  registration and cleanup. Native inputs use Marko `valueChange` or
+  `checkedChange` handlers to remain controlled.
+- **Rule:** Do not serialize imperative form controllers or hide field creation
+  in a function call. Serialize plain snapshots and resumable actions,
+  reconstruct controllers per target, and give each field a declarative
+  lifecycle boundary.
+
 ## Adding a decision
 
 ```md
