@@ -1,0 +1,39 @@
+import {
+  getDefaultRouter,
+  getLinkAnchorProps,
+  type RouterFacade,
+} from "../runtime.js";
+
+export interface Input extends Marko.HTML.A {
+  router?: RouterFacade;
+  to: string;
+  content: Marko.Body;
+}
+
+<const/router=input.router ?? getDefaultRouter($global)>
+<const/to=input.to>
+<const/location=router.api().buildLocation({ to })>
+<const/handleClick=(event: PointerEvent, target: HTMLAnchorElement) => {
+  if (typeof input.onClick === "function") {
+    input.onClick(event, target);
+  }
+  if (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    input.download ||
+    (target.target && target.target !== "_self")
+  ) {
+    return;
+  }
+
+  event.preventDefault();
+  void router.api().navigate({ to });
+}>
+<const/anchor=getLinkAnchorProps(input, location.publicHref, handleClick)>
+<a ...anchor>
+  <${input.content}/>
+</a>

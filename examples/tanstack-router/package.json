@@ -1,0 +1,25 @@
+{
+  "name": "@marko-bindings/example-tanstack-router",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Vite SSR application demonstrating TanStack Router and Query without Marko Run",
+  "type": "module",
+  "scripts": {
+    "build": "vite build --app",
+    "dev": "node server.mjs",
+    "preview": "node preview.mjs",
+    "typecheck": "mtc"
+  },
+  "dependencies": {
+    "@marko-bindings/tanstack-query": "workspace:*",
+    "@marko-bindings/tanstack-router": "workspace:*",
+    "marko": "catalog:"
+  },
+  "devDependencies": {
+    "@marko/language-tools": "catalog:",
+    "@marko/type-check": "catalog:",
+    "@marko/vite": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
+  }
+}

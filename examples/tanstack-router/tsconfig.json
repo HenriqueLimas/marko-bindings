@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": [
+    "../../packages/data-fetching/tanstack-query/src",
+    "../../packages/routing/tanstack-router/src",
+    "src",
+    "vite.config.ts"
+  ]
+}

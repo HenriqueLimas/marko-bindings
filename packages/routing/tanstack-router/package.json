@@ -1,0 +1,67 @@
+{
+  "name": "@marko-bindings/tanstack-router",
+  "version": "0.0.0",
+  "description": "TanStack Router bindings for Marko 6",
+  "keywords": [
+    "marko",
+    "markojs",
+    "tanstack",
+    "router",
+    "routing"
+  ],
+  "homepage": "https://github.com/HenriqueLimas/marko-bindings/tree/main/packages/routing/tanstack-router#readme",
+  "bugs": {
+    "url": "https://github.com/HenriqueLimas/marko-bindings/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HenriqueLimas/marko-bindings.git",
+    "directory": "packages/routing/tanstack-router"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./marko.json": "./marko.json",
+    "./package.json": "./package.json"
+  },
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "files": [
+    "src",
+    "docs",
+    "marko.json",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "mtc",
+    "test": "vitest run",
+    "typecheck": "mtc"
+  },
+  "dependencies": {
+    "@tanstack/history": "1.162.0",
+    "@tanstack/router-core": "^1.171.15",
+    "@tanstack/store": "catalog:"
+  },
+  "devDependencies": {
+    "@marko/language-tools": "catalog:",
+    "@marko/testing-library": "catalog:",
+    "@marko/type-check": "catalog:",
+    "@marko/vite": "catalog:",
+    "@types/jsdom": "catalog:",
+    "jsdom": "catalog:",
+    "marko": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "marko": "^6.3.20"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,26 @@
+import {
+  createFacadeHandle,
+  createMarkoRoute,
+  getFacadeValue,
+  type MarkoRoute,
+  type RouteComponent,
+  type RouteFacade,
+} from "../runtime.js";
+
+export interface Input {
+  parent: RouteFacade;
+  path: string;
+  loader?: (context: any) => any;
+  component: Marko.AttrTag<{ content: RouteComponent }>;
+}
+
+<const/handle=createFacadeHandle()>
+<const/createRoute=() =>
+  createMarkoRoute({
+    parent: input.parent.api(),
+    path: input.path,
+    component: input.component.content,
+    loader: input.loader,
+  })>
+<const/getRoute=() => getFacadeValue(handle, createRoute) as MarkoRoute>
+<return={ api: getRoute } as RouteFacade<MarkoRoute>>

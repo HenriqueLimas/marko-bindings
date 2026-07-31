@@ -1,0 +1,36 @@
+import {
+  getMatchIds,
+  getMatchRenderData,
+  type RouterFacade,
+} from "../runtime.js";
+
+export interface Input {
+  router: RouterFacade;
+  revision: number;
+}
+
+<const/router=input.router>
+<const/revision=input.revision>
+<const/matchIds=getMatchIds(router.api(), revision)>
+<define/renderMatch|index: number|>
+  <const/renderData=getMatchRenderData(router.api(), matchIds[index])>
+  <define/outlet>
+    <if=matchIds[index + 1]>
+      <${renderMatch}(index + 1)/>
+    </if>
+  </define>
+
+  <if=renderData.component>
+    <${renderData.component}({
+      outlet: outlet.content,
+      route: renderData.route,
+    })/>
+  </if>
+  <else>
+    <${outlet.content}/>
+  </else>
+</define>
+
+<if=matchIds.length>
+  <${renderMatch}(0)/>
+</if>
