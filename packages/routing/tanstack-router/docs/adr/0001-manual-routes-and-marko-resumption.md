@@ -18,17 +18,24 @@ while the initial request URL belongs to the whole render.
 
 ## Decision
 
+### Namespace the tag family
+
+All public tags use the `ts-` prefix so their ownership is clear and generic
+names do not collide with tags from Marko or other bindings. Declaration tags
+use nouns rather than implementation verbs: `<ts-route>` instead of
+`<create-route>`, for example.
+
 ### Start with manually declared routes
 
 The first package version will not integrate TanStack's route-generator or Vite
 plugin. It will expose manual declarations:
 
 ```marko
-<create-root-route/rootRoute>...</create-root-route>
-<create-route/aboutRoute parent=rootRoute path="/about">...</create-route>
-<create-route-tree/routeTree root=rootRoute children=[aboutRoute]/>
-<create-router/router routeTree=routeTree/>
-<router-provider router=router/>
+<ts-root-route/rootRoute>...</ts-root-route>
+<ts-route/aboutRoute parent=rootRoute path="/about">...</ts-route>
+<ts-route-tree/routeTree root=rootRoute children=[aboutRoute]/>
+<ts-router/router routeTree=routeTree/>
+<ts-router-provider router=router/>
 ```
 
 The Vite plugin's file discovery, generated route tree, automatic code splitting,
@@ -36,7 +43,7 @@ and route HMR are deferred.
 
 ### Use direct parent route inputs
 
-`<create-route>` accepts `parent=rootRoute`. On each target it constructs the
+`<ts-route>` accepts `parent=rootRoute`. On each target it constructs the
 callback TanStack requires internally:
 
 ```ts
@@ -57,7 +64,7 @@ crosses the server/browser boundary.
 
 The server router uses memory history initialized from an explicit `url` or the
 render-wide `$global.url`. The browser router uses browser history. The
-`<router-provider>` receives `router`, renders matches, hydrates state, owns
+`<ts-router-provider>` receives `router`, renders matches, hydrates state, owns
 history/store subscriptions, and cleans them up.
 
 Use TanStack's supported SSR hydration transport initially. Replacing its whole

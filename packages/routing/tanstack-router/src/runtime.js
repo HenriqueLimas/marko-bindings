@@ -28,7 +28,7 @@ export function getDefaultRouter(global) {
   const router = global[defaultRouterKey];
   if (!router) {
     throw new Error(
-      "<router-link> must be rendered by <router-provider> or receive a router input.",
+      "<ts-router-link> must be rendered by <ts-router-provider> or receive a router input.",
     );
   }
   return router;

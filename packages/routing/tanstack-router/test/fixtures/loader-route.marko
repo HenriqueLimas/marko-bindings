@@ -2,13 +2,13 @@ export interface Input {
   url: URL;
 }
 
-<create-root-route/rootRoute>
+<ts-root-route/rootRoute>
   <@component|{ outlet }|>
     <${outlet}/>
   </@component>
-</create-root-route>
+</ts-root-route>
 
-<create-route/postRoute
+<ts-route/postRoute
   parent=rootRoute
   path="/posts/$postId"
   loader=({ params }) => ({ title: `Post ${params.postId}` })
@@ -17,8 +17,8 @@ export interface Input {
     <h1>${route.loaderData.title}</h1>
     <output>${route.params.postId}</output>
   </@component>
-</create-route>
+</ts-route>
 
-<create-route-tree/routeTree root=rootRoute children=[postRoute]/>
-<create-router/router routeTree=routeTree url=input.url/>
-<router-provider router=router/>
+<ts-route-tree/routeTree root=rootRoute children=[postRoute]/>
+<ts-router/router routeTree=routeTree url=input.url/>
+<ts-router-provider router=router/>
