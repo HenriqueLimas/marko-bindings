@@ -26,7 +26,7 @@ const server = createHttpServer((request, response) => {
   vite.middlewares(request, response, async () => {
     try {
       const { default: RouterApp } = await vite.ssrLoadModule(
-        "./src/router.marko?marko-server-entry",
+        "./src/router.server-entry.marko",
       );
 
       response.statusCode = 200;
