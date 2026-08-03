@@ -19,24 +19,24 @@ import { createClient } from "./query-client.marko";
     )>
     <const/booksApiUrl=new URL("/api/books", requestUrl).href>
 
-    <create-root-route/rootRoute>
+    <ts-root-route/rootRoute>
       <@component|{ outlet }|>
         <header>
           <a class="brand" href="/">Marko × TanStack Router</a>
           <nav aria-label="Primary navigation">
-            <router-link to="/">Home</router-link>
-            <router-link to="/about">About</router-link>
-            <router-link to="/query">Query</router-link>
-            <router-link to="/posts/42">Post 42</router-link>
+            <ts-router-link to="/">Home</ts-router-link>
+            <ts-router-link to="/about">About</ts-router-link>
+            <ts-router-link to="/query">Query</ts-router-link>
+            <ts-router-link to="/posts/42">Post 42</ts-router-link>
           </nav>
         </header>
         <main>
           <${outlet}/>
         </main>
       </@component>
-    </create-root-route>
+    </ts-root-route>
 
-    <create-route/homeRoute parent=rootRoute path="/">
+    <ts-route/homeRoute parent=rootRoute path="/">
       <@component>
         <section class="hero">
           <p class="eyebrow">Vite SSR · No Marko Run</p>
@@ -47,9 +47,9 @@ import { createClient } from "./query-client.marko";
           </p>
         </section>
       </@component>
-    </create-route>
+    </ts-route>
 
-    <create-route/aboutRoute
+    <ts-route/aboutRoute
       parent=rootRoute
       path="/about"
       loader=() => ({ renderedAt: new Date().toISOString() })
@@ -65,9 +65,9 @@ import { createClient } from "./query-client.marko";
           </p>
         </section>
       </@component>
-    </create-route>
+    </ts-route>
 
-    <create-route/queryRoute parent=rootRoute path="/query">
+    <ts-route/queryRoute parent=rootRoute path="/query">
       <@component>
         <section>
           <p class="eyebrow">TanStack Query</p>
@@ -120,9 +120,9 @@ import { createClient } from "./query-client.marko";
           </div>
         </section>
       </@component>
-    </create-route>
+    </ts-route>
 
-    <create-route/postRoute
+    <ts-route/postRoute
       parent=rootRoute
       path="/posts/$postId"
       loader=({ params }) => ({
@@ -137,14 +137,14 @@ import { createClient } from "./query-client.marko";
           <p>${route.loaderData.body}</p>
         </article>
       </@component>
-    </create-route>
+    </ts-route>
 
-    <create-route-tree/routeTree
+    <ts-route-tree/routeTree
       root=rootRoute
       children=[homeRoute, aboutRoute, queryRoute, postRoute]
     />
-    <create-router/router routeTree=routeTree/>
-    <router-provider router=router/>
+    <ts-router/router routeTree=routeTree/>
+    <ts-router-provider router=router/>
 
     <style>
       :root {
