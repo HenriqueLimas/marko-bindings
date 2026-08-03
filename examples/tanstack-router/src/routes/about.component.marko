@@ -1,0 +1,13 @@
+import type { RouteComponentContext } from "@marko-bindings/tanstack-router";
+
+export interface Input extends RouteComponentContext {}
+
+<section>
+  <p class="eyebrow">Route loader</p>
+  <h1>About this example</h1>
+  <p>
+    The server loaded this route at
+    <time>${input.route.loaderData.renderedAt}</time>. TanStack's hydration transport
+    carries that data into the resumed browser router.
+  </p>
+</section>

@@ -5,3 +5,4 @@ coverage/
 .vite/
 pnpm-lock.yaml
 CHANGELOG.md
+**/routeTree.gen.ts

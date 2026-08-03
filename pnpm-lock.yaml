@@ -326,6 +326,9 @@ importers:
       '@tanstack/store':
         specifier: 'catalog:'
         version: 0.11.0
+      prettier:
+        specifier: ^3.9.6
+        version: 3.9.6
     devDependencies:
       '@marko/language-tools':
         specifier: 'catalog:'

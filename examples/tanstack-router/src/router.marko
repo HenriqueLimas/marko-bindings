@@ -1,5 +1,5 @@
-import { BOOKS_QUERY_KEY, booksQuery } from "./books-query.js";
 import { createClient } from "./query-client.marko";
+import { routeTree } from "./routeTree.gen.js";
 
 <!doctype html>
 <html lang="en">
@@ -14,137 +14,8 @@ import { createClient } from "./query-client.marko";
   </head>
   <body>
     <init-query-client=() => createClient()/>
-    <const/requestUrl=(
-      $global.url instanceof URL ? $global.url : new URL("http://localhost")
-    )>
-    <const/booksApiUrl=new URL("/api/books", requestUrl).href>
-
-    <ts-root-route/rootRoute>
-      <@component|{ content }|>
-        <header>
-          <a class="brand" href="/">Marko × TanStack Router</a>
-          <nav aria-label="Primary navigation">
-            <ts-router-link to="/">Home</ts-router-link>
-            <ts-router-link to="/about">About</ts-router-link>
-            <ts-router-link to="/query">Query</ts-router-link>
-            <ts-router-link to="/posts/42">Post 42</ts-router-link>
-          </nav>
-        </header>
-        <main>
-          <${content}/>
-        </main>
-      </@component>
-    </ts-root-route>
-
-    <ts-route/homeRoute parent=rootRoute path="/">
-      <@component>
-        <section class="hero">
-          <p class="eyebrow">Vite SSR · No Marko Run</p>
-          <h1>Manual routes,<br><em>resumable navigation.</em></h1>
-          <p>
-            This document is rendered by a custom Node server and resumed by the
-            browser modules discovered through <code>?marko-server-entry</code>.
-          </p>
-        </section>
-      </@component>
-    </ts-route>
-
-    <ts-route/aboutRoute
-      parent=rootRoute
-      path="/about"
-      loader=() => ({ renderedAt: new Date().toISOString() })
-    >
-      <@component|{ route }|>
-        <section>
-          <p class="eyebrow">Route loader</p>
-          <h1>About this example</h1>
-          <p>
-            The server loaded this route at
-            <time>${route.loaderData.renderedAt}</time>. TanStack's hydration transport
-            carries that data into the resumed browser router.
-          </p>
-        </section>
-      </@component>
-    </ts-route>
-
-    <ts-route/queryRoute parent=rootRoute path="/query">
-      <@component>
-        <section>
-          <p class="eyebrow">TanStack Query</p>
-          <h1>Server data,<br><em>resumed cache.</em></h1>
-          <p>
-            This route fetches <a href="/api/books"><code>/api/books</code></a>
-            during SSR and hydrates the same query in the browser.
-          </p>
-
-          <div class="query-card" aria-live="polite">
-            <try>
-              <await-query|result| query=() => booksQuery(booksApiUrl)>
-                <if=result.error>
-                  <p role="alert">${result.error.message}</p>
-                </if>
-                <else>
-                  <ul>
-                    <for|book| of=result.data?.books ?? []>
-                      <li>
-                        <strong>${book.title}</strong>
-                        <span>${book.author}</span>
-                      </li>
-                    </for>
-                  </ul>
-                  <footer>
-                    <span>API request #${result.data?.requestNumber}</span>
-                    <button
-                      type="button"
-                      onClick() {
-                        void createClient().invalidateQueries({
-                          queryKey: BOOKS_QUERY_KEY,
-                        });
-                      }
-                    >
-                      Refresh query
-                    </button>
-                  </footer>
-                </else>
-              </await-query>
-
-              <@placeholder>
-                <p role="status">Loading books…</p>
-              </@placeholder>
-              <@catch|error|>
-                <p role="alert">
-                  ${error instanceof Error ? error.message : String(error)}
-                </p>
-              </@catch>
-            </try>
-          </div>
-        </section>
-      </@component>
-    </ts-route>
-
-    <ts-route/postRoute
-      parent=rootRoute
-      path="/posts/$postId"
-      loader=({ params }) => ({
-        title: `Post ${params.postId}`,
-        body: "Params and loader data stay local to the active route.",
-      })
-    >
-      <@component|{ route }|>
-        <article>
-          <p class="eyebrow">Dynamic route · ${route.params.postId}</p>
-          <h1>${route.loaderData.title}</h1>
-          <p>${route.loaderData.body}</p>
-        </article>
-      </@component>
-    </ts-route>
-
-    <ts-route-tree/routeTree
-      root=rootRoute
-      children=[homeRoute, aboutRoute, queryRoute, postRoute]
-    />
-    <ts-router/router routeTree=routeTree/>
-    <ts-router-provider router=router/>
+    <tsr-router/router routeTree=() => routeTree/>
+    <tsr-router-provider router=router/>
 
     <style>
       :root {

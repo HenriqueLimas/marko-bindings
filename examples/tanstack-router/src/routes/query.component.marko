@@ -1,0 +1,55 @@
+import { BOOKS_QUERY_KEY, booksQuery } from "../books-query.js";
+import { createClient } from "../query-client.marko";
+
+<const/requestUrl=(
+  $global.url instanceof URL ? $global.url : new URL("http://localhost")
+)>
+<const/booksApiUrl=new URL("/api/books", requestUrl).href>
+
+<section>
+  <p class="eyebrow">TanStack Query</p>
+  <h1>Server data,<br><em>resumed cache.</em></h1>
+  <p>
+    This route fetches <a href="/api/books"><code>/api/books</code></a> during
+    SSR and hydrates the same query in the browser.
+  </p>
+
+  <div class="query-card" aria-live="polite">
+    <try>
+      <await-query|result| query=() => booksQuery(booksApiUrl)>
+        <if=result.error>
+          <p role="alert">${result.error.message}</p>
+        </if>
+        <else>
+          <ul>
+            <for|book| of=result.data?.books ?? []>
+              <li><strong>${book.title}</strong><span>${book.author}</span></li>
+            </for>
+          </ul>
+          <footer>
+            <span>API request #${result.data?.requestNumber}</span>
+            <button
+              type="button"
+              onClick() {
+                void createClient().invalidateQueries({
+                  queryKey: BOOKS_QUERY_KEY,
+                });
+              }
+            >
+              Refresh query
+            </button>
+          </footer>
+        </else>
+      </await-query>
+
+      <@placeholder>
+        <p role="status">Loading books…</p>
+      </@placeholder>
+      <@catch|error|>
+        <p role="alert">
+          ${error instanceof Error ? error.message : String(error)}
+        </p>
+      </@catch>
+    </try>
+  </div>
+</section>

@@ -57,7 +57,7 @@ pending, and not-found components replace route content and receive their own
 boundary-specific inputs instead of nested content.
 
 Generated imperative route trees are constructed independently in each target.
-A Marko caller passes an inline route-tree getter to `<ts-router>` so the route
+A Marko caller passes an inline route-tree getter to `<tsr-router>` so the route
 instances do not cross the server resume boundary.
 
 ## Consequences

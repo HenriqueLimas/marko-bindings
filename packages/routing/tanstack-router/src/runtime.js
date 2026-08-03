@@ -31,7 +31,7 @@ export function getDefaultRouter(global) {
   const router = global[defaultRouterKey];
   if (!router) {
     throw new Error(
-      "<ts-router-link> must be rendered by <ts-router-provider> or receive a router input.",
+      "<tsr-link> must be rendered by <tsr-router-provider> or receive a router input.",
     );
   }
   return router;
@@ -227,28 +227,38 @@ export function getRenderedRoute(match) {
   };
 }
 
+function getMatchComponentOption(router, match) {
+  const route = router.routesById[match.routeId];
+  return match.status === "error"
+    ? (route?.options.errorComponent ?? router.options.defaultErrorComponent)
+    : (route?.options.component ?? router.options.defaultComponent);
+}
+
+export function getMatchComponent(router, matchId) {
+  const match = router.stores.matchStores.get(matchId)?.get();
+  if (!match) {
+    throw new Error(`TanStack Router match "${matchId}" was not found.`);
+  }
+  return resolveRouteComponent(getMatchComponentOption(router, match));
+}
+
 export function getMatchRenderData(router, matchId, content) {
   const match = router.stores.matchStores.get(matchId)?.get();
   if (!match) {
     throw new Error(`TanStack Router match "${matchId}" was not found.`);
   }
 
-  const route = router.routesById[match.routeId];
   if (match.status === "error") {
     return {
       kind: "error",
-      component: resolveRouteComponent(
-        route?.options.errorComponent ?? router.options.defaultErrorComponent,
-      ),
+      hasComponent: Boolean(getMatchComponentOption(router, match)),
       error: match.error,
     };
   }
 
   return {
     kind: "component",
-    component: resolveRouteComponent(
-      route?.options.component ?? router.options.defaultComponent,
-    ),
+    hasComponent: Boolean(getMatchComponentOption(router, match)),
     input: {
       content,
       route: getRenderedRoute(match),

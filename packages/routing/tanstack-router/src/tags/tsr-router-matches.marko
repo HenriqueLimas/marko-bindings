@@ -1,4 +1,5 @@
 import {
+  getMatchComponent,
   getMatchIds,
   getMatchRenderData,
   type RouterFacade,
@@ -24,16 +25,16 @@ export interface Input {
     outlet.content,
   )>
 
-  <if=renderData.component>
+  <if=renderData.hasComponent>
     <if=renderData.kind === "error">
-      <${renderData.component}({
+      <${getMatchComponent(router.api(), matchIds[index])}({
         error: renderData.error,
         info: { componentStack: "" },
         reset: () => router.api().invalidate(),
       })/>
     </if>
     <else>
-      <${renderData.component}(renderData.input)/>
+      <${getMatchComponent(router.api(), matchIds[index])}(renderData.input)/>
     </else>
   </if>
   <else>

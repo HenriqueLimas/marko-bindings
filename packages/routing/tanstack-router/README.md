@@ -39,8 +39,8 @@ an inline getter so each Marko target uses its own route instances:
 ```marko
 import { routeTree } from "./routeTree.gen.js";
 
-<ts-router/router routeTree=() => routeTree/>
-<ts-router-provider router=router/>
+<tsr-router/router routeTree=() => routeTree/>
+<tsr-router-provider router=router/>
 ```
 
 A route component renders its nested match as ordinary body content:

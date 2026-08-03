@@ -68,18 +68,14 @@ test("generates a route tree with lazy Marko component pieces", async () => {
   expect(generated).toContain(
     `import { Route as AboutRouteImport } from './routes/about'`,
   );
-  expect(generated).toContain(
-    `component: lazyRouteComponent(() => import('./routes/about.component.marko'), 'default')`,
-  );
-  expect(generated).toContain(
-    `errorComponent: lazyRouteComponent(() => import('./routes/about.errorComponent.marko'), 'default')`,
-  );
+  expect(generated).toContain("component: lazyRouteComponent(");
+  expect(generated).toContain("import('./routes/about.component.marko')");
+  expect(generated).toContain("errorComponent: lazyRouteComponent(");
+  expect(generated).toContain("import('./routes/about.errorComponent.marko')");
   expect(generated).toContain(
     `const ContactRouteImport = createFileRoute('/contact')()`,
   );
-  expect(generated).toContain(
-    `component: lazyRouteComponent(() => import('./routes/contact.component.marko'), 'default')`,
-  );
+  expect(generated).toContain("import('./routes/contact.component.marko')");
   expect(generated).toContain("export const routeTree =");
 });
 

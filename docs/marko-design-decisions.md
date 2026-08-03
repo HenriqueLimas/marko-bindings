@@ -12,6 +12,10 @@ future bindings should follow.
   reactive read-only variables, and `let-*` tags return writable variables.
 - **Rule:** Name a binding for the Marko behavior visible to its caller rather
   than the equivalent integration primitive from another framework.
+- **Ended with:** TanStack Router tags share the `tsr-` namespace, including the
+  concise `<tsr-link>` rather than repeating “router” in the tag name.
+- **Rule:** Give a family of generic integration tags a package-specific prefix;
+  once the namespace establishes the domain, do not repeat it in each noun.
 
 ## Initialize render-wide dependency defaults with getters
 
@@ -249,11 +253,18 @@ future bindings should follow.
   client rendering.
 - **Ended with:** One match-renderer tag owns a local recursive body. Each match
   passes an outlet body bound to the next active match index.
+- **Tried next:** Returning a dynamically imported Marko template inside a
+  `<const>` render-data object. Linked Vite SSR then tried to serialize the
+  template function before the dynamic tag consumed it.
+- **Ended with:** Render data contains only plain state and a component-presence
+  flag. The dynamic tag expression resolves the target-local template directly
+  from the reconstructed route graph.
 - **Rule:** When declaration tag variables form a graph of imperative instances,
   do not return the instances or capture them in resumable closures. Return a
   serializable identity plus registered facade actions, keep target-local
-  instances in private weak storage, and keep recursive rendering inside one
-  module rather than mutually importing custom tags.
+  instances in private weak storage, resolve non-serializable templates only at
+  the dynamic-tag boundary, and keep recursive rendering inside one module
+  rather than mutually importing custom tags.
 
 ## Render nested routes as standard body content
 
