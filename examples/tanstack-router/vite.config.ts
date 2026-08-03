@@ -1,4 +1,5 @@
 import marko from "@marko/vite";
+import { tanstackRouter } from "@marko-bindings/tanstack-router/vite";
 import { defineConfig, type Plugin } from "vite";
 
 const markoServerEntryQuery = (): Plugin => ({
@@ -15,7 +16,7 @@ const markoServerEntryQuery = (): Plugin => ({
 });
 
 export default defineConfig({
-  plugins: [markoServerEntryQuery(), marko()],
+  plugins: [markoServerEntryQuery(), tanstackRouter(), marko()],
   builder: {},
   environments: {
     ssr: {
@@ -23,7 +24,7 @@ export default defineConfig({
         ssr: true,
         outDir: "dist/server",
         rolldownOptions: {
-          input: "src/router.server-entry.marko",
+          input: "src/router.marko?marko-server-entry",
         },
       },
     },

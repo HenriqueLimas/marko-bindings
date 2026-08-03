@@ -11,6 +11,8 @@ export interface TanStackRouterOptions {
   indexToken?: TokenMatcher;
   routeToken?: TokenMatcher;
   disableLogging?: boolean;
+  quoteStyle?: "single" | "double";
+  semicolons?: boolean;
 }
 
 export function tanstackRouter(options?: TanStackRouterOptions): Plugin;

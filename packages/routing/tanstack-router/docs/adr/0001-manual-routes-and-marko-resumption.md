@@ -20,10 +20,11 @@ while the initial request URL belongs to the whole render.
 
 ### Namespace the tag family
 
-All public tags use the `ts-` prefix so their ownership is clear and generic
-names do not collide with tags from Marko or other bindings. Declaration tags
-use nouns rather than implementation verbs: `<ts-route>` instead of
-`<create-route>`, for example.
+All public tags use the `tsr-` prefix so their TanStack Router ownership is
+clear and generic names do not collide with tags from Marko or other bindings.
+Declaration tags use nouns rather than implementation verbs: `<tsr-route>`
+instead of `<create-route>`, for example. The navigation tag is the concise
+`<tsr-link>`, since the namespace already identifies it as a router link.
 
 ### Start with manually declared routes
 
@@ -31,11 +32,11 @@ The first package version will not integrate TanStack's route-generator or Vite
 plugin. It will expose manual declarations:
 
 ```marko
-<ts-root-route/rootRoute>...</ts-root-route>
-<ts-route/aboutRoute parent=rootRoute path="/about">...</ts-route>
-<ts-route-tree/routeTree root=rootRoute children=[aboutRoute]/>
-<ts-router/router routeTree=routeTree/>
-<ts-router-provider router=router/>
+<tsr-root-route/rootRoute>...</tsr-root-route>
+<tsr-route/aboutRoute parent=rootRoute path="/about">...</tsr-route>
+<tsr-route-tree/routeTree root=rootRoute children=[aboutRoute]/>
+<tsr-router/router routeTree=routeTree/>
+<tsr-router-provider router=router/>
 ```
 
 The Vite plugin's file discovery, generated route tree, automatic code splitting,
@@ -43,7 +44,7 @@ and route HMR are deferred.
 
 ### Use direct parent route inputs
 
-`<ts-route>` accepts `parent=rootRoute`. On each target it constructs the
+`<tsr-route>` accepts `parent=rootRoute`. On each target it constructs the
 callback TanStack requires internally:
 
 ```ts
@@ -64,7 +65,7 @@ crosses the server/browser boundary.
 
 The server router uses memory history initialized from an explicit `url` or the
 render-wide `$global.url`. The browser router uses browser history. The
-`<ts-router-provider>` receives `router`, renders matches, hydrates state, owns
+`<tsr-router-provider>` receives `router`, renders matches, hydrates state, owns
 history/store subscriptions, and cleans them up.
 
 Use TanStack's supported SSR hydration transport initially. Replacing its whole

@@ -1,0 +1,9 @@
+import type { RouteComponentContext } from "@marko-bindings/tanstack-router";
+
+export interface Input extends RouteComponentContext {}
+
+<article>
+  <p class="eyebrow">Dynamic route · ${input.route.params.postId}</p>
+  <h1>${input.route.loaderData.title}</h1>
+  <p>${input.route.loaderData.body}</p>
+</article>

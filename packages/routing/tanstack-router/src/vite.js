@@ -1,5 +1,6 @@
 import { readdir, readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
+import { format } from "prettier";
 import {
   determineInitialRoutePath,
   physicalGetRouteNodes,
@@ -22,6 +23,8 @@ const defaultConfig = {
   indexToken: "index",
   routeToken: "route",
   disableLogging: false,
+  quoteStyle: "single",
+  semicolons: false,
 };
 
 function tokenRegex(token) {
@@ -371,12 +374,17 @@ async function generate(config, root) {
         isVirtual: true,
       };
     });
-  const output = buildGeneratedRouteTree({
+  const unformattedOutput = buildGeneratedRouteTree({
     rootNode: rootRouteNode,
     routeNodes,
     virtualRouteNodes,
     pieces,
     generatedRouteTree,
+  });
+  const output = await format(unformattedOutput, {
+    parser: "typescript",
+    semi: config.semicolons,
+    singleQuote: config.quoteStyle === "single",
   });
 
   await mkdir(path.dirname(generatedRouteTree), { recursive: true });

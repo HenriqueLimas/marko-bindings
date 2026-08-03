@@ -2,31 +2,31 @@ export interface Input {
   url: URL;
 }
 
-<ts-root-route/rootRoute>
+<tsr-root-route/rootRoute>
   <@component|{ content }|>
     <main>
       <h1>Root layout</h1>
       <nav>
-        <ts-router-link to="/">Home</ts-router-link>
-        <ts-router-link to="/about">About</ts-router-link>
+        <tsr-link to="/">Home</tsr-link>
+        <tsr-link to="/about">About</tsr-link>
       </nav>
       <${content}/>
     </main>
   </@component>
-</ts-root-route>
+</tsr-root-route>
 
-<ts-route/indexRoute parent=rootRoute path="/">
+<tsr-route/indexRoute parent=rootRoute path="/">
   <@component>
     <h2>Home page</h2>
   </@component>
-</ts-route>
+</tsr-route>
 
-<ts-route/aboutRoute parent=rootRoute path="/about">
+<tsr-route/aboutRoute parent=rootRoute path="/about">
   <@component>
     <h2>About page</h2>
   </@component>
-</ts-route>
+</tsr-route>
 
-<ts-route-tree/routeTree root=rootRoute children=[indexRoute, aboutRoute]/>
-<ts-router/router routeTree=routeTree url=input.url/>
-<ts-router-provider router=router/>
+<tsr-route-tree/routeTree root=rootRoute children=[indexRoute, aboutRoute]/>
+<tsr-router/router routeTree=routeTree url=input.url/>
+<tsr-router-provider router=router/>

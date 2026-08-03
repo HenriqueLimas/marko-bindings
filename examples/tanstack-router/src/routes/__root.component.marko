@@ -1,0 +1,16 @@
+import type { RouteComponentContext } from "@marko-bindings/tanstack-router";
+
+export interface Input extends RouteComponentContext {}
+
+<header>
+  <a class="brand" href="/">Marko × TanStack Router</a>
+  <nav aria-label="Primary navigation">
+    <tsr-link to="/">Home</tsr-link>
+    <tsr-link to="/about">About</tsr-link>
+    <tsr-link to="/query">Query</tsr-link>
+    <tsr-link to="/posts/42">Post 42</tsr-link>
+  </nav>
+</header>
+<main>
+  <${input.content}/>
+</main>

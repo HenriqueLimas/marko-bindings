@@ -198,6 +198,10 @@ export function getMatchIds(
   revision: number,
 ): string[];
 export function getRenderedRoute(match: AnyRouteMatch): RenderedRoute;
+export function getMatchComponent(
+  router: RouterCore<any, any, any, any, any>,
+  matchId: string,
+): AnyRouteComponent | undefined;
 export function getMatchRenderData(
   router: RouterCore<any, any, any, any, any>,
   matchId: string,
@@ -205,11 +209,11 @@ export function getMatchRenderData(
 ):
   | {
       kind: "component";
-      component?: RouteComponent;
+      hasComponent: boolean;
       input: RouteComponentContext;
     }
   | {
       kind: "error";
-      component?: ErrorRouteComponent;
+      hasComponent: boolean;
       error: unknown;
     };
