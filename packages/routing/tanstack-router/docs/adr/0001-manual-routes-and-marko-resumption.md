@@ -83,14 +83,15 @@ A body is rendered only through a dynamic Marko tag. It is never invoked as a
 regular JavaScript function and is never included in the dehydrated router
 payload.
 
-### Pass a bound outlet and rendered route facade
+### Pass nested matches as body content with a rendered route facade
 
-The component body receives one context object:
+The component body receives one context object. Its standard Marko `content`
+body is the nested route:
 
 ```marko
-<@component|{ outlet, route }|>
+<@component|{ content, route }|>
   <h1>${route.loaderData.title}</h1>
-  <${outlet}/>
+  <${content}/>
 </@component>
 ```
 
@@ -101,11 +102,10 @@ route definition is not mutated with active state. Hook-style names such as
 `useParams` are not exposed.
 
 The internal match renderer uses one local recursive body for the ordered active
-matches. Each invocation creates an outlet body with `<define/outlet>`, binds it
-to the next match index, and passes it to the stored component body. Keeping the
-recursion in one tag avoids a browser module cycle between separate match and
-outlet tags. A route that omits its outlet still matches and loads its child but
-does not display it.
+matches. Each invocation creates a body bound to the next match index and passes
+it as the stored component's `content`. Keeping the recursion in one tag avoids
+a browser module cycle between separate match and outlet tags. A route that
+omits its content still matches and loads its child but does not display it.
 
 ### Keep loader data route-local
 

@@ -13,6 +13,9 @@ export class MarkoRootRoute extends BaseRootRoute {}
 export class MarkoRoute extends BaseRoute {}
 
 const facadeValues = new WeakMap();
+const lazyRouteComponentResolve = Symbol(
+  "@marko-bindings/tanstack-router/lazy-route-component-resolve",
+);
 const defaultRouterKey = Symbol.for("@marko-bindings/tanstack-router/default");
 
 export function createFacadeHandle() {
@@ -46,6 +49,10 @@ export function getLinkAnchorProps(input, href, onClick) {
   return { ...anchor, href, onClick };
 }
 
+export function getRouteTreeInput(routeTree) {
+  return typeof routeTree === "function" ? routeTree() : routeTree.api();
+}
+
 export function getFacadeValue(handle, create) {
   let value = facadeValues.get(handle);
   if (value === undefined && create) {
@@ -74,8 +81,60 @@ const getStoreConfig = (options) => {
   };
 };
 
+export function getRouteComponentInput(component) {
+  return component && "content" in component ? component.content : component();
+}
+
+export function lazyRouteComponent(importer, exportName = "default") {
+  let component;
+  let loadPromise;
+
+  const preload = () => {
+    if (!loadPromise && !component) {
+      loadPromise = importer().then((module) => {
+        component = module[exportName];
+        if (!component) {
+          throw new Error(
+            `The lazy route module does not export "${String(exportName)}".`,
+          );
+        }
+      });
+    }
+
+    return loadPromise ?? Promise.resolve();
+  };
+
+  return {
+    preload,
+    [lazyRouteComponentResolve]() {
+      if (!component) {
+        throw new Error(
+          "A lazy Marko route component was rendered before it was preloaded.",
+        );
+      }
+      return component;
+    },
+  };
+}
+
+export function resolveRouteComponent(component) {
+  return component?.[lazyRouteComponentResolve]?.() ?? component;
+}
+
+export function createRootRoute(options) {
+  return new MarkoRootRoute(options);
+}
+
+export function createFileRoute(_path) {
+  return (options) => {
+    const route = new MarkoRoute(options);
+    route.isRoot = false;
+    return route;
+  };
+}
+
 export function createMarkoRootRoute(component) {
-  return new MarkoRootRoute({ component });
+  return createRootRoute({ component });
 }
 
 export function createMarkoRoute(input) {
@@ -168,14 +227,31 @@ export function getRenderedRoute(match) {
   };
 }
 
-export function getMatchRenderData(router, matchId) {
+export function getMatchRenderData(router, matchId, content) {
   const match = router.stores.matchStores.get(matchId)?.get();
   if (!match) {
     throw new Error(`TanStack Router match "${matchId}" was not found.`);
   }
 
+  const route = router.routesById[match.routeId];
+  if (match.status === "error") {
+    return {
+      kind: "error",
+      component: resolveRouteComponent(
+        route?.options.errorComponent ?? router.options.defaultErrorComponent,
+      ),
+      error: match.error,
+    };
+  }
+
   return {
-    component: router.routesById[match.routeId]?.options.component,
-    route: getRenderedRoute(match),
+    kind: "component",
+    component: resolveRouteComponent(
+      route?.options.component ?? router.options.defaultComponent,
+    ),
+    input: {
+      content,
+      route: getRenderedRoute(match),
+    },
   };
 }

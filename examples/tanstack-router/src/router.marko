@@ -20,7 +20,7 @@ import { createClient } from "./query-client.marko";
     <const/booksApiUrl=new URL("/api/books", requestUrl).href>
 
     <ts-root-route/rootRoute>
-      <@component|{ outlet }|>
+      <@component|{ content }|>
         <header>
           <a class="brand" href="/">Marko × TanStack Router</a>
           <nav aria-label="Primary navigation">
@@ -31,7 +31,7 @@ import { createClient } from "./query-client.marko";
           </nav>
         </header>
         <main>
-          <${outlet}/>
+          <${content}/>
         </main>
       </@component>
     </ts-root-route>
