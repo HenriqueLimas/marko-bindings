@@ -66,5 +66,6 @@ instances do not cross the server resume boundary.
 - Component modules can be emitted as independent Vite chunks.
 - Critical loaders and route options stay available without loading markup.
 - Route components access match state through `input.route` rather than hooks.
-- The generator needs a Marko target that recognizes default-exported `.marko`
-  component pieces and emits the package's lazy component wrapper.
+- The Marko-owned Vite generator recognizes default-exported `.marko`
+  component pieces and emits the package's lazy component wrapper while using
+  TanStack's public physical-route discovery API for critical route modules.

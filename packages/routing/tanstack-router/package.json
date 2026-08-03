@@ -24,6 +24,10 @@
       "types": "./src/index.d.ts",
       "import": "./src/index.js"
     },
+    "./vite": {
+      "types": "./src/vite.d.ts",
+      "import": "./src/vite.js"
+    },
     "./marko.json": "./marko.json",
     "./package.json": "./package.json"
   },
@@ -44,6 +48,7 @@
   "dependencies": {
     "@tanstack/history": "1.162.0",
     "@tanstack/router-core": "^1.171.15",
+    "@tanstack/router-generator": "1.167.21",
     "@tanstack/store": "catalog:"
   },
   "devDependencies": {
@@ -52,6 +57,7 @@
     "@marko/type-check": "catalog:",
     "@marko/vite": "catalog:",
     "@types/jsdom": "catalog:",
+    "@types/node": "catalog:",
     "jsdom": "catalog:",
     "marko": "catalog:",
     "typescript": "catalog:",
@@ -59,7 +65,13 @@
     "vitest": "catalog:"
   },
   "peerDependencies": {
-    "marko": "^6.3.20"
+    "marko": "^6.3.20",
+    "vite": "^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
   },
   "publishConfig": {
     "access": "public"
