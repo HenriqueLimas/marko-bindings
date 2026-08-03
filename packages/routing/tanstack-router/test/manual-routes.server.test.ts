@@ -5,7 +5,7 @@ import { expect, test } from "vitest";
 
 import ManualRoutes from "./fixtures/manual-routes.marko";
 
-test("renders the matched child inside its root route outlet", async () => {
+test("renders the matched child as its root route body content", async () => {
   const result = await render(ManualRoutes, {
     url: new URL("https://example.test/about"),
   });

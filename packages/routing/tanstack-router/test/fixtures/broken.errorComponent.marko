@@ -1,0 +1,8 @@
+import type { ErrorComponentProps } from "@tanstack/router-core";
+
+export interface Input extends ErrorComponentProps {}
+
+<section role="alert">
+  <h2>Route failed</h2>
+  <p>${input.error.message}</p>
+</section>

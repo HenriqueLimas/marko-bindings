@@ -255,6 +255,20 @@ future bindings should follow.
   instances in private weak storage, and keep recursive rendering inside one
   module rather than mutually importing custom tags.
 
+## Render nested routes as standard body content
+
+- **Compared:** Vue's `<Outlet>` injects the current route ID from component
+  context and renders the matching child. Marko has no lexically scoped
+  provider/consumer context, while `$global` is render-wide and unsafe for a
+  nested outlet stack.
+- **Ended with:** The match renderer keeps its local recursive body and passes
+  the next match to each route component as `input.content`. File route UI uses
+  Vue-style `.component.marko`, `.errorComponent.marko`,
+  `.pendingComponent.marko`, and `.notFoundComponent.marko` modules whose
+  default templates are loaded through preloadable route options.
+- **Rule:** Represent a Marko outlet as ordinary body content and render it with
+  `<${input.content}/>`; do not emulate component context through `$global`.
+
 ## Adding a decision
 
 ```md

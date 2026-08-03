@@ -13,18 +13,28 @@ export interface Input {
 <const/revision=input.revision>
 <const/matchIds=getMatchIds(router.api(), revision)>
 <define/renderMatch|index: number|>
-  <const/renderData=getMatchRenderData(router.api(), matchIds[index])>
   <define/outlet>
     <if=matchIds[index + 1]>
       <${renderMatch}(index + 1)/>
     </if>
   </define>
+  <const/renderData=getMatchRenderData(
+    router.api(),
+    matchIds[index],
+    outlet.content,
+  )>
 
   <if=renderData.component>
-    <${renderData.component}({
-      outlet: outlet.content,
-      route: renderData.route,
-    })/>
+    <if=renderData.kind === "error">
+      <${renderData.component}({
+        error: renderData.error,
+        info: { componentStack: "" },
+        reset: () => router.api().invalidate(),
+      })/>
+    </if>
+    <else>
+      <${renderData.component}(renderData.input)/>
+    </else>
   </if>
   <else>
     <${outlet.content}/>

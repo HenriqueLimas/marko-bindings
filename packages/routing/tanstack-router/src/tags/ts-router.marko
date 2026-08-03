@@ -1,20 +1,22 @@
-import type { AnyRouter } from "@tanstack/router-core";
+import type { AnyRoute, AnyRouter } from "@tanstack/router-core";
 import {
   createFacadeHandle,
   createMarkoRouter,
   getFacadeValue,
+  getRouteTreeInput,
   type RouterFacade,
   type RouteTreeFacade,
 } from "../runtime.js";
 
 export interface Input {
-  routeTree: RouteTreeFacade;
+  routeTree: RouteTreeFacade | (() => AnyRoute);
   url?: URL | string;
 }
 
 <const/initialUrl=input.url ??
 ($global.url instanceof URL ? $global.url : undefined)>
 <const/handle=createFacadeHandle()>
-<const/createRouter=() => createMarkoRouter(input.routeTree.api(), initialUrl)>
+<const/createRouter=() =>
+  createMarkoRouter(getRouteTreeInput(input.routeTree), initialUrl)>
 <const/getRouter=() => getFacadeValue(handle, createRouter) as AnyRouter>
 <return={ api: getRouter } as RouterFacade>

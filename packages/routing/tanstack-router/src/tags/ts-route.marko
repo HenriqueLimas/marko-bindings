@@ -2,8 +2,10 @@ import {
   createFacadeHandle,
   createMarkoRoute,
   getFacadeValue,
+  getRouteComponentInput,
   type MarkoRoute,
   type RouteComponent,
+  type RouteComponentOption,
   type RouteFacade,
 } from "../runtime.js";
 
@@ -11,7 +13,8 @@ export interface Input {
   parent: RouteFacade;
   path: string;
   loader?: (context: any) => any;
-  component: Marko.AttrTag<{ content: RouteComponent }>;
+  component:
+    Marko.AttrTag<{ content: RouteComponent }> | (() => RouteComponentOption);
 }
 
 <const/handle=createFacadeHandle()>
@@ -19,7 +22,7 @@ export interface Input {
   createMarkoRoute({
     parent: input.parent.api(),
     path: input.path,
-    component: input.component.content,
+    component: getRouteComponentInput(input.component),
     loader: input.loader,
   })>
 <const/getRoute=() => getFacadeValue(handle, createRoute) as MarkoRoute>

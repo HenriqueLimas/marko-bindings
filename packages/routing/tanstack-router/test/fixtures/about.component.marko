@@ -1,0 +1,8 @@
+import type { RouteComponentContext } from "../../src/runtime.js";
+
+export interface Input extends RouteComponentContext {}
+
+<section>
+  <h2>Lazy file route</h2>
+  <${input.content}/>
+</section>
