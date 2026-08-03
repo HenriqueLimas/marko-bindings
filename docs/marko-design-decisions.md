@@ -224,17 +224,14 @@ future bindings should follow.
 
 ## Load direct Vite SSR documents as linked server entries
 
-- **Tried:** Loading `router.marko?marko-server-entry` directly through the
-  installed `@marko/vite`. That version only recognizes its virtual
-  `router.server-entry.marko` filename, so Vite passed uncompiled Marko source to
-  import analysis.
-- **Ended with:** The custom Vite server keeps the explicit query-form contract,
-  while a small pre-resolve plugin maps it to `@marko/vite`'s linked server-entry
-  module. The rendered document then includes Vite's browser entry and can
-  resume without Marko Run.
-- **Rule:** A custom Vite SSR server must load a linked Marko server entry, not a
-  plain server template. Keep any version-specific virtual-module naming in the
-  Vite config rather than the HTTP server.
+- **Tried:** Loading `router.marko?marko-server-entry`, which is not the entry
+  convention exposed by the current `@marko/vite` plugin.
+- **Ended with:** Both the custom Vite server and production SSR build load
+  `router.server-entry.marko`. `@marko/vite` resolves that entry to the source
+  `router.marko` template and links the browser modules required for resumption.
+- **Rule:** A custom Vite SSR server must load `*.server-entry.marko`, not a plain
+  server template or a compatibility query rewrite. Use the plugin's entry
+  convention directly in development and production.
 
 ## Reconstruct route graphs behind serializable facades
 

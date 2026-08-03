@@ -8,29 +8,25 @@ directly. It deliberately does not use `@marko/run`.
 modules and lazy `*.component.marko` files in `src/routes`, then writes
 `src/routeTree.gen.ts`.
 
-The custom Node server loads the Marko document as Vite's linked-mode server
-entry:
+The custom Node server loads the Marko document using `@marko/vite`'s linked
+server-entry convention:
 
 ```js
 const { default: RouterApp } = await vite.ssrLoadModule(
-  "./src/router.marko?marko-server-entry",
+  "./src/router.server-entry.marko",
 );
 ```
 
-The `?marko-server-entry` query is important: it identifies the template as the
-linked-mode entry that must inject browser modules for resumption. The same
-query-form entry is used by the SSR environment build:
+The same entry is used by the production SSR environment build:
 
 ```ts
 rolldownOptions: {
-  input: "src/router.marko?marko-server-entry",
+  input: "src/router.server-entry.marko",
 }
 ```
 
-The installed `@marko/vite` version represents that entry internally as
-`router.server-entry.marko`, so `vite.config.ts` contains a small resolver plugin
-that maps the explicit query protocol to that virtual entry. Both the application
-server and build configuration deal with the stable query form.
+`@marko/vite` resolves this virtual entry to `router.marko` and links the browser
+modules needed for resumption. No compatibility resolver is required.
 
 ## Run
 
