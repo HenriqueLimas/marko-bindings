@@ -32,9 +32,10 @@ export default defineConfig({
 });
 ```
 
-The plugin generates `src/routeTree.gen.ts`. A component-only Marko route gets
-a virtual route configuration automatically. Import the generated tree and pass
-an inline getter so each Marko target uses its own route instances:
+The plugin generates `src/routeTree.gen.ts` and its Marko load manifest,
+`src/routeTree.gen.marko`. A component-only Marko route gets a virtual route
+configuration automatically. Import the generated tree and pass an inline
+getter so each Marko target uses its own route instances:
 
 ```marko
 import { routeTree } from "./routeTree.gen.js";

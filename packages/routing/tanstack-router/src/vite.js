@@ -135,6 +135,7 @@ function buildGeneratedRouteTree({
   virtualRouteNodes,
   pieces,
   generatedRouteTree,
+  generatedRouteComponents,
 }) {
   const supportedRouteTypes = new Set(["static", "layout", "pathless_layout"]);
   const nodes = [...routeNodes, ...virtualRouteNodes]
@@ -156,9 +157,19 @@ function buildGeneratedRouteTree({
   }
 
   const rootPieces = pieces.get("__root") ?? {};
-  const hasPieces =
-    Object.keys(rootPieces).length > 0 ||
-    nodes.some((node) => Object.keys(node.pieces).length > 0);
+  const capitalize = (value) => value[0].toUpperCase() + value.slice(1);
+  const componentPieces = [
+    { owner: "RootRoute", pieces: rootPieces },
+    ...nodes.map((node) => ({ owner: node.variableName, pieces: node.pieces })),
+  ].flatMap(({ owner, pieces: routePieces }) =>
+    componentSuffixes
+      .filter((suffix) => routePieces[suffix])
+      .map((suffix) => ({
+        getter: `get${owner}${capitalize(suffix)}`,
+        identifier: `${owner}${capitalize(suffix)}`,
+        path: routePieces[suffix],
+      })),
+  );
   const lines = [
     "/* eslint-disable */",
     "// @ts-nocheck",
@@ -168,12 +179,22 @@ function buildGeneratedRouteTree({
   ];
 
   const runtimeImports = [
-    ...(hasPieces ? ["lazyRouteComponent"] : []),
+    ...(componentPieces.length ? ["lazyRouteComponent"] : []),
     ...(virtualRouteNodes.length ? ["createFileRoute"] : []),
   ];
   if (runtimeImports.length) {
     lines.push(
       `import { ${runtimeImports.join(", ")} } from '@marko-bindings/tanstack-router'`,
+      "",
+    );
+  }
+  if (componentPieces.length) {
+    lines.push(
+      `import { ${componentPieces.map(({ getter }) => getter).join(", ")} } from '${importPath(
+        generatedRouteTree,
+        generatedRouteComponents,
+        true,
+      )}'`,
       "",
     );
   }
@@ -204,20 +225,20 @@ function buildGeneratedRouteTree({
   }
   if (virtualRouteNodes.length) lines.push("");
 
-  function componentOptions(routePieces) {
+  function componentOptions(routePieces, owner) {
     return componentSuffixes
       .filter((suffix) => routePieces[suffix])
-      .map(
-        (suffix) =>
-          `  ${suffix}: lazyRouteComponent(() => import('${importPath(
-            generatedRouteTree,
-            routePieces[suffix],
-            true,
-          )}'), 'default'),`,
-      );
+      .map((suffix) => {
+        const componentPath = importPath(
+          generatedRouteTree,
+          routePieces[suffix],
+          true,
+        );
+        return `  ${suffix}: lazyRouteComponent(() => import('${componentPath}'), 'default', get${owner}${capitalize(suffix)}()),`;
+      });
   }
 
-  const rootOptions = componentOptions(rootPieces);
+  const rootOptions = componentOptions(rootPieces, "RootRoute");
   lines.push(
     rootOptions.length
       ? `const rootRoute = rootRouteImport.update({\n${rootOptions.join("\n")}\n})`
@@ -241,7 +262,7 @@ function buildGeneratedRouteTree({
       ...(pathless ? [] : [`  path: '${pathValue}',`]),
       `  getParentRoute: () => ${parent},`,
     ];
-    const lazyOptions = componentOptions(node.pieces);
+    const lazyOptions = componentOptions(node.pieces, node.variableName);
     const lazyUpdate = lazyOptions.length
       ? `.update({\n${lazyOptions.join("\n")}\n})`
       : "";
@@ -330,12 +351,37 @@ function buildGeneratedRouteTree({
     "",
   );
 
-  return `${lines.join("\n")}\n`;
+  const routeComponents = [
+    ...componentPieces.map(
+      ({ identifier, path: componentPath }) =>
+        `import ${identifier} from '${importPath(
+          generatedRouteComponents,
+          componentPath,
+          true,
+        )}' with { load: 'render' }`,
+    ),
+    "",
+    ...componentPieces.flatMap(({ getter, identifier }) => [
+      `export function ${getter}() {`,
+      `  return ${identifier}`,
+      "}",
+      "",
+    ]),
+  ];
+
+  return {
+    routeTree: `${lines.join("\n")}\n`,
+    routeComponents: routeComponents.join("\n"),
+  };
 }
 
 async function generate(config, root) {
   const routesDirectory = path.resolve(root, config.routesDirectory);
   const generatedRouteTree = path.resolve(root, config.generatedRouteTree);
+  const generatedRouteComponents = generatedRouteTree.replace(
+    /\.[^.]+$/,
+    ".marko",
+  );
   const { rootRouteNode, routeNodes } = await physicalGetRouteNodes(
     { ...config, routesDirectory },
     root,
@@ -374,25 +420,33 @@ async function generate(config, root) {
         isVirtual: true,
       };
     });
-  const unformattedOutput = buildGeneratedRouteTree({
+  const generated = buildGeneratedRouteTree({
     rootNode: rootRouteNode,
     routeNodes,
     virtualRouteNodes,
     pieces,
     generatedRouteTree,
+    generatedRouteComponents,
   });
-  const output = await format(unformattedOutput, {
+  const routeTreeOutput = await format(generated.routeTree, {
     parser: "typescript",
     semi: config.semicolons,
     singleQuote: config.quoteStyle === "single",
   });
 
   await mkdir(path.dirname(generatedRouteTree), { recursive: true });
-  let current;
-  try {
-    current = await readFile(generatedRouteTree, "utf8");
-  } catch {}
-  if (current !== output) await writeFile(generatedRouteTree, output);
+  async function writeGenerated(file, output) {
+    let current;
+    try {
+      current = await readFile(file, "utf8");
+    } catch {}
+    if (current !== output) await writeFile(file, output);
+  }
+
+  await Promise.all([
+    writeGenerated(generatedRouteTree, routeTreeOutput),
+    writeGenerated(generatedRouteComponents, generated.routeComponents),
+  ]);
 }
 
 export function tanstackRouter(options = {}) {

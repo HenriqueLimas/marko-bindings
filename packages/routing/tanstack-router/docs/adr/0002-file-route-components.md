@@ -38,6 +38,16 @@ extension in generated imports, and are not parsed or rewritten as JavaScript
 route declarations. A Marko `lazyRouteComponent` gives TanStack Router a
 `preload()` method and resolves the imported template for the match renderer.
 
+A raw JavaScript dynamic import rendered the correct server HTML, but its route
+module registered resumable functions after the main browser entry had already
+called Marko's `init()`. The generated tree therefore has a companion
+`routeTree.gen.marko` module that imports each component with
+`with { load: "render" }`. During SSR, `lazyRouteComponent` renders that
+asset-aware template so Marko flushes its load entry before resumption. In the
+browser, TanStack preloads and renders the directly imported template so later
+route-input updates target the loaded component rather than Marko's temporary
+load wrapper.
+
 The match renderer continues to own one local recursive body. It passes the next
 match as the route component's standard `input.content` and passes the active
 match projection as `input.route`:
@@ -67,5 +77,6 @@ instances do not cross the server resume boundary.
 - Critical loaders and route options stay available without loading markup.
 - Route components access match state through `input.route` rather than hooks.
 - The Marko-owned Vite generator recognizes default-exported `.marko`
-  component pieces and emits the package's lazy component wrapper while using
-  TanStack's public physical-route discovery API for critical route modules.
+  component pieces, emits a TypeScript route tree plus a Marko load manifest,
+  and uses TanStack's public physical-route discovery API for critical route
+  modules.

@@ -44,6 +44,7 @@ export interface RouterFacade<
   >,
 > {
   api: () => TRouter;
+  handle: object;
 }
 
 export type RouteTemplate<TInput> =
@@ -107,6 +108,7 @@ export function lazyRouteComponent<
 >(
   importer: () => Promise<TModule>,
   exportName?: TKey,
+  serverComponent?: Extract<TModule[TKey], AnyRouteComponent>,
 ): LazyRouteComponent<Extract<TModule[TKey], AnyRouteComponent>>;
 export function resolveRouteComponent(
   component?: AnyRouteComponent | LazyRouteComponent,
@@ -197,6 +199,13 @@ export function getMatchIds(
   router: RouterCore<any, any, any, any, any>,
   revision: number,
 ): string[];
+export function getMatchState(
+  router: RouterFacade,
+  revision: number,
+): { matchIds: string[]; routerHandle: object };
+export function getRouterForHandle(
+  handle: object,
+): RouterCore<any, any, any, any, any>;
 export function getRenderedRoute(match: AnyRouteMatch): RenderedRoute;
 export function getMatchComponent(
   router: RouterCore<any, any, any, any, any>,

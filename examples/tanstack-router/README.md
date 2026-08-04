@@ -6,7 +6,7 @@ directly. It deliberately does not use `@marko/run`.
 
 `@marko-bindings/tanstack-router/vite` discovers the critical TypeScript route
 modules and lazy `*.component.marko` files in `src/routes`, then writes
-`src/routeTree.gen.ts`.
+`src/routeTree.gen.ts` and its `src/routeTree.gen.marko` load manifest.
 
 The custom Node server loads the Marko document using `@marko/vite`'s linked
 server-entry convention:

@@ -8,6 +8,14 @@ import {
   createFileRoute,
 } from '@marko-bindings/tanstack-router'
 
+import {
+  getRootRouteComponent,
+  getIndexRouteComponent,
+  getAboutRouteComponent,
+  getPostsPostIdRouteComponent,
+  getQueryRouteComponent,
+} from './routeTree.gen.marko'
+
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as PostsPostIdRouteImport } from './routes/posts.$postId'
@@ -19,6 +27,7 @@ const rootRoute = rootRouteImport.update({
   component: lazyRouteComponent(
     () => import('./routes/__root.component.marko'),
     'default',
+    getRootRouteComponent(),
   ),
 })
 
@@ -30,6 +39,7 @@ const IndexRoute = IndexRouteImport.update({
   component: lazyRouteComponent(
     () => import('./routes/index.component.marko'),
     'default',
+    getIndexRouteComponent(),
   ),
 })
 
@@ -41,6 +51,7 @@ const AboutRoute = AboutRouteImport.update({
   component: lazyRouteComponent(
     () => import('./routes/about.component.marko'),
     'default',
+    getAboutRouteComponent(),
   ),
 })
 
@@ -52,6 +63,7 @@ const PostsPostIdRoute = PostsPostIdRouteImport.update({
   component: lazyRouteComponent(
     () => import('./routes/posts.$postId.component.marko'),
     'default',
+    getPostsPostIdRouteComponent(),
   ),
 })
 
@@ -63,6 +75,7 @@ const QueryRoute = QueryRouteImport.update({
   component: lazyRouteComponent(
     () => import('./routes/query.component.marko'),
     'default',
+    getQueryRouteComponent(),
   ),
 })
 
