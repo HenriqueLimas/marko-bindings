@@ -19,4 +19,4 @@ export interface Input {
 <const/createRouter=() =>
   createMarkoRouter(getRouteTreeInput(input.routeTree), initialUrl)>
 <const/getRouter=() => getFacadeValue(handle, createRouter) as AnyRouter>
-<return={ api: getRouter } as RouterFacade>
+<return={ api: getRouter, handle } as RouterFacade>

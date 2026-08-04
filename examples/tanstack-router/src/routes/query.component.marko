@@ -1,10 +1,9 @@
 import { BOOKS_QUERY_KEY, booksQuery } from "../books-query.js";
 import { createClient } from "../query-client.marko";
 
-<const/requestUrl=(
-  $global.url instanceof URL ? $global.url : new URL("http://localhost")
-)>
-<const/booksApiUrl=new URL("/api/books", requestUrl).href>
+<const/booksApiUrl=$global.url instanceof URL
+  ? new URL("/api/books", $global.url).href
+  : "/api/books">
 
 <section>
   <p class="eyebrow">TanStack Query</p>

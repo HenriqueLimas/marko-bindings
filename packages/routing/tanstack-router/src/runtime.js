@@ -85,7 +85,11 @@ export function getRouteComponentInput(component) {
   return component && "content" in component ? component.content : component();
 }
 
-export function lazyRouteComponent(importer, exportName = "default") {
+export function lazyRouteComponent(
+  importer,
+  exportName = "default",
+  serverComponent,
+) {
   let component;
   let loadPromise;
 
@@ -107,6 +111,9 @@ export function lazyRouteComponent(importer, exportName = "default") {
   return {
     preload,
     [lazyRouteComponentResolve]() {
+      if ((isServer ?? typeof document === "undefined") && serverComponent) {
+        return serverComponent;
+      }
       if (!component) {
         throw new Error(
           "A lazy Marko route component was rendered before it was preloaded.",
@@ -214,6 +221,17 @@ export async function prepareRouter(router) {
 
 export function getMatchIds(router, _revision) {
   return router.stores.matchesId.get();
+}
+
+export function getMatchState(router, revision) {
+  return {
+    matchIds: getMatchIds(router.api(), revision),
+    routerHandle: router.handle,
+  };
+}
+
+export function getRouterForHandle(handle) {
+  return getFacadeValue(handle);
 }
 
 export function getRenderedRoute(match) {

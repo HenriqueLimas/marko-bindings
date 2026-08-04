@@ -1,7 +1,8 @@
 import {
   getMatchComponent,
-  getMatchIds,
   getMatchRenderData,
+  getMatchState,
+  getRouterForHandle,
   type RouterFacade,
 } from "../runtime.js";
 
@@ -10,31 +11,39 @@ export interface Input {
   revision: number;
 }
 
-<const/router=input.router>
-<const/revision=input.revision>
-<const/matchIds=getMatchIds(router.api(), revision)>
+<const/matchState=getMatchState(input.router, input.revision)>
 <define/renderMatch|index: number|>
   <define/outlet>
-    <if=matchIds[index + 1]>
+    <if=(matchState.matchIds[index + 1])>
       <${renderMatch}(index + 1)/>
     </if>
   </define>
   <const/renderData=getMatchRenderData(
-    router.api(),
-    matchIds[index],
+    getRouterForHandle(matchState.routerHandle),
+    matchState.matchIds[index],
     outlet.content,
   )>
 
   <if=renderData.hasComponent>
     <if=renderData.kind === "error">
-      <${getMatchComponent(router.api(), matchIds[index])}({
+      <${
+        getMatchComponent(
+          getRouterForHandle(matchState.routerHandle),
+          matchState.matchIds[index],
+        )
+      }({
         error: renderData.error,
         info: { componentStack: "" },
-        reset: () => router.api().invalidate(),
+        reset: () => getRouterForHandle(matchState.routerHandle).invalidate(),
       })/>
     </if>
     <else>
-      <${getMatchComponent(router.api(), matchIds[index])}(renderData.input)/>
+      <${
+        getMatchComponent(
+          getRouterForHandle(matchState.routerHandle),
+          matchState.matchIds[index],
+        )
+      }(renderData.input)/>
     </else>
   </if>
   <else>
@@ -42,6 +51,6 @@ export interface Input {
   </else>
 </define>
 
-<if=matchIds.length>
+<if=matchState.matchIds.length>
   <${renderMatch}(0)/>
 </if>

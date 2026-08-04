@@ -1,0 +1,25 @@
+import RootRouteComponent from './routes/__root.component.marko' with { load: 'render' }
+import IndexRouteComponent from './routes/index.component.marko' with { load: 'render' }
+import AboutRouteComponent from './routes/about.component.marko' with { load: 'render' }
+import PostsPostIdRouteComponent from './routes/posts.$postId.component.marko' with { load: 'render' }
+import QueryRouteComponent from './routes/query.component.marko' with { load: 'render' }
+
+export function getRootRouteComponent() {
+  return RootRouteComponent
+}
+
+export function getIndexRouteComponent() {
+  return IndexRouteComponent
+}
+
+export function getAboutRouteComponent() {
+  return AboutRouteComponent
+}
+
+export function getPostsPostIdRouteComponent() {
+  return PostsPostIdRouteComponent
+}
+
+export function getQueryRouteComponent() {
+  return QueryRouteComponent
+}

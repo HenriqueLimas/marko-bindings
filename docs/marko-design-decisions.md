@@ -256,6 +256,11 @@ future bindings should follow.
 - **Ended with:** Render data contains only plain state and a component-presence
   flag. The dynamic tag expression resolves the target-local template directly
   from the reconstructed route graph.
+- **Tried next:** Closing over the router facade's `api()` action throughout the
+  recursive match body. Production closure optimization could lose that facade
+  when a lazy child replaced the active route.
+- **Ended with:** Reactive match state carries match IDs plus the facade's plain
+  handle. Each target resolves its router from that handle at the point of use.
 - **Rule:** When declaration tag variables form a graph of imperative instances,
   do not return the instances or capture them in resumable closures. Return a
   serializable identity plus registered facade actions, keep target-local
@@ -274,8 +279,17 @@ future bindings should follow.
   Vue-style `.component.marko`, `.errorComponent.marko`,
   `.pendingComponent.marko`, and `.notFoundComponent.marko` modules whose
   default templates are loaded through preloadable route options.
+- **Tried next:** Loading file-route templates only through JavaScript dynamic
+  imports. SSR rendered correctly, but the templates' resumable functions could
+  register after the main browser entry initialized; rendering Marko's lazy
+  template wrapper directly also broke later input updates.
+- **Ended with:** The generated tree pairs each direct lazy import with a Marko
+  `with { load: "render" }` import. SSR renders the asset-aware template to flush
+  its load entry, while the browser renders TanStack's preloaded direct template.
 - **Rule:** Represent a Marko outlet as ordinary body content and render it with
   `<${input.content}/>`; do not emulate component context through `$global`.
+  Framework-managed lazy components must participate in Marko's load-asset
+  orchestration before resumption, then update through the fully loaded template.
 
 ## Adding a decision
 
