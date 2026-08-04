@@ -1,6 +1,6 @@
 {
   "name": "@marko-bindings/example-apollo-client",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "description": "Marko Run example using @marko-bindings/apollo-client with a local Apollo Server",
   "type": "module",

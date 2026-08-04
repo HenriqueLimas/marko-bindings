@@ -1,6 +1,6 @@
 {
   "name": "@marko-bindings/example-tanstack-form",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "description": "Marko Run registration form demonstrating resumable TanStack Form state",
   "type": "module",

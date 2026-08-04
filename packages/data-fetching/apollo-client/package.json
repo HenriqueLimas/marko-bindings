@@ -1,6 +1,6 @@
 {
   "name": "@marko-bindings/apollo-client",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Apollo Client bindings for Marko 6",
   "keywords": [
     "marko",

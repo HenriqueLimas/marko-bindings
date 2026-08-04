@@ -1,6 +1,6 @@
 {
   "name": "@marko-bindings/example-jotai",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "description": "Marko Run task planner demonstrating @marko-bindings/jotai shared state",
   "type": "module",
