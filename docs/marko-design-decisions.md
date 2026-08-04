@@ -232,6 +232,13 @@ future bindings should follow.
 - **Rule:** A custom Vite SSR server must load `*.server-entry.marko`, not a plain
   server template or a compatibility query rewrite. Use the plugin's entry
   convention directly in development and production.
+- **Ended with:** Direct router servers normalize the request path against an
+  explicitly configured application origin instead of deriving outbound URLs
+  from `Host`. The provider reports plain status and header metadata before the
+  server flushes buffered document chunks.
+- **Rule:** Treat request headers as untrusted when constructing SSR origins.
+  Configure a trusted origin, and delay HTTP header commitment until the router
+  has reported its status, route headers, or redirect.
 
 ## Reconstruct route graphs behind serializable facades
 
@@ -261,6 +268,16 @@ future bindings should follow.
   when a lazy child replaced the active route.
 - **Ended with:** Reactive match state carries match IDs plus the facade's plain
   handle. Each target resolves its router from that handle at the point of use.
+- **Tried next:** Subscribing only to the active match ID array. Invalidations
+  and same-route search changes update individual match stores without changing
+  those IDs, leaving rendered route data stale.
+- **Ended with:** The provider subscribes to TanStack's computed `matches` store
+  and carries an explicit revision through every helper that reads a target-local
+  match.
+- **Rule:** Subscribe to the state projection consumed by markup, not only its
+  identity list. When private state is read behind a facade, thread a reactive
+  revision into the exact render-data computation so unchanged identities still
+  republish changed values.
 - **Rule:** When declaration tag variables form a graph of imperative instances,
   do not return the instances or capture them in resumable closures. Return a
   serializable identity plus registered facade actions, keep target-local
@@ -286,10 +303,17 @@ future bindings should follow.
 - **Ended with:** The generated tree pairs each direct lazy import with a Marko
   `with { load: "render" }` import. SSR renders the asset-aware template to flush
   its load entry, while the browser renders TanStack's preloaded direct template.
+- **Ended with:** Match rendering selects error, pending, and not-found pieces
+  from the route or router defaults. A root `globalNotFound` renders inside the
+  root component's outlet, matching TanStack's layout-preserving boundary
+  semantics. Generated pending pieces use the asset-aware Marko template
+  directly because TanStack may display them before a dynamic import settles.
 - **Rule:** Represent a Marko outlet as ordinary body content and render it with
   `<${input.content}/>`; do not emulate component context through `$global`.
   Framework-managed lazy components must participate in Marko's load-asset
   orchestration before resumption, then update through the fully loaded template.
+  Boundary pieces must follow TanStack's match status and preserve the root
+  layout for global not-found rendering.
 
 ## Adding a decision
 

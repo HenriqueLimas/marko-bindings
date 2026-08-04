@@ -5,10 +5,13 @@ import { extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { listBooks } from "./books-data.mjs";
+import { createRequestUrl, renderRouterApplication } from "./server-utils.mjs";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 const clientRoot = resolve(root, "dist/client");
 const port = Number(process.env.PORT || 4173);
+const applicationOrigin =
+  process.env.APP_ORIGIN || `http://localhost:${String(port)}`;
 const { default: RouterApp } =
   await import("./dist/server/router.server-entry.js");
 
@@ -49,7 +52,7 @@ const findClientAsset = async (pathname) => {
 
 const server = createServer(async (request, response) => {
   try {
-    const url = new URL(request.url || "/", `http://${request.headers.host}`);
+    const url = createRequestUrl(request.url, applicationOrigin);
     if (url.pathname === "/api/books") {
       response.statusCode = 200;
       response.setHeader("content-type", "application/json; charset=utf-8");
@@ -73,12 +76,7 @@ const server = createServer(async (request, response) => {
       return createReadStream(asset.file).pipe(response);
     }
 
-    response.statusCode = 200;
-    response.setHeader("content-type", "text/html; charset=utf-8");
-    for await (const chunk of RouterApp.render({ $global: { url } })) {
-      response.write(chunk);
-    }
-    response.end();
+    await renderRouterApplication(RouterApp, url, response);
   } catch (error) {
     console.error(error);
     response.statusCode = 500;

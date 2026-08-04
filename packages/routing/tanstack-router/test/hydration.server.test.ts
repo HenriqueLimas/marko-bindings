@@ -1,6 +1,7 @@
 /** @vitest-environment node */
 
 import { JSDOM } from "jsdom";
+import { redirect } from "@tanstack/router-core";
 import { afterEach, expect, test, vi } from "vitest";
 
 import {
@@ -24,6 +25,39 @@ const createRouteTree = (loader: () => { title: string }) => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+});
+
+test("exposes the router HTTP status after preparing server routes", async () => {
+  const root = createMarkoRootRoute(undefined);
+  const router = createMarkoRouter(
+    createMarkoRouteTree(root, []),
+    "https://example.test/does-not-exist",
+  );
+
+  const prepared = await prepareRouter(router);
+
+  expect(prepared.response?.statusCode).toBe(404);
+});
+
+test("exposes loader redirects to the server renderer", async () => {
+  const root = createMarkoRootRoute(undefined);
+  const page = createMarkoRoute({
+    parent: root,
+    path: "/private",
+    loader: () => {
+      throw redirect({ to: "/login" });
+    },
+  });
+  const router = createMarkoRouter(
+    createMarkoRouteTree(root, [page]),
+    "https://example.test/private",
+  );
+
+  const prepared = await prepareRouter(router);
+
+  expect(prepared.response?.redirect).toBe(true);
+  expect(prepared.response?.statusCode).toBe(307);
+  expect(prepared.response?.headers).toContainEqual(["location", "/login"]);
 });
 
 test("hydrates TanStack loader data without running the initial loader twice", async () => {

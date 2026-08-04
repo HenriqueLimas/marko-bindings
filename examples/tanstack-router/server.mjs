@@ -4,10 +4,13 @@ import { fileURLToPath } from "node:url";
 import { createServer as createViteServer } from "vite";
 
 import { listBooks } from "./books-data.mjs";
+import { createRequestUrl, renderRouterApplication } from "./server-utils.mjs";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 process.chdir(root);
 const port = Number(process.env.PORT || 3000);
+const applicationOrigin =
+  process.env.APP_ORIGIN || `http://localhost:${String(port)}`;
 const vite = await createViteServer({
   root,
   appType: "custom",
@@ -15,7 +18,7 @@ const vite = await createViteServer({
 });
 
 const server = createHttpServer((request, response) => {
-  const url = new URL(request.url || "/", `http://${request.headers.host}`);
+  const url = createRequestUrl(request.url, applicationOrigin);
   if (url.pathname === "/api/books") {
     response.statusCode = 200;
     response.setHeader("content-type", "application/json; charset=utf-8");
@@ -29,12 +32,7 @@ const server = createHttpServer((request, response) => {
         "./src/router.server-entry.marko",
       );
 
-      response.statusCode = 200;
-      response.setHeader("content-type", "text/html; charset=utf-8");
-      for await (const chunk of RouterApp.render({ $global: { url } })) {
-        response.write(chunk);
-      }
-      response.end();
+      await renderRouterApplication(RouterApp, url, response);
     } catch (error) {
       vite.ssrFixStacktrace(error);
       console.error(error);

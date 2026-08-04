@@ -18,6 +18,8 @@ src/routes/
   about.ts
   about.component.marko
   about.errorComponent.marko
+  about.pendingComponent.marko
+  about.notFoundComponent.marko
 ```
 
 Add the router plugin before `@marko/vite`:
@@ -55,6 +57,21 @@ export interface Input extends RouteComponentContext {}
 <${input.content}/>
 ```
 
+For a custom HTTP server, forward prepared response metadata before committing
+headers:
+
+```marko
+<tsr-router-provider
+  router=router
+  onServerPrepared=(response) => input.onServerPrepared?.(response)
+/>
+```
+
+`response` contains the router status code, merged route or redirect headers,
+and a redirect flag. Buffer document chunks until this callback runs, apply the
+metadata, then continue streaming.
+
 A runnable [direct Vite SSR example](../../../examples/tanstack-router/README.md)
-demonstrates server entry loading, route-loader hydration, TanStack Query cache
+demonstrates server entry loading, trusted request-origin construction,
+route-loader hydration, response status propagation, TanStack Query cache
 hydration, and browser navigation without Marko Run.

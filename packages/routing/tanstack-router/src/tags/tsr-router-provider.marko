@@ -2,10 +2,12 @@ import {
   initializeDefaultRouter,
   prepareRouter,
   type RouterFacade,
+  type RouterServerResponse,
 } from "../runtime.js";
 
 export interface Input {
   router: RouterFacade;
+  onServerPrepared?: (response: RouterServerResponse) => void;
 }
 
 <const/router=initializeDefaultRouter($global, input.router)>
@@ -14,8 +16,8 @@ export interface Input {
 <lifecycle
   onMount() {
     const current = router.api();
-    const matches = current.stores.matchesId.subscribe(() => {
-      revision++;
+    const matches = current.stores.matches.subscribe(() => {
+      revision = revision + 1;
     });
     const unsubscribeHistory = current.history.subscribe(current.load);
     return { matches, unsubscribeHistory };
@@ -26,6 +28,9 @@ export interface Input {
   }
 >
 <await|prepared|=preparedRouter>
+  <const/reported=(
+    prepared.response ? input.onServerPrepared?.(prepared.response) : undefined
+  )>
   <tsr-router-matches router=router revision=revision/>
   <if=prepared.script>
     <html-script>${prepared.script};</html-script>

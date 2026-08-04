@@ -43,6 +43,10 @@ test("generates a route tree with lazy Marko component pieces", async () => {
       "<h1>Error</h1>",
     ),
     writeFile(
+      path.join(routesDirectory, "about.pendingComponent.marko"),
+      "<h1>Pending</h1>",
+    ),
+    writeFile(
       path.join(routesDirectory, "contact.component.marko"),
       "<h1>Contact</h1>",
     ),
@@ -73,11 +77,17 @@ test("generates a route tree with lazy Marko component pieces", async () => {
   expect(generated).toContain("getAboutRouteComponent()");
   expect(generated).toContain("errorComponent: lazyRouteComponent(");
   expect(generated).toContain("getAboutRouteErrorComponent()");
+  expect(generated).toContain(
+    "pendingComponent: getAboutRoutePendingComponent(),",
+  );
   expect(generatedComponents).toContain(
     `import AboutRouteComponent from './routes/about.component.marko' with { load: 'render' }`,
   );
   expect(generatedComponents).toContain(
     `import AboutRouteErrorComponent from './routes/about.errorComponent.marko' with { load: 'render' }`,
+  );
+  expect(generatedComponents).toContain(
+    `import AboutRoutePendingComponent from './routes/about.pendingComponent.marko' with { load: 'render' }`,
   );
   expect(generated).toContain(
     `const ContactRouteImport = createFileRoute('/contact')()`,

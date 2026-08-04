@@ -190,6 +190,37 @@ export function loadRouter(router) {
   return load;
 }
 
+function mergeResponseHeaders(...sources) {
+  const result = new Headers();
+  for (const source of sources) {
+    if (!source) continue;
+    const headers = source instanceof Headers ? source : new Headers(source);
+    for (const [name, value] of headers) {
+      if (name === "set-cookie") {
+        const cookies = headers.getSetCookie?.() ?? [value];
+        for (const cookie of cookies) result.append(name, cookie);
+      } else {
+        result.set(name, value);
+      }
+    }
+  }
+  return result;
+}
+
+function getRouterResponse(router) {
+  const redirect = router.stores.redirect.get();
+  const headers = mergeResponseHeaders(
+    { "content-type": "text/html; charset=utf-8" },
+    ...router.stores.matches.get().map((match) => match.headers),
+    redirect?.headers,
+  );
+  return {
+    statusCode: redirect?.status ?? router.stores.statusCode.get(),
+    headers: [...headers.entries()],
+    redirect: Boolean(redirect),
+  };
+}
+
 export async function prepareRouter(router) {
   const server = isServer ?? typeof document === "undefined";
   if (!server) {
@@ -216,6 +247,7 @@ export async function prepareRouter(router) {
 
   return {
     script: router.serverSsr.takeBufferedScripts()?.children,
+    response: getRouterResponse(router),
   };
 }
 
@@ -227,6 +259,7 @@ export function getMatchState(router, revision) {
   return {
     matchIds: getMatchIds(router.api(), revision),
     routerHandle: router.handle,
+    revision,
   };
 }
 
@@ -245,11 +278,33 @@ export function getRenderedRoute(match) {
   };
 }
 
+function getNotFoundComponentOption(router, route) {
+  return (
+    route?.options.notFoundComponent ??
+    (route?.isRoot
+      ? router.options.notFoundRoute?.options.component
+      : undefined) ??
+    router.options.defaultNotFoundComponent
+  );
+}
+
 function getMatchComponentOption(router, match) {
   const route = router.routesById[match.routeId];
-  return match.status === "error"
-    ? (route?.options.errorComponent ?? router.options.defaultErrorComponent)
-    : (route?.options.component ?? router.options.defaultComponent);
+  switch (match.status) {
+    case "error":
+      return (
+        route?.options.errorComponent ?? router.options.defaultErrorComponent
+      );
+    case "notFound":
+      return getNotFoundComponentOption(router, route);
+    case "pending":
+      return (
+        route?.options.pendingComponent ??
+        router.options.defaultPendingComponent
+      );
+    default:
+      return route?.options.component ?? router.options.defaultComponent;
+  }
 }
 
 export function getMatchComponent(router, matchId) {
@@ -260,26 +315,53 @@ export function getMatchComponent(router, matchId) {
   return resolveRouteComponent(getMatchComponentOption(router, match));
 }
 
-export function getMatchRenderData(router, matchId, content) {
+export function getMatchRenderData(router, matchId, content, _revision) {
   const match = router.stores.matchStores.get(matchId)?.get();
   if (!match) {
     throw new Error(`TanStack Router match "${matchId}" was not found.`);
   }
 
+  const hasComponent = Boolean(getMatchComponentOption(router, match));
   if (match.status === "error") {
+    return { kind: "error", hasComponent, error: match.error };
+  }
+  if (match.status === "notFound") {
     return {
-      kind: "error",
-      hasComponent: Boolean(getMatchComponentOption(router, match)),
-      error: match.error,
+      kind: "notFound",
+      hasComponent,
+      input: {
+        ...(match.error && typeof match.error === "object" ? match.error : {}),
+        isNotFound: true,
+        routeId: match.routeId,
+      },
     };
+  }
+  if (match.status === "pending") {
+    return { kind: "pending", hasComponent, input: {} };
   }
 
   return {
     kind: "component",
-    hasComponent: Boolean(getMatchComponentOption(router, match)),
+    hasComponent,
     input: {
       content,
       route: getRenderedRoute(match),
+    },
+  };
+}
+
+export function getGlobalNotFoundRenderData(router, matchId, _revision) {
+  const match = router.stores.matchStores.get(matchId)?.get();
+  if (!match?.globalNotFound) return { active: false };
+
+  const route = router.routesById[match.routeId];
+  return {
+    active: true,
+    hasComponent: Boolean(getNotFoundComponentOption(router, route)),
+    component: resolveRouteComponent(getNotFoundComponentOption(router, route)),
+    input: {
+      isNotFound: true,
+      routeId: match.routeId,
     },
   };
 }

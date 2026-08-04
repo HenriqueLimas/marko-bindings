@@ -19,6 +19,19 @@ test("constructs the route graph from browser history during client rendering", 
   expect(screen.queryByRole("heading", { name: "Home page" })).toBeNull();
 });
 
+test("updates route state when navigating within the same match", async () => {
+  window.history.replaceState(null, "", "/search?value=one");
+  await render(ManualRoutes, {
+    url: new URL("https://server.example/"),
+  });
+
+  expect(await screen.findByText("Search value: one")).toBeTruthy();
+
+  await fireEvent.click(screen.getByRole("link", { name: "Change search" }));
+
+  expect(await screen.findByText("Search value: two")).toBeTruthy();
+});
+
 test("navigates client-side while retaining standard link hrefs", async () => {
   window.history.replaceState(null, "", "/about");
   await render(ManualRoutes, {

@@ -8,6 +8,7 @@
     "build": "vite build --app",
     "dev": "node server.mjs",
     "preview": "node preview.mjs",
+    "test": "node --test test/*.test.mjs",
     "typecheck": "mtc"
   },
   "dependencies": {

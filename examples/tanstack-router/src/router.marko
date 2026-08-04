@@ -1,5 +1,11 @@
+import type { RouterServerResponse } from "@marko-bindings/tanstack-router";
+
 import { createClient } from "./query-client.marko";
 import { routeTree } from "./routeTree.gen.js";
+
+export interface Input {
+  onServerPrepared?: (response: RouterServerResponse) => void;
+}
 
 <!doctype html>
 <html lang="en">
@@ -15,7 +21,10 @@ import { routeTree } from "./routeTree.gen.js";
   <body>
     <init-query-client=() => createClient()/>
     <tsr-router/router routeTree=() => routeTree/>
-    <tsr-router-provider router=router/>
+    <tsr-router-provider
+      router=router
+      onServerPrepared=(response) => input.onServerPrepared?.(response)
+    />
 
     <style>
       :root {

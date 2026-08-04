@@ -229,6 +229,9 @@ function buildGeneratedRouteTree({
     return componentSuffixes
       .filter((suffix) => routePieces[suffix])
       .map((suffix) => {
+        if (suffix === "pendingComponent") {
+          return `  ${suffix}: get${owner}${capitalize(suffix)}(),`;
+        }
         const componentPath = importPath(
           generatedRouteTree,
           routePieces[suffix],

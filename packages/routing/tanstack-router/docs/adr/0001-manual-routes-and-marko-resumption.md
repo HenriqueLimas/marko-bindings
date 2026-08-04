@@ -66,12 +66,22 @@ crosses the server/browser boundary.
 The server router uses memory history initialized from an explicit `url` or the
 render-wide `$global.url`. The browser router uses browser history. The
 `<tsr-router-provider>` receives `router`, renders matches, hydrates state, owns
-history/store subscriptions, and cleans them up.
+history/store subscriptions, and cleans them up. It subscribes to the computed
+`matches` store rather than only `matchesId`, because invalidation and same-route
+navigation can update search, context, status, and loader data while retaining
+every match ID. An explicit revision reaches each target-local match read so
+those value-only updates rerender.
 
 Use TanStack's supported SSR hydration transport initially. Replacing its whole
 transport with Marko serialization requires a public transport-neutral
 `dehydrateRouter(router)` / `hydrateRouter(router, state)` seam; do not copy
 private TanStack hydration logic.
+
+After server preparation, the provider may report a plain response descriptor
+through `onServerPrepared`. It includes the router status, merged route or
+redirect headers, and whether the response is a redirect. A direct HTTP server
+buffers only until this callback runs, commits the reported metadata, and then
+continues streaming.
 
 ### Store route markup as target-local `Marko.Body` values
 

@@ -28,6 +28,19 @@ rolldownOptions: {
 `@marko/vite` resolves this virtual entry to `router.marko` and links the browser
 modules needed for resumption. No compatibility resolver is required.
 
+The server normalizes request paths against a trusted application origin instead
+of the client-controlled `Host` header, following TanStack Router's React and
+Solid SSR examples. It defaults to the local listening URL; set `APP_ORIGIN` to
+the deployment's canonical origin when needed:
+
+```sh
+APP_ORIGIN=https://app.example pnpm --filter @marko-bindings/example-tanstack-router preview
+```
+
+The router provider reports status and headers before buffered document chunks
+are flushed, so not-found routes return 404 and loader redirects retain their
+HTTP response metadata.
+
 ## Run
 
 From the repository root:
