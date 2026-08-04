@@ -1,6 +1,6 @@
 {
   "name": "@marko-bindings/tanstack-form",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "TanStack Form bindings for Marko 6",
   "keywords": [
     "marko",

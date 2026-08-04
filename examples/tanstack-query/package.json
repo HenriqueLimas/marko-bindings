@@ -1,6 +1,6 @@
 {
   "name": "@marko-bindings/example-tanstack-query",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "description": "Marko Run example using @marko-bindings/tanstack-query with a local JSON API",
   "type": "module",

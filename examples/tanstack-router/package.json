@@ -1,6 +1,6 @@
 {
   "name": "@marko-bindings/example-tanstack-router",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "description": "Vite SSR application demonstrating TanStack Router and Query without Marko Run",
   "type": "module",
