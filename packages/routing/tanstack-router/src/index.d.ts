@@ -10,6 +10,10 @@ export type {
   ErrorRouteComponent,
   ErrorRouteComponentOption,
   LazyRouteComponent,
+  NotFoundRouteComponent,
+  NotFoundRouteComponentOption,
+  PendingRouteComponent,
+  PendingRouteComponentOption,
   RenderedRoute,
   RouteComponent,
   RouteComponentContext,
@@ -17,5 +21,6 @@ export type {
   RouteFacade,
   RouteTemplate,
   RouterFacade,
+  RouterServerResponse,
   RouteTreeFacade,
 } from "./runtime.js";

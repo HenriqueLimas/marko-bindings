@@ -9,6 +9,7 @@ import {
   type ErrorComponentProps,
   type FileRoutesByPath,
   type MakeRouteMatchFromRoute,
+  type NotFoundRouteProps,
   type Register,
   type RootRouteOptions,
   type RouterCore,
@@ -54,7 +55,13 @@ export type RouteComponent<TRoute extends AnyRoute = AnyRoute> = RouteTemplate<
   RouteComponentContext<TRoute>
 >;
 export type ErrorRouteComponent = RouteTemplate<ErrorComponentProps>;
-export type AnyRouteComponent = RouteComponent | ErrorRouteComponent;
+export type PendingRouteComponent = RouteTemplate<Record<string, never>>;
+export type NotFoundRouteComponent = RouteTemplate<NotFoundRouteProps>;
+export type AnyRouteComponent =
+  | RouteComponent
+  | ErrorRouteComponent
+  | PendingRouteComponent
+  | NotFoundRouteComponent;
 
 export interface LazyRouteComponent<
   TComponent extends AnyRouteComponent = AnyRouteComponent,
@@ -66,6 +73,10 @@ export type RouteComponentOption<TRoute extends AnyRoute = AnyRoute> =
   RouteComponent<TRoute> | LazyRouteComponent<RouteComponent<TRoute>>;
 export type ErrorRouteComponentOption =
   ErrorRouteComponent | LazyRouteComponent<ErrorRouteComponent>;
+export type PendingRouteComponentOption =
+  PendingRouteComponent | LazyRouteComponent<PendingRouteComponent>;
+export type NotFoundRouteComponentOption =
+  NotFoundRouteComponent | LazyRouteComponent<NotFoundRouteComponent>;
 
 declare module "@tanstack/router-core" {
   interface RouterReadableStore<TValue> extends Readable<TValue> {}
@@ -73,6 +84,8 @@ declare module "@tanstack/router-core" {
   interface UpdatableRouteOptionsExtensions {
     component?: RouteComponentOption;
     errorComponent?: ErrorRouteComponentOption;
+    pendingComponent?: PendingRouteComponentOption;
+    notFoundComponent?: NotFoundRouteComponentOption;
   }
 }
 
@@ -192,9 +205,15 @@ export function createMarkoRouter(
 export function loadRouter(
   router: RouterCore<any, any, any, any, any>,
 ): Promise<void>;
+export interface RouterServerResponse {
+  statusCode: number;
+  headers: Array<[name: string, value: string]>;
+  redirect: boolean;
+}
+
 export function prepareRouter(
   router: RouterCore<any, any, any, any, any>,
-): Promise<{ script?: string }>;
+): Promise<{ script?: string; response?: RouterServerResponse }>;
 export function getMatchIds(
   router: RouterCore<any, any, any, any, any>,
   revision: number,
@@ -202,7 +221,7 @@ export function getMatchIds(
 export function getMatchState(
   router: RouterFacade,
   revision: number,
-): { matchIds: string[]; routerHandle: object };
+): { matchIds: string[]; routerHandle: object; revision: number };
 export function getRouterForHandle(
   handle: object,
 ): RouterCore<any, any, any, any, any>;
@@ -215,6 +234,7 @@ export function getMatchRenderData(
   router: RouterCore<any, any, any, any, any>,
   matchId: string,
   content: Marko.Body,
+  revision: number,
 ):
   | {
       kind: "component";
@@ -225,4 +245,26 @@ export function getMatchRenderData(
       kind: "error";
       hasComponent: boolean;
       error: unknown;
+    }
+  | {
+      kind: "notFound";
+      hasComponent: boolean;
+      input: NotFoundRouteProps;
+    }
+  | {
+      kind: "pending";
+      hasComponent: boolean;
+      input: Record<string, never>;
+    };
+export function getGlobalNotFoundRenderData(
+  router: RouterCore<any, any, any, any, any>,
+  matchId: string,
+  revision: number,
+):
+  | { active: false }
+  | {
+      active: true;
+      hasComponent: boolean;
+      component?: NotFoundRouteComponent;
+      input: NotFoundRouteProps;
     };

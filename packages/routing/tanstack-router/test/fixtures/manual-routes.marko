@@ -1,5 +1,8 @@
+import type { RouterServerResponse } from "../../src/runtime.js";
+
 export interface Input {
   url: URL;
+  onServerPrepared?: (response: RouterServerResponse) => void;
 }
 
 <tsr-root-route/rootRoute>
@@ -27,6 +30,20 @@ export interface Input {
   </@component>
 </tsr-route>
 
-<tsr-route-tree/routeTree root=rootRoute children=[indexRoute, aboutRoute]/>
+<tsr-route/searchRoute parent=rootRoute path="/search">
+  <@component|{ route }|>
+    <h2>Search page</h2>
+    <p>Search value: ${route.search.value}</p>
+    <tsr-link to="/search?value=two">Change search</tsr-link>
+  </@component>
+</tsr-route>
+
+<tsr-route-tree/routeTree
+  root=rootRoute
+  children=[indexRoute, aboutRoute, searchRoute]
+/>
 <tsr-router/router routeTree=routeTree url=input.url/>
-<tsr-router-provider router=router/>
+<tsr-router-provider
+  router=router
+  onServerPrepared=(response) => input.onServerPrepared?.(response)
+/>

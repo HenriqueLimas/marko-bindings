@@ -48,6 +48,12 @@ browser, TanStack preloads and renders the directly imported template so later
 route-input updates target the loaded component rather than Marko's temporary
 load wrapper.
 
+Pending components are the exception: TanStack may commit pending matches before
+the route's dynamic imports settle. Generated `pendingComponent` options use the
+asset-aware Marko template directly, avoiding a render-before-preload failure.
+Pending bodies have no route input that must continue updating through the
+fully loaded template.
+
 The match renderer continues to own one local recursive body. It passes the next
 match as the route component's standard `input.content` and passes the active
 match projection as `input.route`:
@@ -64,7 +70,9 @@ export interface Input extends RouteComponentContext {}
 A component that omits `<${input.content}/>` intentionally hides its child
 routes. A route without a component renders its child automatically. Error,
 pending, and not-found components replace route content and receive their own
-boundary-specific inputs instead of nested content.
+boundary-specific inputs instead of nested content. A root-level global
+not-found renders through the root outlet, preserving the root layout like the
+official TanStack adapters.
 
 Generated imperative route trees are constructed independently in each target.
 A Marko caller passes an inline route-tree getter to `<tsr-router>` so the route
